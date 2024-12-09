@@ -11,12 +11,9 @@
   <url>http://maven.apache.org</url>
   <modules>
     <module>user-service</module>
-    <module>customer-service</module>
-    <module>inventory-management-service</module>
-    <module>order-processing-service</module>
-    <module>financial-management-service</module>
     <module>api-gateway</module>
     <module>common</module>
+    <module>client-service</module>
   </modules>
 
   <properties>
