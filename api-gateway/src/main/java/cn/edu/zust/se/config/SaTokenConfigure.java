@@ -22,17 +22,20 @@ public class SaTokenConfigure {
                 .addInclude("/**")
                 // 开放地址
                 .addExclude("/favicon.ico")
+                .addExclude("/user/login")
                 // 鉴权方法：每次访问进入
                 .setAuth(obj -> {
+                    System.out.println("Sa-Token filter is working");
                     // 登录校验 -- 拦截所有路由，并排除/user/doLogin 用于开放登录
-                    SaRouter.match("/**", "/meta-auth/phoneLogin", r -> StpUtil.checkLogin());
+                    SaRouter.match("/**", r -> StpUtil.checkLogin());
+                    SaRouter.match("/user/**", r -> StpUtil.checkRoleOr("admin","user"));
                     // 角色认证 -- 拦截以 admin 开头的路由，必须具备 admin 角色或者 super-admin 角色才可以通过认证
-                    SaRouter.match("/admin/**", r -> StpUtil.checkRoleOr("admin", "super-admin"));
+//                    SaRouter.match("/admin/**", r -> StpUtil.checkRoleOr("admin"));
                     // 权限认证 -- 不同模块, 校验不同权限
-                    SaRouter.match("/meta-system/**", r -> StpUtil.checkPermission("system-no"));
-                    SaRouter.match("/admin/**", r -> StpUtil.checkPermission("admin"));
-                    SaRouter.match("/goods/**", r -> StpUtil.checkPermission("goods"));
-                    SaRouter.match("/orders/**", r -> StpUtil.checkPermission("orders"));
+//                    SaRouter.match("/meta-system/**", r -> StpUtil.checkPermission("system-no"));
+//                    SaRouter.match("/admin/**", r -> StpUtil.checkPermission("admin"));
+//                    SaRouter.match("/goods/**", r -> StpUtil.checkPermission("goods"));
+//                    SaRouter.match("/orders/**", r -> StpUtil.checkPermission("orders"));
                 })
                 // 异常处理方法：每次setAuth函数出现异常时进入
                 .setError(e -> {
