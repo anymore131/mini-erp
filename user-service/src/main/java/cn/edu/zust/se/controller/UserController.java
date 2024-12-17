@@ -22,6 +22,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("")
 public class UserController {
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(UserController.class);
     @Autowired
     private IUserService userService;
 
@@ -58,7 +59,7 @@ public class UserController {
         return SaResult.data(isDelete).setMsg("删除成功！");
     }
 
-    @GetMapping("/page")
+    @RequestMapping("/page")
     public SaResult page(@RequestBody UserQuery userQuery){
         if (!StpUtil.hasRole("admin")) {
             throw new ForbiddenException("无权查看用户列表！");

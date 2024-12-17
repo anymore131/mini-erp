@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
+    private final static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserServiceImpl.class);
     @Autowired
     private UserMapper userMapper;
 
@@ -71,6 +72,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
         user.setRole("user");
         user.setCreatedTime(LocalDateTime.now());
+        user.setIsDelete(0);
         userMapper.insert(user);
         return BeanUtil.copyProperties(user, UserVo.class);
     }
@@ -101,6 +103,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Override
     public PageDto<UserVo> pageUsers(UserQuery userQuery) {
+        log.info("查询用户列表：{}", userQuery.toString());
         Page<User> page = userQuery.toMpPage(userQuery.getSortBy(), userQuery.isAsc());
         lambdaQuery()
                 .like(userQuery.getUserName() != null, User::getUserName , userQuery.getUserName())
