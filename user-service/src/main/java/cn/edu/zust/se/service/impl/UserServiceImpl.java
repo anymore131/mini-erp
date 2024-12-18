@@ -103,7 +103,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Override
     public PageDto<UserVo> pageUsers(UserQuery userQuery) {
-        log.info("查询用户列表：{}", userQuery.toString());
         Page<User> page = userQuery.toMpPage(userQuery.getSortBy(), userQuery.isAsc());
         lambdaQuery()
                 .like(userQuery.getUserName() != null, User::getUserName , userQuery.getUserName())
@@ -181,5 +180,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         user.setPassword(newPassword);
         user.setLastUpdate(LocalDateTime.now());
         return userMapper.updateById(user) > 0;
+    }
+
+    @Override
+    public String getUserNameById(Integer id) {
+        User user = userMapper.selectById(id);
+        if (user != null) {
+            return user.getUserName();
+        }
+        return null;
     }
 }

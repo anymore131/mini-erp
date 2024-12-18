@@ -22,4 +22,5 @@ public interface IUserService extends IService<User> {
     public UserVo getUserByUserName(String userName);
     public boolean resetPassword(Integer userId, String newPassword);
     public boolean updatePassword(Integer userId, String oldPassword, String newPassword);
+    public String getUserNameById(Integer id);
 }

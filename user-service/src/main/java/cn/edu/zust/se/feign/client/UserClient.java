@@ -20,4 +20,6 @@ public interface UserClient {
 
     @GetMapping("/users/{id}")
     UserVo getUserById(@PathVariable("id") Long id);
+
+
 }

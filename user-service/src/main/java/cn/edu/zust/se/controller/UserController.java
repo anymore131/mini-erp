@@ -101,4 +101,12 @@ public class UserController {
         boolean isUpdate = userService.updatePassword(currentUserId, oldPassword, newPassword);
         return SaResult.data(isUpdate).setMsg("更新密码成功！");
     }
+
+    @GetMapping("/getUserName")
+    public String getUserNameById(@RequestParam Integer id){
+        if (id == null){
+            return null;
+        }
+        return userService.getUserNameById(id);
+    }
 }

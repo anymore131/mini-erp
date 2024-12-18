@@ -11,6 +11,6 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 public class ClientApplication {
     public static void main(String[] args) {
         SpringApplication.run(ClientApplication.class, args);
-        System.out.println("用户服务启动成功 ヾ(￣ー￣)X(^▽^)ゞ");
+        System.out.println("客户服务启动成功 ヾ(￣ー￣)X(^▽^)ゞ");
     }
 }
