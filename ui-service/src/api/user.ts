@@ -20,7 +20,7 @@ export const userApi = {
         pageNum: data.pageNum,
         pageSize: data.pageSize,
         sortBy: data.sortBy || 'create_time',
-        isAsc: data.isAsc === undefined ? true : data.isAsc,
+        asc: data.asc === undefined ? true : data.asc,
         userName: data.userName || null,
         realName: data.realName || null,
         role: data.role || null

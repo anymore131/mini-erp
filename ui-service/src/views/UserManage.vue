@@ -191,7 +191,7 @@ export default defineComponent({
     // 添加排序状态
     const sortState = reactive({
       sortBy: 'create_time',
-      isAsc: true
+      asc: true
     })
 
     // 前端字段名到后端字段名的映射
@@ -216,7 +216,7 @@ export default defineComponent({
           pageNum: pagination.pageNum,
           pageSize: pagination.pageSize,
           sortBy: sortState.sortBy,
-          isAsc: sortState.isAsc,
+          asc: sortState.asc,
           userName: searchForm.userName,
           realName: searchForm.realName,
           role: searchForm.role
@@ -316,20 +316,8 @@ export default defineComponent({
 
     // 处理排序变化
     const handleSortChange = ({ prop, order }: { prop?: string, order?: string }) => {
-      if (prop) {
-        sortState.sortBy = columnFieldMap[prop] || prop
-        if (order === 'ascending') {
-          sortState.isAsc = true
-        } else if (order === 'descending') {
-          sortState.isAsc = false
-        } else {
-          sortState.sortBy = 'create_time'
-          sortState.isAsc = true
-        }
-      } else {
-        sortState.sortBy = 'create_time'
-        sortState.isAsc = true
-      }
+      sortState.sortBy = prop ? (columnFieldMap[prop] || prop) : ''
+      sortState.asc = order === 'ascending'
       fetchUserList()
     }
 

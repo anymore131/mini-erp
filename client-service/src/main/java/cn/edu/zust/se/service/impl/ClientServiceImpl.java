@@ -11,6 +11,7 @@ import cn.edu.zust.se.service.IClientService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,8 @@ import java.util.List;
 public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> implements IClientService {
     @Autowired
     private UserFeignServiceI userFeignService;
-
+    @Autowired
+    private UserFeignServiceI userFeignServiceI;
 
     @Override
     public PageDto<ClientVo> getClientVoPage(ClientQuery clientQuery) {
@@ -65,5 +67,19 @@ public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> impleme
         }
         voPageDto.setList(vos);
         return voPageDto;
+    }
+
+    @Override
+    public void userSignOut(Integer userId) {
+        String s = userFeignService.getUserNameById(userId);
+        if (s == null){
+            QueryWrapper<Client> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("user_id", userId);
+            List<Client> clients = baseMapper.selectList(queryWrapper);
+            for (Client client : clients){
+                client.setUserId(0);
+                baseMapper.updateById(client);
+            }
+        }
     }
 }

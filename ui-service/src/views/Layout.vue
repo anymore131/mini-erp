@@ -24,6 +24,15 @@
             <span>系统管理</span>
           </template>
           <el-menu-item index="/user-manage">用户管理</el-menu-item>
+          <el-menu-item index="/client-manage">客户管理</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="client" v-if="!isAdmin">
+          <template #title>
+            <el-icon><User /></el-icon>
+            <span>客户</span>
+          </template>
+          <el-menu-item index="/client-manage">客户管理</el-menu-item>
         </el-sub-menu>
 
         <el-menu-item index="/profile">

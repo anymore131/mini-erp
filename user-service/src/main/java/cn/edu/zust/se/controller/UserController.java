@@ -102,11 +102,19 @@ public class UserController {
         return SaResult.data(isUpdate).setMsg("更新密码成功！");
     }
 
-    @GetMapping("/getUserName")
-    public String getUserNameById(@RequestParam Integer id){
+    @GetMapping("/getUserName/{id}")
+    public String getUserNameById(@PathVariable Integer id){
         if (id == null){
             return null;
         }
         return userService.getUserNameById(id);
+    }
+
+    @GetMapping("/getRole/{id}")
+    public String getRole(@PathVariable Integer id){
+        if (id == null){
+            return null;
+        }
+        return userService.getRole(id);
     }
 }

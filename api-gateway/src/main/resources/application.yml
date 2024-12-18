@@ -21,6 +21,8 @@ spring:
           order: 2
           predicates:
             - Path=/client/**
+          filters:
+            - StripPrefix=1
       discovery:
         locator:
           enabled: true

@@ -8,6 +8,6 @@ import lombok.EqualsAndHashCode;
 public class ClientQuery extends PageQuery{
     private String name;
     private Integer sum;
-    private String userId;
+    private Integer userId;
     private String status;
 }

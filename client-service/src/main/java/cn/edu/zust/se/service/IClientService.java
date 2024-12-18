@@ -12,4 +12,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IClientService extends IService<Client> {
     public PageDto<ClientVo> getClientVoPage(ClientQuery clientQuery);
+    public void userSignOut(Integer userId);
 }

@@ -20,7 +20,7 @@ export interface UserQuery {
   pageNum: number
   pageSize: number
   sortBy?: string
-  isAsc?: boolean
+  asc?: boolean
   userName?: string | undefined
   realName?: string | undefined
   role?: string | undefined
@@ -54,4 +54,18 @@ export interface LoginResponse {
   code: number
   msg: string
   data: UserInfo
-} 
+}
+
+// 客户状态映射
+export const CLIENT_STATUS_MAP: Record<string, string> = {
+  'START': '已添加',
+  'COOPERATION': '正在合作',
+  'WAITING': '未开展合作'
+}
+
+export const CLIENT_STATUS_OPTIONS = [
+  '已添加',
+  '正在合作',
+  '未开展合作'
+]
+ 

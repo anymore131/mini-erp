@@ -12,27 +12,29 @@ public class PageQuery {
     private Integer pageSize = 10;
     private String sortBy = "create_time";
     // 是否升序
-    private boolean isAsc = true;
+    private boolean asc = true;
 
     public <T> Page<T> toMpPage(OrderItem ... items){
         Page<T> page = new Page<>(pageNum, pageSize);
-        if (StrUtil.isNotBlank(sortBy)){
-            page.addOrder(new OrderItem().setAsc(isAsc).setColumn(sortBy));
-        }else if (items != null){
+        if (items != null){
             page.addOrder(items);
         }
         return page;
     }
 
     public <T> Page<T> toMpPage(String sortBy, boolean isAsc){
-        return toMpPage(new OrderItem().setAsc(isAsc).setColumn(sortBy));
+        Page<T> page = new Page<>(pageNum, pageSize);
+        if (StrUtil.isNotBlank(sortBy)) {
+            page.addOrder(new OrderItem().setAsc(asc).setColumn(sortBy));
+        }
+        return page;
     }
 
     public <T> Page<T> toMpPageSortByCreateTime(boolean isAsc){
-        return toMpPage(new OrderItem().setAsc(isAsc).setColumn("create_time"));
+        return toMpPage(new OrderItem().setAsc(asc).setColumn("create_time"));
     }
 
     public <T> Page<T> toMpPageSortByUpdateTime(boolean isAsc){
-        return toMpPage(new OrderItem().setAsc(isAsc).setColumn("update_time"));
+        return toMpPage(new OrderItem().setAsc(asc).setColumn("update_time"));
     }
 }

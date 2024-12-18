@@ -39,6 +39,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true, roles: ['admin'] }
       },
       {
+        path: 'client-manage',
+        name: 'ClientManage',
+        component: () => import('../views/client/ClientManage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
         path: 'profile',
         name: 'Profile',
         component: () => import('../views/Profile.vue'),

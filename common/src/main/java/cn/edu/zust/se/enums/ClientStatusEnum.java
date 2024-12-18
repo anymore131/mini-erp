@@ -17,20 +17,20 @@ public enum ClientStatusEnum {
     }
 
     // 根据整数值获取枚举实例
-    public static ClientStatusEnum fromCode(int code) {
+    public static String fromCode(int code) {
         for (ClientStatusEnum status : ClientStatusEnum.values()) {
             if (status.getCode() == code) {
-                return status;
+                return status.toString();
             }
         }
         throw new IllegalArgumentException("ClientStatusEnum unknown code: " + code);
     }
 
     // 根据字符串值获取枚举实例
-    public static ClientStatusEnum fromMessage(String message) {
+    public static Integer fromMessage(String message) {
         for (ClientStatusEnum status : ClientStatusEnum.values()) {
             if (status.getMessage().equalsIgnoreCase(message)) {
-                return status;
+                return status.code;
             }
         }
         throw new IllegalArgumentException("ClientStatusEnum unknown message: " + message);

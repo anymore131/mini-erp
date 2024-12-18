@@ -29,6 +29,7 @@ public class SaTokenConfigure {
                     // 登录校验 -- 拦截所有路由，并排除/user/doLogin 用于开放登录
                     SaRouter.match("/**", r -> StpUtil.checkLogin());
                     SaRouter.match("/user/**", r -> StpUtil.checkRoleOr("admin","user"));
+                    SaRouter.match("/client/**", r -> StpUtil.checkRoleOr("admin","user"));
                     // 角色认证 -- 拦截以 admin 开头的路由，必须具备 admin 角色或者 super-admin 角色才可以通过认证
 //                    SaRouter.match("/admin/**", r -> StpUtil.checkRoleOr("admin"));
                     // 权限认证 -- 不同模块, 校验不同权限

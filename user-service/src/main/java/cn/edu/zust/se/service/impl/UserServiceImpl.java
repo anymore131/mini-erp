@@ -190,4 +190,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
         return null;
     }
+
+    @Override
+    public String getRole(Integer id) {
+        User user = userMapper.selectById(id);
+        if (user != null) {
+            return user.getRole();
+        }
+        return null;
+    }
 }
