@@ -29,8 +29,6 @@ import java.util.List;
 public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> implements IClientService {
     @Autowired
     private UserFeignServiceI userFeignService;
-    @Autowired
-    private UserFeignServiceI userFeignServiceI;
 
     @Override
     public PageDto<ClientVo> getClientVoPage(ClientQuery clientQuery) {

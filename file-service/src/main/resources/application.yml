@@ -1,38 +1,8 @@
 server:
-  port: 7000
+  port: 18088
 spring:
   application:
-    name: api-gateway
-  cloud:
-    nacos:
-      discovery:
-        server-addr: localhost:8848
-    gateway:
-      routes:
-        - id: user-route
-          uri: lb://user-service
-          order: 1
-          predicates:
-            - Path=/user/**
-          filters:
-            - StripPrefix=1
-        - id: client-route
-          uri: lb://client-service
-          order: 2
-          predicates:
-            - Path=/client/**
-          filters:
-            - StripPrefix=1
-        - id: file-route
-          uri: lb://file-service
-          order: 8
-          predicates:
-            - Path=/file/**
-          filters:
-            - StripPrefix=1
-      discovery:
-        locator:
-          enabled: true
+    name: file-service
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://47.99.150.135:13306/erp?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8
@@ -44,13 +14,29 @@ spring:
       max-lifetime: 1800000
       minimum-idle: 5
       maximum-pool-size: 20
-      validation-timeout: 5000
-      connection-test-query: SELECT 1
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
   data:
     redis:
       host: 47.99.150.135
       port: 6379
       password: 0408
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*Mapper.xml
+  type-aliases-package: cn.edu.zust.se.po
+  global-config:
+    db-config:
+      logic-delete-field: is_delete # 全局逻辑删除字段名
+      logic-delete-value: 1 # 逻辑已删除值
+      logic-not-delete-value: 0 # 逻辑未删除值
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 # Sa-Token配置
 sa-token:
@@ -65,4 +51,10 @@ sa-token:
   # token风格
   token-style: uuid
   # 是否输出操作日志
-  is-log: true
+  is-log: false
+
+minio:
+  endpoint: http://47.99.150.135:9000 #Minio服务所在地址
+  bucketName: mini-erp #存储桶名称
+  accessKey: minioadmin #访问的key
+  secretKey: minioadmin #访问的秘钥
