@@ -68,6 +68,21 @@ public class ContractTemplateServiceImpl extends ServiceImpl<ContractTemplateMap
     }
 
     @Override
+    public void deleteTemplate(Integer id) {
+        contractTemplateMapper.deleteById(id);
+    }
+
+    @Override
+    public void changeTemplateStatus(Integer id, boolean enabled) {
+        ContractTemplate contractTemplate = contractTemplateMapper.selectById(id);
+        if(enabled){
+            contractTemplate.setStatus(1);
+        }else{
+            contractTemplate.setStatus(2);
+        }
+    }
+
+    @Override
     public void setCreator(Integer userId) {
         this.creatorId = userId;
     }

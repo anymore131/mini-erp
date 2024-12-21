@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.zust.se.mapper.MessageMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.edu.zust.se.entity.po.Message">
+        <id column="id" property="id" />
+        <result column="content" property="content" />
+        <result column="type" property="type" />
+        <result column="send_time" property="sendTime" />
+        <result column="contract_id" property="contractId" />
+        <result column="user_id" property="userId" />
+        <result column="is_delete" property="isDelete" />
+    </resultMap>
+
+</mapper>

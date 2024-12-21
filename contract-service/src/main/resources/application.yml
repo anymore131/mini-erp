@@ -1,0 +1,49 @@
+server:
+  port: 18081
+spring:
+  application:
+    name: contract-service
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://47.99.150.135:13306/erp?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8
+    username: root
+    password: 0408
+    hikari:
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      minimum-idle: 5
+      maximum-pool-size: 20
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+  data:
+    redis:
+      host: 47.99.150.135
+      port: 6379
+      password: 0408
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*Mapper.xml
+  type-aliases-package: cn.edu.zust.se.po
+  global-config:
+    db-config:
+      logic-delete-field: is_delete # ?????????
+      logic-delete-value: 1 # ??????
+      logic-not-delete-value: 0 # ??????
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+# Sa-Token??
+sa-token:
+  # token?? (????cookie??)
+  token-name: satoken
+  # token????????-1??????
+  timeout: 2592000
+  # ???????????? (?false?????????)
+  is-concurrent: true
+  # ?????????????????token (?false?????????token)
+  is-share: false
+  # token??
+  token-style: uuid
+  # ????????
+  is-log: false
