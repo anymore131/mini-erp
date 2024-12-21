@@ -2,10 +2,12 @@ package cn.edu.zust.se.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
 import cn.edu.zust.se.entity.dto.PageDto;
+import cn.edu.zust.se.entity.query.PageQuery;
 import cn.edu.zust.se.entity.query.UserQuery;
 import cn.edu.zust.se.exception.InvalidInputException;
 import cn.edu.zust.se.entity.po.User;
 import cn.edu.zust.se.entity.vo.UserVo;
+import cn.edu.zust.se.feign.client.ClientFeignServiceI;
 import cn.edu.zust.se.mapper.UserMapper;
 import cn.edu.zust.se.service.IUserService;
 import cn.hutool.core.bean.BeanUtil;
@@ -32,6 +34,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private final static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserServiceImpl.class);
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private ClientFeignServiceI clientFeignService;
 
     @Override
     public UserVo login(User user) {
@@ -97,6 +101,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     public boolean deleteUser(Integer id) {
         if (id == null) {
             throw new InvalidInputException("用户ID不能为空！");
+        }
+        String s = clientFeignService.signOut(id);
+        if (!"success".equals(s)){
+            throw new InvalidInputException("用户客户修改失败！");
         }
         return userMapper.deleteById(id) > 0;
     }
@@ -198,5 +206,33 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             return user.getRole();
         }
         return null;
+    }
+
+    @Override
+    public boolean checkUser(Integer id, String password) {
+        User user = userMapper.selectById(id);
+        return user != null && user.getPassword().equals(password);
+    }
+
+    @Override
+    public PageDto<UserVo> pageUsersName(PageQuery pageQuery) {
+        if (pageQuery == null){
+            return null;
+        }
+        UserQuery userQuery = (UserQuery) pageQuery;
+        userQuery.setSortBy("real_name");
+        PageDto<UserVo> userVoPageDto = this.pageUsers(userQuery);
+        PageDto<UserVo> users = new PageDto<>();
+        users.setTotal(userVoPageDto.getTotal());
+        users.setPages(userVoPageDto.getPages());
+        List<UserVo> userVos = userVoPageDto.getList();
+        for (UserVo userVo : userVoPageDto.getList()){
+            UserVo userVo1 = new UserVo();
+            userVo1.setId(userVo.getId());
+            userVo1.setRealName(userVo.getRealName());
+            userVos.add(userVo1);
+        }
+        users.setList(userVos);
+        return users;
     }
 }

@@ -2,6 +2,7 @@ package cn.edu.zust.se.service;
 
 import cn.edu.zust.se.entity.dto.PageDto;
 import cn.edu.zust.se.entity.po.User;
+import cn.edu.zust.se.entity.query.PageQuery;
 import cn.edu.zust.se.entity.query.UserQuery;
 import cn.edu.zust.se.entity.vo.UserVo;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -24,4 +25,6 @@ public interface IUserService extends IService<User> {
     public boolean updatePassword(Integer userId, String oldPassword, String newPassword);
     public String getUserNameById(Integer id);
     public String getRole(Integer id);
+    boolean checkUser(Integer id, String password);
+    public PageDto<UserVo> pageUsersName(PageQuery pageQuery);
 }

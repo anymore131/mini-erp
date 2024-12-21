@@ -4,6 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
 import cn.edu.zust.se.entity.dto.PageDto;
+import cn.edu.zust.se.entity.query.PageQuery;
 import cn.edu.zust.se.entity.query.UserQuery;
 import cn.edu.zust.se.exception.ForbiddenException;
 import cn.edu.zust.se.entity.po.User;
@@ -82,12 +83,10 @@ public class UserController {
     public SaResult resetPassword(@RequestBody Map<String, String> params){
         Integer userId = Integer.parseInt(params.get("userId"));
         String newPassword = params.get("newPassword");
-        
         Integer currentUserId = StpUtil.getLoginIdAsInt();
         if (!StpUtil.hasRole("admin") && !currentUserId.equals(userId)) {
             throw new ForbiddenException("无权重置其他用户密码！");
         }
-        
         boolean isReset = userService.resetPassword(userId, newPassword);
         return SaResult.data(isReset).setMsg("重置密码成功！");
     }
@@ -116,5 +115,21 @@ public class UserController {
             return null;
         }
         return userService.getRole(id);
+    }
+
+    @PostMapping("/checkUser")
+    public boolean checkUser(@RequestParam Integer id, @RequestParam String password){
+        if (id == null || password == null){
+            return false;
+        }
+        return userService.checkUser(id, password);
+    }
+
+    @GetMapping("/getUsers")
+    public SaResult getUsers(PageQuery pageQuery){
+        if (pageQuery == null){
+            throw new IllegalArgumentException("pageQuery不能为空！");
+        }
+        return new SaResult().setData(userService.pageUsersName(pageQuery));
     }
 }
