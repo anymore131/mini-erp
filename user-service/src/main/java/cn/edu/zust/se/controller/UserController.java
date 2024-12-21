@@ -109,6 +109,14 @@ public class UserController {
         return userService.getUserNameById(id);
     }
 
+    @GetMapping("/getDeleteUserById/{id}")
+    public UserVo getDeleteUserById(@PathVariable Integer id){
+        if (id == null){
+            return null;
+        }
+        return userService.getDeleteUserById(id);
+    }
+
     @GetMapping("/getRole/{id}")
     public String getRole(@PathVariable Integer id){
         if (id == null){

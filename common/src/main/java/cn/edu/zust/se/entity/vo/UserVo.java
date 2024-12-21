@@ -16,6 +16,6 @@ public class UserVo {
     private String realName;
     private String phone;
     private String role;
-    private LocalDateTime createdTime;
+    private LocalDateTime createTime;
     private LocalDateTime lastUpdate;
 }

@@ -19,7 +19,7 @@ export const userApi = {
       data: {
         pageNum: data.pageNum,
         pageSize: data.pageSize,
-        sortBy: data.sortBy || 'created_time',
+        sortBy: data.sortBy || 'create_time',
         asc: data.asc === undefined ? true : data.asc,
         userName: data.userName || null,
         realName: data.realName || null,

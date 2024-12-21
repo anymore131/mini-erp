@@ -17,6 +17,7 @@
     <module>file-service</module>
     <module>contract-service</module>
     <module>message-service</module>
+    <module>order-service</module>
   </modules>
 
   <properties>

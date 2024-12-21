@@ -3,7 +3,7 @@
     <el-card class="login-card">
       <template #header>
         <div class="login-header">
-          <h2>ERP系统登录</h2>
+          <h2>登录</h2>
         </div>
       </template>
       

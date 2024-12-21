@@ -106,4 +106,12 @@ public class ClientController {
         clientService.userSignOut(userId);
         return "success";
     }
+
+    @PostMapping("/getClientName/{id}")
+    public String getClientNameById(@PathVariable("id") Integer id){
+        if (id == null){
+            return null;
+        }
+        return clientService.getClientVoById(id).getName();
+    }
 }

@@ -129,7 +129,11 @@
         </template>
       </el-table-column>
       <el-table-column prop="userName" label="负责人" />
-      <el-table-column prop="lastTime" label="最后更新时间" sortable="custom" />
+      <el-table-column prop="lastTime" label="最后更新时间" sortable="custom">
+        <template #default="{ row }">
+          {{ formatTime(row.lastTime) }}
+        </template>
+      </el-table-column>
     </el-table>
 
     <!-- 分页 -->
@@ -144,65 +148,79 @@
       class="pagination"
     />
 
-    <!-- 第一步：选择客户对话框 -->
+    <!-- 修改负责人对话框 -->
     <el-dialog
-      v-model="selectClientVisible"
-      title="修改负责人 - 选择客户"
-      width="600px"
+      v-model="changeUserDialogVisible"
+      :title="dialogTitle"
+      :width="step === 1 ? '600px' : '400px'"
       @close="handleClose"
     >
-      <el-table
-        ref="multipleTable"
-        :data="clientList"
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="selection" width="55" />
-        <el-table-column prop="name" label="客户名称" />
-        <el-table-column prop="status" label="状态">
-          <template #default="{ row }">
-            {{ CLIENT_STATUS_MAP[row.status] }}
-          </template>
-        </el-table-column>
-      </el-table>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="selectClientVisible = false">取消</el-button>
-          <el-button type="primary" @click="nextStep" :disabled="!selectedClients.length">下一步</el-button>
-        </span>
-      </template>
-    </el-dialog>
+      <!-- 第一步：选择客户 -->
+      <div v-if="step === 1">
+        <el-table
+          ref="multipleTable"
+          :data="clientList"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55" />
+          <el-table-column prop="name" label="客户名称" />
+          <el-table-column prop="status" label="状态">
+            <template #default="{ row }">
+              {{ CLIENT_STATUS_MAP[row.status] }}
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
 
-    <!-- 第二步：选择用户对话框 -->
-    <el-dialog
-      v-model="selectUserVisible"
-      title="修改负责人 - 选择新负责人"
-      width="400px"
-      @close="handleClose"
-    >
-      <el-form ref="userFormRef" :model="userForm" :rules="userFormRules">
-        <el-form-item label="选择用户" prop="userId">
-          <el-select v-model="userForm.userId" placeholder="请选择用户">
-            <el-option
-              v-for="user in userList"
-              :key="user.id"
-              :label="user.realName"
-              :value="user.id"
+      <!-- 第二步：选择用户 -->
+      <div v-else-if="step === 2">
+        <el-form ref="userFormRef" :model="userForm" :rules="userFormRules">
+          <el-form-item label="选择用户" prop="userId">
+            <el-select v-model="userForm.userId" placeholder="请选择用户">
+              <el-option
+                v-for="user in userList"
+                :key="user.id"
+                :label="user.realName"
+                :value="user.id"
+              />
+            </el-select>
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <!-- 第三步：输入密码 -->
+      <div v-else>
+        <el-form ref="userFormRef" :model="userForm" :rules="userFormRules">
+          <el-form-item label="当前密码" prop="password">
+            <el-input
+              v-model="userForm.password"
+              type="password"
+              show-password
+              placeholder="请输入当前密码"
             />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="当前密码" prop="password">
-          <el-input
-            v-model="userForm.password"
-            type="password"
-            show-password
-            placeholder="请输入当前密码"
-          />
-        </el-form-item>
-      </el-form>
+          </el-form-item>
+        </el-form>
+      </div>
+
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="prevStep">上一步</el-button>
-          <el-button type="primary" @click="handleChangeUser">完成</el-button>
+          <el-button v-if="step > 1" @click="prevStep">上一步</el-button>
+          <el-button @click="changeUserDialogVisible = false">取消</el-button>
+          <el-button 
+            type="primary" 
+            v-if="step < 3"
+            @click="nextStep" 
+            :disabled="step === 1 && !selectedClients.length"
+          >
+            下一步
+          </el-button>
+          <el-button 
+            v-else
+            type="primary" 
+            @click="handleChangeUser"
+          >
+            完成
+          </el-button>
         </span>
       </template>
     </el-dialog>
@@ -210,7 +228,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, reactive, onMounted, watch, nextTick } from 'vue'
+import { defineComponent, ref, reactive, onMounted, watch, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { clientApi } from '../../api/client'
 import type { ClientInfo, ClientForm } from '../../types'
@@ -220,6 +238,7 @@ import { useRouter, onBeforeRouteLeave, RouteLocationNormalized, useRoute } from
 import type { FormInstance } from 'element-plus'
 import { userApi } from '../../api/user'
 import { SimpleUser } from '../../types'
+import { formatDateTime } from '../../utils/format'
 
 export default defineComponent({
   name: 'ClientManage',
@@ -269,7 +288,6 @@ export default defineComponent({
           sum: searchForm.sum ? searchForm.sum * 100 : undefined,
           userId: route.params.userId ? Number(route.params.userId) : (store.isAdmin.value ? undefined : store.userInfo.value?.id)
         })
-        console.log('响应数据:', response)
 
         if (response.code === 200 && response.data) {
           clientList.value = response.data.list
@@ -406,78 +424,78 @@ export default defineComponent({
       }
     )
 
-    // 修改负责人相关状态
-    const selectClientVisible = ref(false)
-    const selectUserVisible = ref(false)
-    const selectedClients = ref<ClientInfo[]>([])
-    const userList = ref<SimpleUser[]>([])
+    // 修改状态定义
+    const step = ref<1 | 2 | 3>(1)  // 添加步骤状态
+    const changeUserDialogVisible = ref(false)  // 使用单个对话框
+    const selectedClients = ref<ClientInfo[]>([])  // 添加选中的客户列表
+    const userList = ref<SimpleUser[]>([])  // 添加用户列表
     const userForm = reactive({
       userId: undefined as number | undefined,
       password: ''
     })
 
     const userFormRules = {
-      userId: [{ required: true, message: '请选择用户', trigger: 'change' }],
+      userId: [{ required: true, message: '请选择用���', trigger: 'change' }],
       password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
     }
 
     // 显示修改负责人对话框
     const showChangeUserDialog = () => {
-      selectClientVisible.value = true
+      step.value = 1
+      changeUserDialogVisible.value = true
       selectedClients.value = []
-    }
-
-    // 处理表格选择变化
-    const handleSelectionChange = (selection: ClientInfo[]) => {
-      selectedClients.value = selection
     }
 
     // 下一步
     const nextStep = async () => {
-      if (!selectedClients.value.length) {
-        ElMessage.warning('请选择要修改的客户')
-        return
-      }
-
-      try {
-        const res = await userApi.getUsers({ 
-          pageNum: 1, 
-          pageSize: 1000,
-          sortBy: 'created_time',
-          asc: true
-        })
-        console.log('用户列表响应:', res)
-        if (res.code === 200 && res.data) {
-          userList.value = res.data.list.map(user => ({
-            id: user.id,
-            realName: user.realName
-          }))
-          userForm.userId = undefined
-          userForm.password = ''
-          selectClientVisible.value = false  // 先关闭选择客户对话框
-          selectUserVisible.value = true     // 再打开选择用户对话框
+      if (step.value === 1) {
+        if (!selectedClients.value.length) {
+          ElMessage.warning('请选择要修改的客户')
+          return
         }
-      } catch (error) {
-        console.error('获取用户列表失败:', error)
-        ElMessage.error('获取用户列表失败')
+        try {
+          const res = await userApi.getUsers({ 
+            pageNum: 1, 
+            pageSize: 1000,
+            sortBy: 'create_time',
+            asc: true
+          })
+          if (res.code === 200 && res.data) {
+            userList.value = res.data.list.map(user => ({
+              id: user.id,
+              realName: user.realName
+            }))
+            step.value = 2
+          }
+        } catch (error) {
+          ElMessage.error('获取用户列表失败')
+        }
+      } else if (step.value === 2) {
+        if (!userForm.userId) {
+          ElMessage.warning('请选择用户')
+          return
+        }
+        step.value = 3
       }
     }
 
     // 上一步
     const prevStep = () => {
-      selectClientVisible.value = true
+      if (step.value > 1) {
+        step.value--
+      }
     }
 
     // 关闭对话框时重置状态
     const handleClose = () => {
-      selectClientVisible.value = false
-      selectUserVisible.value = false
+      changeUserDialogVisible.value = false
+      step.value = 1
       selectedClients.value = []
       userForm.userId = undefined
       userForm.password = ''
     }
 
-    // 提交修改
+    // 提交
     const handleChangeUser = async () => {
       if (!userForm.userId || !userForm.password) {
         ElMessage.warning('请填写完整信息')
@@ -490,12 +508,33 @@ export default defineComponent({
           await clientApi.changeUser(client.id, userForm.userId, userForm.password)
         }
         ElMessage.success('修改成功')
-        selectUserVisible.value = false
+        changeUserDialogVisible.value = false
         fetchClientList()
       } catch (error) {
         ElMessage.error('修改失败')
       }
     }
+
+    // 对话框标题
+    const dialogTitle = computed(() => {
+      switch (step.value) {
+        case 1:
+          return '修改负责人 - 选择客户'
+        case 2:
+          return '修改负责人 - 选择新负责人'
+        case 3:
+          return '修改负责人 - 输入密码'
+        default:
+          return '修改负责人'
+      }
+    })
+
+    // 处理表格选择变化
+    const handleSelectionChange = (selection: ClientInfo[]) => {
+      selectedClients.value = selection
+    }
+
+    const formatTime = (time: string) => formatDateTime(time)
 
     return {
       CLIENT_STATUS_OPTIONS,
@@ -515,8 +554,7 @@ export default defineComponent({
       rules,
       handleAdd,
       handleSubmit,
-      selectClientVisible,
-      selectUserVisible,
+      changeUserDialogVisible,
       selectedClients,
       userList,
       userForm,
@@ -526,7 +564,10 @@ export default defineComponent({
       nextStep,
       prevStep,
       handleChangeUser,
-      handleClose
+      handleClose,
+      step,
+      dialogTitle,
+      formatTime
     }
   }
 })

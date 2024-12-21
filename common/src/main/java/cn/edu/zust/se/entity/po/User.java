@@ -41,7 +41,7 @@ public class User implements Serializable {
     private String role;
 
     @TableField("create_time")
-    private LocalDateTime createdTime;
+    private LocalDateTime createTime;
 
     @TableField("last_update")
     private LocalDateTime lastUpdate;

@@ -180,7 +180,7 @@ public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> impleme
     @Override
     public void changeUser(Integer clientId, Integer userId, String password) {
         Integer currentUserId = StpUtil.getLoginIdAsInt();
-        if (!userFeignService.checkUser(userId, password)){
+        if (!userFeignService.checkUser(currentUserId, password)){
             throw new InvalidInputException("用户信息有误！");
         }
         if (userFeignService.getUserNameById(userId) == null){

@@ -76,7 +76,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             user.setPassword("666666");
         }
         user.setRole("user");
-        user.setCreatedTime(LocalDateTime.now());
+        user.setCreateTime(LocalDateTime.now());
         user.setIsDelete(0);
         userMapper.insert(user);
         return BeanUtil.copyProperties(user, UserVo.class);
@@ -132,6 +132,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         User user = userMapper.selectById(id);
         if (user == null) {
             throw new InvalidInputException("用户不存在！");
+        }
+        return BeanUtil.copyProperties(user, UserVo.class);
+    }
+
+    @Override
+    public UserVo getDeleteUserById(Integer id) {
+        if (id == null) {
+            return null;
+        }
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>()
+                .eq("id", id).eq("is_delete", 1);
+        User user = userMapper.selectOne(queryWrapper);
+        if (user == null) {
+            return null;
         }
         return BeanUtil.copyProperties(user, UserVo.class);
     }

@@ -3,7 +3,7 @@
     <!-- 侧边栏 -->
     <el-aside width="200px" class="sidebar-container">
       <div class="logo">
-        <span>ERP 管理系统</span>
+        <span>管理系统</span>
       </div>
       <el-menu
         :default-active="currentRoute"

@@ -20,6 +20,7 @@ public interface IUserService extends IService<User> {
     public boolean deleteUser(Integer id);
     public PageDto<UserVo> pageUsers(UserQuery userQuery);
     public UserVo getUserById(Integer id);
+    public UserVo getDeleteUserById(Integer id);
     public UserVo getUserByUserName(String userName);
     public boolean resetPassword(Integer userId, String newPassword);
     public boolean updatePassword(Integer userId, String oldPassword, String newPassword);

@@ -38,7 +38,7 @@ request.interceptors.response.use(
           ElMessage.error('没有权限访问')
           break
         default:
-          console.error('请求错误:', error)
+          ElMessage.error('请求错误:', error)
       }
     }
     return Promise.reject(error)

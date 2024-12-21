@@ -52,7 +52,7 @@ export interface UserInfo {
   realName: string
   phone: string
   role: string
-  createdTime: string | null
+  createTime: string | null
   lastUpdate: string
 }
 

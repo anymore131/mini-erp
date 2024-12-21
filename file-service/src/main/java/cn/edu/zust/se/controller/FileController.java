@@ -2,12 +2,14 @@ package cn.edu.zust.se.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
+import cn.edu.zust.se.entity.po.File;
 import cn.edu.zust.se.entity.query.FileQuery;
 import cn.edu.zust.se.entity.vo.FileVo;
 import cn.edu.zust.se.exception.ForbiddenException;
 import cn.edu.zust.se.exception.InvalidInputException;
 import cn.edu.zust.se.service.IFileService;
 import cn.edu.zust.se.util.MinioUtil;
+import cn.hutool.core.bean.BeanUtil;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,7 +34,7 @@ public class FileController {
         if (files == null){
             throw new InvalidInputException("文件为空");
         }
-        List<String> fileNames = new ArrayList<>();
+        List<Integer> fileIds = new ArrayList<>();
         int sum = 0;
         for (MultipartFile file : files){
             if (file.isEmpty()) {
@@ -44,10 +46,10 @@ public class FileController {
                 sum++;
                 continue;
             }
-            fileNames.add(fileVo.getFileName());
+            fileIds.add(fileVo.getId());
         }
         return SaResult
-                .data(fileNames)
+                .data(fileIds)
                 .setMsg("一共上传文件" + files.length + "个,成功上传文件" + (files.length - sum) + "个");
     }
 
@@ -76,5 +78,19 @@ public class FileController {
             throw new InvalidInputException("id为空");
         }
         return fileService.remove(id)? SaResult.ok("删除成功") : SaResult.error("删除失败");
+    }
+
+    @RequestMapping("/get/{id}")
+    public FileVo getFileById(@PathVariable Integer id) {
+        if (id == null){
+            throw new InvalidInputException("id为空");
+        }
+        File file = fileService.getById(id);
+        if (file == null){
+            throw new InvalidInputException("文件不存在");
+        }
+        FileVo fileVo = BeanUtil.copyProperties(file, FileVo.class);
+        fileVo.setUrl(fileService.preview(file.getUuidFileName()));
+        return fileVo;
     }
 }

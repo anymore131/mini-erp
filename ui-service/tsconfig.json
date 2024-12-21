@@ -5,7 +5,7 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
-    "types": ["vuex", "vue-router"],
+    "types": ["vuex", "vue-router", "echarts"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
