@@ -12,6 +12,7 @@ import cn.edu.zust.se.mapper.UserMapper;
 import cn.edu.zust.se.service.IUserService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -106,7 +107,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (!"success".equals(s)){
             throw new InvalidInputException("用户客户修改失败！");
         }
-        return userMapper.deleteById(id) > 0;
+        userMapper.deleteById(id);
+        log.info("删除用户：{}", id);
+        StpUtil.kickout(id);
+        return true;
     }
 
     @Override
@@ -219,20 +223,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (pageQuery == null){
             return null;
         }
-        UserQuery userQuery = (UserQuery) pageQuery;
+        UserQuery userQuery = new UserQuery();
+        BeanUtil.copyProperties(pageQuery, userQuery);
         userQuery.setSortBy("real_name");
         PageDto<UserVo> userVoPageDto = this.pageUsers(userQuery);
         PageDto<UserVo> users = new PageDto<>();
         users.setTotal(userVoPageDto.getTotal());
         users.setPages(userVoPageDto.getPages());
         List<UserVo> userVos = userVoPageDto.getList();
-        for (UserVo userVo : userVoPageDto.getList()){
+        List<UserVo> userVos1 = new ArrayList<>();
+        for (UserVo userVo : userVos){
             UserVo userVo1 = new UserVo();
             userVo1.setId(userVo.getId());
             userVo1.setRealName(userVo.getRealName());
-            userVos.add(userVo1);
+            userVos1.add(userVo1);
         }
-        users.setList(userVos);
+        users.setList(userVos1);
         return users;
     }
 }

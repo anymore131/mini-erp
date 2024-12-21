@@ -125,7 +125,7 @@ public class UserController {
         return userService.checkUser(id, password);
     }
 
-    @GetMapping("/getUsers")
+    @PostMapping("/getUsers")
     public SaResult getUsers(PageQuery pageQuery){
         if (pageQuery == null){
             throw new IllegalArgumentException("pageQuery不能为空！");

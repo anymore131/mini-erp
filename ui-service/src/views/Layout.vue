@@ -27,13 +27,23 @@
           <el-menu-item index="/client-manage">客户管理</el-menu-item>
         </el-sub-menu>
 
-        <el-sub-menu index="client" v-if="!isAdmin">
+        <el-sub-menu v-if="isAdmin" index="client">
           <template #title>
             <el-icon><User /></el-icon>
-            <span>客户</span>
+            <span>客户管理</span>
           </template>
-          <el-menu-item index="/client-manage">客户管理</el-menu-item>
+          <el-menu-item index="/client-manage">
+            <span>所有客户</span>
+          </el-menu-item>
+          <el-menu-item :index="`/client-manage/${userInfo?.id}`">
+            <span>我的客户</span>
+          </el-menu-item>
         </el-sub-menu>
+
+        <el-menu-item v-else index="/client-manage">
+          <el-icon><User /></el-icon>
+          <span>客户管理</span>
+        </el-menu-item>
 
         <el-menu-item index="/profile">
           <el-icon><User /></el-icon>
@@ -124,6 +134,7 @@ import { useStore } from '../hooks/useStore'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { userApi } from '../api/user'
+import { User } from '@element-plus/icons-vue'
 
 export default defineComponent({
   name: 'Layout',

@@ -35,8 +35,8 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'user-manage',
         name: 'UserManage',
-        component: () => import('../views/UserManage.vue'),
-        meta: { requiresAuth: true, roles: ['admin'] }
+        component: () => import('../views/user/UserManage.vue'),
+        meta: { requiresAuth: true }
       },
       {
         path: 'client-manage',
@@ -45,9 +45,27 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true }
       },
       {
+        path: 'client-manage/:userId',
+        name: 'MyClientManage',
+        component: () => import('../views/client/ClientManage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'client/:id',
+        name: 'ClientDetail',
+        component: () => import('../views/client/ClientDetail.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
         path: 'profile',
         name: 'Profile',
         component: () => import('../views/Profile.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'user/:id',
+        name: 'UserDetail',
+        component: () => import('../views/user/UserDetail.vue'),
         meta: { requiresAuth: true }
       }
     ]

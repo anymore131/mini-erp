@@ -1,5 +1,5 @@
 import request from '../utils/request'
-import type { PageResponse } from '../types'
+import type { PageResponse, ClientForm } from '../types'
 
 export interface ClientQuery {
   pageNum: number
@@ -30,6 +30,34 @@ export const clientApi = {
       url,
       method: 'post',
       data
+    })
+  },
+  // 获取客户详情
+  getClientDetail(id: number) {
+    return request({
+      url: `/client/get/${id}`,
+      method: 'get'
+    })
+  },
+  updateClient(client: ClientForm) {
+    return request({
+      url: '/client/update',
+      method: 'post',
+      data: client
+    })
+  },
+  addClient(client: ClientForm) {
+    return request({
+      url: '/client/add',
+      method: 'post',
+      data: client
+    })
+  },
+  changeUser(clientId: number, userId: number, password: string) {
+    return request({
+      url: '/client/changeUser',
+      method: 'post',
+      params: { clientId, userId, password }
     })
   }
 } 

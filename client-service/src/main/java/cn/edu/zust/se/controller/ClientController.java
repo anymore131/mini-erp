@@ -36,6 +36,15 @@ public class ClientController {
         return SaResult.data(clientVoPage);
     }
 
+    @RequestMapping("/get/{id}")
+    public SaResult getById(@PathVariable Integer id){
+        if (id == null){
+            throw new InvalidInputException("输入信息为空！");
+        }
+        ClientVo clientVo = clientService.getClientVoById(id);
+        return SaResult.data(clientVo);
+    }
+
     @RequestMapping("/page/{id}")
     public SaResult pageByUserId(@PathVariable Integer id, @RequestBody(required = false) ClientQuery clientQuery){
         if (clientQuery == null || id == null){

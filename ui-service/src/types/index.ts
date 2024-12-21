@@ -15,6 +15,13 @@ export interface UserForm {
   password?: string
 }
 
+export interface PageQuery {
+  pageNum: number
+  pageSize: number
+  sortBy?: string
+  asc?: boolean
+}
+
 // 用户查询参数类型
 export interface UserQuery {
   pageNum: number
@@ -45,7 +52,7 @@ export interface UserInfo {
   realName: string
   phone: string
   role: string
-  createTime: string | null
+  createdTime: string | null
   lastUpdate: string
 }
 
@@ -56,7 +63,13 @@ export interface LoginResponse {
   data: UserInfo
 }
 
-// 客户状态映射
+// 客户状态枚举映射
+export const CLIENT_STATUS_CODE_MAP: Record<string, string> = {
+  '已添加': 'START',
+  '正在合作': 'COOPERATION',
+  '未开展合作': 'WAITING'
+}
+
 export const CLIENT_STATUS_MAP: Record<string, string> = {
   'START': '已添加',
   'COOPERATION': '正在合作',
@@ -68,4 +81,34 @@ export const CLIENT_STATUS_OPTIONS = [
   '正在合作',
   '未开展合作'
 ]
+
+export interface ClientInfo {
+  id: number
+  name: string
+  status: string
+  sum: number
+  userId: number
+  userName: string
+  lastTime: string
+  mobile?: string
+  email?: string
+  address?: string
+  remark?: string
+}
+
+export interface ClientForm {
+  id?: number
+  name: string
+  mobile?: string
+  email?: string
+  address?: string
+  userId: number
+  status?: string
+  remark?: string
+}
+
+export interface SimpleUser {
+  id: number
+  realName: string
+}
  

@@ -1,5 +1,5 @@
 import request from '../utils/request'
-import type { LoginForm, UserForm, UserQuery, LoginResponse, UserInfo, PageResponse } from '../types'
+import type { LoginForm, UserForm, UserQuery, LoginResponse, UserInfo, PageResponse, PageQuery } from '../types'
 
 export const userApi = {
   // 登录
@@ -19,7 +19,7 @@ export const userApi = {
       data: {
         pageNum: data.pageNum,
         pageSize: data.pageSize,
-        sortBy: data.sortBy || 'create_time',
+        sortBy: data.sortBy || 'created_time',
         asc: data.asc === undefined ? true : data.asc,
         userName: data.userName || null,
         realName: data.realName || null,
@@ -88,5 +88,21 @@ export const userApi = {
       method: 'put',
       data
     })
+  },
+
+  // 获取用户详情
+  get(id: number) {
+    return request({
+      url: `/user/get/${id}`,
+      method: 'get'
+    })
+  },
+
+  getUsersName(data: PageQuery): Promise<PageResponse<UserInfo>> {
+    return request({
+      url: '/user/getUsers',
+      method: 'post',
+      data
+    })
   }
-} 
+}

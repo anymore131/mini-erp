@@ -1,43 +1,95 @@
 <template>
   <div class="client-manage">
-    <!-- 搜索表单 -->
-    <el-form :inline="true" class="search-form">
-      <el-form-item label="客户名称">
-        <el-input
-          v-model="searchForm.name"
-          placeholder="请输入客户名称"
-          clearable
-          @clear="handleSearch"
-        />
-      </el-form-item>
-      <el-form-item label="状态">
-        <el-select
-          v-model="searchForm.status"
-          placeholder="请选择状态"
-          clearable
-          @clear="handleSearch"
-          style="width: 120px"
-        >
-          <el-option
-            v-for="status in CLIENT_STATUS_OPTIONS"
-            :key="status"
-            :label="status"
-            :value="status"
+    <!-- 搜索表单和操作按钮 -->
+    <div class="header-actions">
+      <el-form :inline="true" class="search-form">
+        <el-form-item label="客户名称">
+          <el-input
+            v-model="searchForm.name"
+            placeholder="请输入客户名称"
+            clearable
+            @clear="handleSearch"
           />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="最低交易额">
-        <el-input-number
-          v-model="searchForm.sum"
-          :min="0"
-          :precision="2"
-          placeholder="最低交易额"
-        />
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="handleSearch">查询</el-button>
-      </el-form-item>
-    </el-form>
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select
+            v-model="searchForm.status"
+            placeholder="请选择状态"
+            clearable
+            @clear="handleSearch"
+            style="width: 120px"
+          >
+            <el-option
+              v-for="status in CLIENT_STATUS_OPTIONS"
+              :key="status"
+              :label="status"
+              :value="status"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="最低交易额">
+          <el-input-number
+            v-model="searchForm.sum"
+            :min="0"
+            :precision="2"
+            placeholder="最低交易额"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+        </el-form-item>
+      </el-form>
+      <div class="right-buttons">
+        <el-button type="primary" @click="handleAdd">添加客户</el-button>
+        <el-button 
+          v-if="$route.params.userId"
+          type="warning" 
+          @click="showChangeUserDialog"
+        >
+          修改负责人
+        </el-button>
+      </div>
+    </div>
+
+    <!-- 添加客户对话框 -->
+    <el-dialog
+      v-model="dialogVisible"
+      title="添加客户"
+      width="500px"
+    >
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        label-width="100px"
+      >
+        <el-form-item label="客户名称" prop="name">
+          <el-input v-model="form.name" />
+        </el-form-item>
+        <el-form-item label="联系电话" prop="mobile">
+          <el-input v-model="form.mobile" />
+        </el-form-item>
+        <el-form-item label="电子邮箱" prop="email">
+          <el-input v-model="form.email" />
+        </el-form-item>
+        <el-form-item label="联系地址" prop="address">
+          <el-input v-model="form.address" />
+        </el-form-item>
+        <el-form-item label="备注" prop="remark">
+          <el-input
+            v-model="form.remark"
+            type="textarea"
+            :rows="3"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleSubmit">确认</el-button>
+        </span>
+      </template>
+    </el-dialog>
 
     <!-- 客户列表 -->
     <el-table
@@ -46,7 +98,17 @@
       style="width: 100%; margin-top: 20px"
       @sort-change="handleSortChange"
     >
-      <el-table-column prop="name" label="客户名称" sortable="custom" />
+      <el-table-column prop="name" label="客户名称">
+        <template #default="{ row }">
+          <el-button 
+            link 
+            type="primary" 
+            @click="handleNameClick(row.id)"
+          >
+            {{ row.name }}
+          </el-button>
+        </template>
+      </el-table-column>
       <el-table-column prop="status" label="状态">
         <template #default="{ row }">
           <span 
@@ -81,21 +143,90 @@
       @current-change="handleCurrentChange"
       class="pagination"
     />
+
+    <!-- 第一步：选择客户对话框 -->
+    <el-dialog
+      v-model="selectClientVisible"
+      title="修改负责人 - 选择客户"
+      width="600px"
+      @close="handleClose"
+    >
+      <el-table
+        ref="multipleTable"
+        :data="clientList"
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column type="selection" width="55" />
+        <el-table-column prop="name" label="客户名称" />
+        <el-table-column prop="status" label="状态">
+          <template #default="{ row }">
+            {{ CLIENT_STATUS_MAP[row.status] }}
+          </template>
+        </el-table-column>
+      </el-table>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="selectClientVisible = false">取消</el-button>
+          <el-button type="primary" @click="nextStep" :disabled="!selectedClients.length">下一步</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 第二步：选择用户对话框 -->
+    <el-dialog
+      v-model="selectUserVisible"
+      title="修改负责人 - 选择新负责人"
+      width="400px"
+      @close="handleClose"
+    >
+      <el-form ref="userFormRef" :model="userForm" :rules="userFormRules">
+        <el-form-item label="选择用户" prop="userId">
+          <el-select v-model="userForm.userId" placeholder="请选择用户">
+            <el-option
+              v-for="user in userList"
+              :key="user.id"
+              :label="user.realName"
+              :value="user.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="当前密码" prop="password">
+          <el-input
+            v-model="userForm.password"
+            type="password"
+            show-password
+            placeholder="请输入当前密码"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="prevStep">上一步</el-button>
+          <el-button type="primary" @click="handleChangeUser">完成</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, reactive, onMounted } from 'vue'
+import { defineComponent, ref, reactive, onMounted, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { clientApi } from '../../api/client'
-import type { ClientInfo } from '../../api/client'
+import type { ClientInfo, ClientForm } from '../../types'
 import { CLIENT_STATUS_OPTIONS, CLIENT_STATUS_MAP } from '../../types'
 import { useStore } from '../../hooks/useStore'
+import { useRouter, onBeforeRouteLeave, RouteLocationNormalized, useRoute } from 'vue-router'
+import type { FormInstance } from 'element-plus'
+import { userApi } from '../../api/user'
+import { SimpleUser } from '../../types'
 
 export default defineComponent({
   name: 'ClientManage',
   setup() {
     const store = useStore()
+    const router = useRouter()
+    const route = useRoute()
     const loading = ref(false)
     const clientList = ref<ClientInfo[]>([])
 
@@ -136,7 +267,7 @@ export default defineComponent({
           name: searchForm.name,
           status: searchForm.status,
           sum: searchForm.sum ? searchForm.sum * 100 : undefined,
-          userId: store.isAdmin.value ? undefined : store.userInfo.value?.id
+          userId: route.params.userId ? Number(route.params.userId) : (store.isAdmin.value ? undefined : store.userInfo.value?.id)
         })
         console.log('响应数据:', response)
 
@@ -177,9 +308,194 @@ export default defineComponent({
       fetchClientList()
     }
 
+    // 点击客户名称跳转到详情页
+    const handleNameClick = (id: number) => {
+      router.push(`/client/${id}`)
+    }
+
+    // 保存列表状态
+    onBeforeRouteLeave((to: RouteLocationNormalized) => {
+      if (to.name === 'ClientDetail') {
+        sessionStorage.setItem('clientListState', JSON.stringify({
+          pageNum: pagination.pageNum,
+          pageSize: pagination.pageSize,
+          sortBy: sortState.sortBy,
+          asc: sortState.asc,
+          searchForm: {
+            name: searchForm.name,
+            status: searchForm.status,
+            sum: searchForm.sum
+          }
+        }))
+      } else {
+        sessionStorage.removeItem('clientListState')
+      }
+    })
+
     onMounted(() => {
+      const savedState = sessionStorage.getItem('clientListState')
+      if (savedState) {
+        const state = JSON.parse(savedState)
+        pagination.pageNum = state.pageNum
+        pagination.pageSize = state.pageSize
+        sortState.sortBy = state.sortBy
+        sortState.asc = state.asc
+        Object.assign(searchForm, state.searchForm)
+      }
       fetchClientList()
     })
+
+    // 添加客户相关
+    const dialogVisible = ref(false)
+    const formRef = ref<FormInstance>()
+    const form = ref<ClientForm>({
+      name: '',
+      mobile: '',
+      email: '',
+      address: '',
+      remark: '',
+      userId: store.userInfo.value?.id || 0
+    })
+
+    // 表单校验规则
+    const rules = {
+      name: [{ required: true, message: '请输入客户名称', trigger: 'blur' }],
+      mobile: [{ pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }],
+      email: [{ type: 'email' as const, message: '请输入正确的邮箱地址', trigger: 'blur' }]
+    }
+
+    // 打开添加对话框
+    const handleAdd = () => {
+      form.value = {
+        name: '',
+        mobile: '',
+        email: '',
+        address: '',
+        remark: '',
+        userId: store.userInfo.value?.id || 0
+      }
+      dialogVisible.value = true
+    }
+
+    // 提交添加
+    const handleSubmit = async () => {
+      if (!formRef.value) return
+      
+      await formRef.value.validate(async (valid: boolean) => {
+        if (valid) {
+          try {
+            await clientApi.addClient(form.value)
+            ElMessage.success('添加成功')
+            dialogVisible.value = false
+            fetchClientList()
+          } catch (error) {
+            ElMessage.error('添加失败')
+          }
+        }
+      })
+    }
+
+    // 在setup中添加路由参数监听
+    watch(
+      () => route.params.userId,
+      () => {
+        // 重置分页
+        pagination.pageNum = 1
+        // 重新获取列表
+        fetchClientList()
+      }
+    )
+
+    // 修改负责人相关状态
+    const selectClientVisible = ref(false)
+    const selectUserVisible = ref(false)
+    const selectedClients = ref<ClientInfo[]>([])
+    const userList = ref<SimpleUser[]>([])
+    const userForm = reactive({
+      userId: undefined as number | undefined,
+      password: ''
+    })
+
+    const userFormRules = {
+      userId: [{ required: true, message: '请选择用户', trigger: 'change' }],
+      password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+    }
+
+    // 显示修改负责人对话框
+    const showChangeUserDialog = () => {
+      selectClientVisible.value = true
+      selectedClients.value = []
+    }
+
+    // 处理表格选择变化
+    const handleSelectionChange = (selection: ClientInfo[]) => {
+      selectedClients.value = selection
+    }
+
+    // 下一步
+    const nextStep = async () => {
+      if (!selectedClients.value.length) {
+        ElMessage.warning('请选择要修改的客户')
+        return
+      }
+
+      try {
+        const res = await userApi.getUsers({ 
+          pageNum: 1, 
+          pageSize: 1000,
+          sortBy: 'created_time',
+          asc: true
+        })
+        console.log('用户列表响应:', res)
+        if (res.code === 200 && res.data) {
+          userList.value = res.data.list.map(user => ({
+            id: user.id,
+            realName: user.realName
+          }))
+          userForm.userId = undefined
+          userForm.password = ''
+          selectClientVisible.value = false  // 先关闭选择客户对话框
+          selectUserVisible.value = true     // 再打开选择用户对话框
+        }
+      } catch (error) {
+        console.error('获取用户列表失败:', error)
+        ElMessage.error('获取用户列表失败')
+      }
+    }
+
+    // 上一步
+    const prevStep = () => {
+      selectClientVisible.value = true
+    }
+
+    // 关闭对话框时重置状态
+    const handleClose = () => {
+      selectClientVisible.value = false
+      selectUserVisible.value = false
+      selectedClients.value = []
+      userForm.userId = undefined
+      userForm.password = ''
+    }
+
+    // 提交修改
+    const handleChangeUser = async () => {
+      if (!userForm.userId || !userForm.password) {
+        ElMessage.warning('请填写完整信息')
+        return
+      }
+
+      try {
+        // 批量修改客户负责人
+        for (const client of selectedClients.value) {
+          await clientApi.changeUser(client.id, userForm.userId, userForm.password)
+        }
+        ElMessage.success('修改成功')
+        selectUserVisible.value = false
+        fetchClientList()
+      } catch (error) {
+        ElMessage.error('修改失败')
+      }
+    }
 
     return {
       CLIENT_STATUS_OPTIONS,
@@ -191,7 +507,26 @@ export default defineComponent({
       handleSearch,
       handleSortChange,
       handleCurrentChange,
-      handleSizeChange
+      handleSizeChange,
+      handleNameClick,
+      dialogVisible,
+      formRef,
+      form,
+      rules,
+      handleAdd,
+      handleSubmit,
+      selectClientVisible,
+      selectUserVisible,
+      selectedClients,
+      userList,
+      userForm,
+      userFormRules,
+      showChangeUserDialog,
+      handleSelectionChange,
+      nextStep,
+      prevStep,
+      handleChangeUser,
+      handleClose
     }
   }
 })
@@ -233,5 +568,23 @@ export default defineComponent({
 .status-waiting {
   border-color: #909399;
   color: #909399;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.right-buttons {
+  display: flex;
+  gap: 10px;
 }
 </style> 

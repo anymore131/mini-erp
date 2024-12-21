@@ -73,6 +73,25 @@ public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> impleme
     }
 
     @Override
+    public ClientVo getClientVoById(Integer id) {
+        if (id == null){
+            throw new InvalidInputException("客户id不能为空！");
+        }
+        Integer currentUserId = StpUtil.getLoginIdAsInt();
+        Client client = getById(id);
+        if (client == null){
+            throw new InvalidInputException("客户不存在！");
+        }
+        if(!StpUtil.hasRole("admin") && !currentUserId.equals(client.getUserId())){
+            throw new ForbiddenException("无权查看其他用户的客户信息！");
+        }
+        ClientVo clientVo = BeanUtil.copyProperties(client, ClientVo.class);
+        clientVo.setUserName(userFeignService.getUserNameById(client.getUserId()));
+        clientVo.setStatus(ClientStatusEnum.fromCode(client.getStatus()));
+        return clientVo;
+    }
+
+    @Override
     public void userSignOut(Integer userId) {
         String s = userFeignService.getUserNameById(userId);
         if (s == null){
@@ -103,10 +122,10 @@ public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> impleme
         }
         client.setSum(0);
         client.setStatus(ClientStatusEnum.START.getCode());
-        save(client);
         client.setCreateTime(LocalDateTime.now());
         client.setLastTime(LocalDateTime.now());
         client.setIsDelete(0);
+        save(client);
         ClientVo clientVo = BeanUtil.copyProperties(client, ClientVo.class);
         clientVo.setUserName(userFeignService.getUserNameById(client.getUserId()));
         clientVo.setStatus(ClientStatusEnum.fromCode(client.getStatus()));
@@ -122,7 +141,7 @@ public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> impleme
             throw new InvalidInputException("用户不能为空！");
         }
         Integer currentUserId = StpUtil.getLoginIdAsInt();
-        if (!StpUtil.hasRole("admin") || !currentUserId.equals(client.getUserId())){
+        if (!StpUtil.hasRole("admin") && !currentUserId.equals(client.getUserId())){
             throw new ForbiddenException("无权修改客户信息！");
         }
         if (client.getName() == null || client.getName().isEmpty()){
