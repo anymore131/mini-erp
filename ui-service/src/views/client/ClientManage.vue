@@ -134,6 +134,17 @@
           {{ formatTime(row.lastTime) }}
         </template>
       </el-table-column>
+      <el-table-column label="操作" width="200">
+        <template #default="{ row }">
+          <el-button 
+            type="primary" 
+            size="small" 
+            @click="handleCreateOrder(row)"
+          >
+            创建订单
+          </el-button>
+        </template>
+      </el-table-column>
     </el-table>
 
     <!-- 分页 -->
@@ -435,7 +446,7 @@ export default defineComponent({
     })
 
     const userFormRules = {
-      userId: [{ required: true, message: '请选择用���', trigger: 'change' }],
+      userId: [{ required: true, message: '请选择用户', trigger: 'change' }],
       password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
     }
 
@@ -536,6 +547,13 @@ export default defineComponent({
 
     const formatTime = (time: string) => formatDateTime(time)
 
+    const handleCreateOrder = (client: ClientInfo) => {
+      router.push({
+        name: 'CreateOrder',
+        params: { clientId: client.id }
+      })
+    }
+
     return {
       CLIENT_STATUS_OPTIONS,
       CLIENT_STATUS_MAP,
@@ -567,7 +585,8 @@ export default defineComponent({
       handleClose,
       step,
       dialogTitle,
-      formatTime
+      formatTime,
+      handleCreateOrder
     }
   }
 })

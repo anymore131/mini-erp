@@ -18,8 +18,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.net.URLEncoder;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class MinioUtil {
@@ -107,16 +111,26 @@ public class MinioUtil {
     }
 
     //预览图片
-    public String preview(String uuidFileName){
-        // 查看文件地址
-        GetPresignedObjectUrlArgs build = new GetPresignedObjectUrlArgs().builder()
-                .bucket(prop.getBucketName()).object(uuidFileName).method(Method.GET).build();
+    public String preview(String uuidFileName, String originalFileName) {
         try {
-            return minioClient.getPresignedObjectUrl(build);
+            // 添加响应头参数
+            Map<String, String> reqParams = new HashMap<>();
+            reqParams.put("response-content-disposition", 
+                "attachment; filename=\"" + URLEncoder.encode(originalFileName, "UTF-8") + "\"");
+            
+            GetPresignedObjectUrlArgs args = GetPresignedObjectUrlArgs.builder()
+                .bucket(prop.getBucketName())
+                .object(uuidFileName)
+                .method(Method.GET)
+                .expiry(7, TimeUnit.DAYS)
+                .extraQueryParams(reqParams)  // 设置额外的查询参数
+                .build();
+                
+            return minioClient.getPresignedObjectUrl(args);
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
-        return null;
     }
 
     //文件下载

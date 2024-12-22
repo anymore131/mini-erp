@@ -5,7 +5,7 @@ spring:
     name: file-service
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://47.99.150.135:13306/erp?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8
+    url: jdbc:mysql://localhost:3306/erp?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8
     username: root
     password: 0408
     hikari:
@@ -20,11 +20,12 @@ spring:
         server-addr: localhost:8848
   data:
     redis:
-      host: 47.99.150.135
+      host: localhost
       port: 6379
       password: 0408
   servlet:
     multipart:
+      enabled: true
       max-file-size: 10MB
       max-request-size: 10MB
 mybatis-plus:
@@ -37,6 +38,11 @@ mybatis-plus:
       logic-not-delete-value: 0 # 逻辑未删除值
 #  configuration:
 #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.apache.tomcat.util.http.fileupload: DEBUG
 
 # Sa-Token配置
 sa-token:

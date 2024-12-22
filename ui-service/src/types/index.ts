@@ -111,4 +111,48 @@ export interface SimpleUser {
   id: number
   realName: string
 }
+
+// 订单状态映射
+export const ORDER_STATUS_MAP: Record<string, string> = {
+  'DRAFT': '起草',
+  'PENDING': '待检验',
+  'APPROVED': '检验通过',
+  'REJECTED': '未通过',
+  'COMPLETED': '完成的',
+  'CANCELLED': '取消的'
+}
+
+// 订单信息类型
+export interface OrderInfo {
+  id: number
+  orderNo: string
+  clientId: number
+  clientName: string
+  userId: number
+  userName: string
+  totalAmount: number
+  status: string
+  remark: string
+  createTime: string
+  updateTime: string
+}
+
+// 订单查询参数
+export interface OrderQuery extends PageQuery {
+  orderNo?: string
+  clientId?: number
+  userId?: number
+  status?: string
+  minAmount?: number
+  maxAmount?: number
+  startTime?: string
+  endTime?: string
+}
+
+// 订单表单类型
+export interface OrderForm {
+  clientId: number
+  userId: number
+  remark?: string
+}
  

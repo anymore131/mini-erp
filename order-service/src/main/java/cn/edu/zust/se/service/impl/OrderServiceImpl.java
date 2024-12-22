@@ -1,5 +1,6 @@
 package cn.edu.zust.se.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
 import cn.edu.zust.se.entity.dto.PageDto;
 import cn.edu.zust.se.entity.po.Client;
 import cn.edu.zust.se.entity.po.Order;
@@ -18,11 +19,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.*;
 
 /**
  * @author anymore131
@@ -30,20 +32,21 @@ import java.util.Objects;
  */
 @Service
 public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements IOrderService {
+    private final static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(OrderServiceImpl.class);
+
     @Autowired
     private UserFeignServiceI userFeignService;
     @Autowired
     private ClientFeignServiceI clientFeignService;
 
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+    private static final Random random = new Random();
+
+
     @Override
     public OrderVo getOrderVoById(Integer id) {
-        if (id == null){
-            throw new InvalidInputException("订单id不能为空！");
-        }
-        Order order = getById(id);
-        if (order == null){
-            throw new InvalidInputException("订单不存在！");
-        }
+        checkOrderId(id);
+        Order order = getAndCheckOrderLive(id);
         OrderVo orderVo = BeanUtil.copyProperties(order, OrderVo.class);
         String userName = userFeignService.getUserNameById(order.getUserId());
         if (userName == null){
@@ -60,7 +63,29 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
     @Override
     public PageDto<OrderVo> pageOrders(OrderQuery orderQuery) {
+        if (orderQuery == null){
+            throw new InvalidInputException("查询条件不能为空！");
+        }
+        Integer currentUserId = StpUtil.getLoginIdAsInt();
+        if (orderQuery.getUserId() == null && !StpUtil.hasRole("admin")){
+            System.out.println(StpUtil.getRoleList());
+            throw new InvalidInputException("用户id不能为空！");
+        }
+        if (StpUtil.hasRole("admin")){
+            System.out.println("admin");
+        }else if (!orderQuery.getUserId().equals(currentUserId)){
+            throw new InvalidInputException("无权查询订单！");
+        }
         Page<Order> page = orderQuery.toMpPage(orderQuery.getSortBy(), orderQuery.isAsc());
+        if (orderQuery.getCreateTime()!= null){
+            log.info(orderQuery.getCreateTime().substring(0,19).replace('T', ' '));
+            orderQuery.setCreateTime(orderQuery.getCreateTime().substring(0,19).replace('T', ' '));
+
+        }
+        if (orderQuery.getUpdateTime()!= null){
+            log.info(orderQuery.getUpdateTime().substring(0,19).replace('T', ' '));
+            orderQuery.setUpdateTime(orderQuery.getUpdateTime().substring(0,19).replace('T', ' '));
+        }
         lambdaQuery()
                 .eq(orderQuery.getOrderNo() != null, Order::getOrderNo, orderQuery.getOrderNo())
                 .eq(orderQuery.getClientId() != null, Order::getClientId, orderQuery.getClientId())
@@ -81,7 +106,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         }
         List<OrderVo> vos = new ArrayList<>();
         for (Order record : records){
-            OrderVo orderVo = BeanUtil.copyProperties(records, OrderVo.class);
+            OrderVo orderVo = BeanUtil.copyProperties(record, OrderVo.class);
             orderVo.setUserName(userFeignService.getUserNameById(record.getUserId()));
             orderVo.setClientName(clientFeignService.getClientNameById(record.getClientId()));
             vos.add(orderVo);
@@ -102,6 +127,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         if (order.getUserId() == null){
             throw new InvalidInputException("用户不能为空！");
         }
+        checkRole(order,"无权添加订单！");
+        order.setOrderNo(generateOrderNo());
         order.setStatus("DRAFT");
         order.setTotalAmount(0);
         order.setCreateTime(LocalDateTime.now());
@@ -113,13 +140,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     // 待检验
     @Override
     public Integer PendingOrder(Integer id) {
-        if (id == null){
-            throw new InvalidInputException("订单id不能为空！");
-        }
-        Order order = getById(id);
-        if (order == null){
-            throw new InvalidInputException("订单不存在！");
-        }
+        checkOrderId(id);
+        Order order = getAndCheckOrderLive(id);
+        checkRole(order,"无权修改订单状态！");
         if (!Objects.equals(order.getStatus(), "DRAFT")){
             throw new InvalidInputException("订单状态错误！");
         }
@@ -133,13 +156,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     // 检验通过
     @Override
     public Integer ApproveOrder(Integer id) {
-        if (id == null){
-            throw new InvalidInputException("订单id不能为空！");
-        }
-        Order order = getById(id);
-        if (order == null){
-            throw new InvalidInputException("订单不存在！");
-        }
+        checkOrderId(id);
+        Order order = getAndCheckOrderLive(id);
+        checkRoleAdmin(order,"权限错误！");
         if (!Objects.equals(order.getStatus(), "PENDING")){
             throw new InvalidInputException("订单状态错误！");
         }
@@ -153,13 +172,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     // 未通过
     @Override
     public Integer RejectOrder(Integer id) {
-        if (id == null){
-            throw new InvalidInputException("订单id不能为空！");
-        }
-        Order order = getById(id);
-        if (order == null){
-            throw new InvalidInputException("订单不存在！");
-        }
+        checkOrderId(id);
+        Order order = getAndCheckOrderLive(id);
+        checkRoleAdmin(order,"权限错误！");
         if (!Objects.equals(order.getStatus(), "PENDING")){
             throw new InvalidInputException("订单状态错误！");
         }
@@ -173,13 +188,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     // 完成
     @Override
     public Integer CompleteOrder(Integer id) {
-        if (id == null){
-            throw new InvalidInputException("订单id不能为空！");
-        }
-        Order order = getById(id);
-        if (order == null){
-            throw new InvalidInputException("订单不存在！");
-        }
+        checkOrderId(id);
+        Order order = getAndCheckOrderLive(id);
+        checkRole(order,"无权修改订单状态！");
         if (!Objects.equals(order.getStatus(), "APPROVED")){
             throw new InvalidInputException("订单状态错误！");
         }
@@ -192,16 +203,51 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
     @Override
     public Integer CancelledOrder(Integer id) {
-        if (id == null){
-            throw new InvalidInputException("订单id不能为空！");
-        }
-        Order order = getById(id);
-        if (order == null){
-            throw new InvalidInputException("订单不存在！");
-        }
+        checkOrderId(id);
+        Order order = getAndCheckOrderLive(id);
+        checkRole(order,"无权修改订单状态！");
         order.setStatus("CANCELLED");
+
+
 
         return updateById(order)? id : null;
     }
 
+    private void checkOrderId(Integer id){
+        if (id == null){
+            throw new InvalidInputException("订单id不能为空！");
+        }
+    }
+
+    /**
+     * 生成订单编号
+     * @return 生成的订单编号
+     */
+    private String generateOrderNo() {
+        String timestamp = dateFormat.format(new Date());
+        int randomNumber = 1000 + random.nextInt(9000); // 生成4位随机数
+        return timestamp + randomNumber;
+    }
+
+    private Order getAndCheckOrderLive(Integer id){
+        Order order = getById(id);
+        if (order == null){
+            throw new InvalidInputException("订单不存在！");
+        }
+        return order;
+    }
+
+    private void checkRoleAdmin(Order order,String s){
+        Integer currentUserId = StpUtil.getLoginIdAsInt();
+        if (!StpUtil.hasRole("admin") || !currentUserId.equals(order.getUserId())){
+            throw new InvalidInputException(s);
+        }
+    }
+
+    private void checkRole(Order order,String s){
+        Integer currentUserId = StpUtil.getLoginIdAsInt();
+        if (!StpUtil.hasRole("admin") && !currentUserId.equals(order.getUserId())){
+            throw new InvalidInputException(s);
+        }
+    }
 }
