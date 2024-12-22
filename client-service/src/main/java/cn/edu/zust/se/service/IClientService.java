@@ -18,4 +18,5 @@ public interface IClientService extends IService<Client> {
     public ClientVo updateClient(Client client);
     public void deleteClient(Integer id);
     public void changeUser(Integer clientId, Integer userIdm, String password);
+    public String getClientNameById(Integer id);
 }

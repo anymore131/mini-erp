@@ -59,7 +59,9 @@ public class OrderFileServiceImpl extends ServiceImpl<OrderFileMapper, OrderFile
         }
         OrderFile orderFile = new OrderFile();
         orderFile.setOrderId(orderId);
-        orderFile.setFileId(Integer.parseInt(upload.getData().toString()));
+        String data = upload.getData().toString();
+        data = data.replaceAll("[\\[\\]]", ""); // 去除方括号
+        orderFile.setFileId(Integer.parseInt(data));
         orderFile.setCreateTime(LocalDateTime.now());
         orderFile.setRemark(remark);
         orderFile.setIsDelete(0);
@@ -104,15 +106,16 @@ public class OrderFileServiceImpl extends ServiceImpl<OrderFileMapper, OrderFile
 
         // 鉴权
         Integer currentUserId = StpUtil.getLoginIdAsInt();
-        OrderVo orderVoById = orderService.getOrderVoById(id);
+
         OrderFile orderFile = getById(id);
-        if (orderVoById == null){
-            throw new InvalidInputException("订单不存在");
-        }
         if (orderFile == null){
             throw new InvalidInputException("文件不存在");
         }
-        if (!StpUtil.hasRole("admin")&& !currentUserId.equals(orderVoById.getUserId())){
+        OrderVo orderVo = orderService.getOrderVoById(orderFile.getOrderId());
+        if (orderVo == null){
+            throw new InvalidInputException("订单不存在");
+        }
+        if (!StpUtil.hasRole("admin") && !currentUserId.equals(orderVo.getUserId())){
             throw new ForbiddenException("无权删除该订单文件");
         }
 

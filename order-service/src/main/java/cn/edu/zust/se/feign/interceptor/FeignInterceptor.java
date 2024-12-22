@@ -4,6 +4,9 @@ import cn.dev33.satoken.same.SaSameUtil;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
  * feign拦截器, 在feign请求发出之前，加入一些操作

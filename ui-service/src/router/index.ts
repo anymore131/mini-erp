@@ -67,6 +67,30 @@ const routes: RouteRecordRaw[] = [
         name: 'UserDetail',
         component: () => import('../views/user/UserDetail.vue'),
         meta: { requiresAuth: true }
+      },
+      {
+        path: 'order-manage',
+        name: 'OrderManage',
+        component: () => import('../views/order/OrderManage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'order-manage/:userId',
+        name: 'MyOrderManage',
+        component: () => import('../views/order/OrderManage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'order/create/:clientId',
+        name: 'CreateOrder',
+        component: () => import('../views/order/CreateOrder.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'order/:id',
+        name: 'OrderDetail',
+        component: () => import('../views/order/OrderDetail.vue'),
+        meta: { requiresAuth: true }
       }
     ]
   },

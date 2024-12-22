@@ -200,4 +200,15 @@ public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> impleme
         client.setLastTime(LocalDateTime.now());
         updateById(client);
     }
+
+    @Override
+    public String getClientNameById(Integer id) {
+        if (id == null){
+            return null;
+        }
+        if (getById(id) != null){
+            return getById(id).getName();
+        }
+        return null;
+    }
 }

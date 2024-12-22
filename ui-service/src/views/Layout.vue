@@ -45,6 +45,24 @@
           <span>客户管理</span>
         </el-menu-item>
 
+        <el-sub-menu v-if="isAdmin" index="order">
+          <template #title>
+            <el-icon><Document /></el-icon>
+            <span>订单管理</span>
+          </template>
+          <el-menu-item index="/order-manage">
+            <span>所有订单</span>
+          </el-menu-item>
+          <el-menu-item :index="`/order-manage/${userInfo?.id}`">
+            <span>我的订单</span>
+          </el-menu-item>
+        </el-sub-menu>
+
+        <el-menu-item v-else index="/order-manage">
+          <el-icon><Document /></el-icon>
+          <span>订单管理</span>
+        </el-menu-item>
+
         <el-menu-item index="/profile">
           <el-icon><User /></el-icon>
           <span>个人中心</span>
@@ -134,7 +152,7 @@ import { useStore } from '../hooks/useStore'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { userApi } from '../api/user'
-import { User } from '@element-plus/icons-vue'
+import { User, Document } from '@element-plus/icons-vue'
 
 export default defineComponent({
   name: 'Layout',

@@ -11,6 +11,7 @@ import cn.edu.zust.se.mapper.FileMapper;
 import cn.edu.zust.se.service.IFileService;
 import cn.edu.zust.se.util.MinioUtil;
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.apache.commons.lang.StringUtils;
@@ -47,7 +48,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements IF
         file1.setIsDelete(0);
         save(file1);
         FileVo fileVo = BeanUtil.copyProperties(file1, FileVo.class);
-        fileVo.setUrl(minioUtil.preview(uuidFileName));
+        fileVo.setUrl(minioUtil.preview(uuidFileName, file1.getFileName()));
         return fileVo;
     }
 
@@ -63,17 +64,26 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements IF
                 .page(page);
         PageDto<FileVo> fileVos = PageDto.of(page, FileVo.class);
         for (FileVo fileVo : fileVos.getList()){
-            fileVo.setUrl(minioUtil.preview(fileVo.getUuidFileName()));
+            fileVo.setUrl(minioUtil.preview(fileVo.getUuidFileName(), fileVo.getFileName()));
         }
         return fileVos;
     }
 
     @Override
     public String preview(String uuidFileName) {
-        if (StringUtils.isBlank(uuidFileName)){
+        if (StringUtils.isBlank(uuidFileName)) {
             throw new InvalidInputException("文件名为空");
         }
-        return minioUtil.preview(uuidFileName);
+        File file = getByUuidFileName(uuidFileName);
+        if (file == null) {
+            throw new InvalidInputException("文件不存在");
+        }
+        return minioUtil.preview(uuidFileName, file.getFileName());
+    }
+
+    private File getByUuidFileName(String uuidFileName) {
+        return getOne(new QueryWrapper<File>()
+            .eq("uuid_file_name", uuidFileName));
     }
 
     @Override

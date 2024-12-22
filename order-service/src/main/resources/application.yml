@@ -5,7 +5,7 @@ spring:
     name: order-service
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://47.99.150.135:13306/erp?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8
+    url: jdbc:mysql://localhost:3306/erp?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8
     username: root
     password: 0408
     hikari:
@@ -20,9 +20,14 @@ spring:
         server-addr: localhost:8848
   data:
     redis:
-      host: 47.99.150.135
+      host: localhost
       port: 6379
       password: 0408
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
 mybatis-plus:
   mapper-locations: classpath*:mapper/*Mapper.xml
   type-aliases-package: cn.edu.zust.se.po
@@ -31,8 +36,8 @@ mybatis-plus:
       logic-delete-field: is_delete # 全局逻辑删除字段名
       logic-delete-value: 1 # 逻辑已删除值
       logic-not-delete-value: 0 # 逻辑未删除值
-#  configuration:
-#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 # Sa-Token配置
 sa-token:
