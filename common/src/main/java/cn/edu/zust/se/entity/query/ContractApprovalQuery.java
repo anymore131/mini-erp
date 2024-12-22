@@ -13,5 +13,5 @@ public class ContractApprovalQuery extends PageQuery{
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String approvalOpinion;
-    private int status;
+    private String status;
 }

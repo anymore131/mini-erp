@@ -26,5 +26,5 @@ public class ContractApprovalVo{
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String approvalOpinion;
-    private int status;
+    private String status;
 }
