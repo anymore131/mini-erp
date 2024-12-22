@@ -1,9 +1,14 @@
 package cn.edu.zust.se.controller;
 
+import cn.dev33.satoken.stp.StpUtil;
+import cn.dev33.satoken.util.SaResult;
+import cn.edu.zust.se.entity.dto.PageDto;
 import cn.edu.zust.se.entity.po.Contract;
+import cn.edu.zust.se.entity.query.ContractQuery;
+import cn.edu.zust.se.entity.vo.ContractVo;
+import cn.edu.zust.se.exception.ForbiddenException;
+import cn.edu.zust.se.exception.InvalidInputException;
 import cn.edu.zust.se.service.IContractService;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.alibaba.nacos.api.model.v2.Result;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,81 +24,92 @@ public class ContractController {
      * 创建合同
      */
     @PostMapping(value = "/create")
-    public Result<?> createContract(@RequestBody Contract contract) {
-        Contract createdContract = contractService.createContract(contract);
-        return Result.success(createdContract);
+    public SaResult createContract(@RequestBody Contract contract) {
+        ContractVo createdContract = contractService.createContract(contract);
+        return SaResult.data(createdContract).setMsg("添加成功！");
     }
 
     /**
      * 根据id获取合同信息
      */
     @GetMapping(value = "/{id}")
-    public Result<?> getContractById(@PathVariable Integer id) {
-        Contract contract = contractService.getTContractById(id);
+    public SaResult getContractById(@PathVariable Integer id) {
+        ContractVo contract = contractService.getTContractById(id);
         if (contract == null) {
-            return Result.failure("Contract not found");
+            throw new InvalidInputException("输入信息为空！");
         }
-        return Result.success(contract);
+        return SaResult.data(contract);
     }
 
     /**
      * 根据用户id获取用户创建合同信息
      */
     @GetMapping(value = "/user/{userId}")
-    public Result<?> getContractByUserId(@PathVariable Integer userId) {
-        List<Contract> contracts = contractService.getContractByUserId(userId);
-        return Result.success(contracts);
+    public SaResult getContractByUserId(@PathVariable Integer userId) {
+        List<ContractVo> contracts = contractService.getContractByUserId(userId);
+        return SaResult.data(contracts);
     }
 
     /**
      * 更新合同
      */
     @PutMapping(value = "/update/{id}")
-    public Result<?> updateContract(@PathVariable Integer id, @RequestBody Contract updatedContract) {
-        Contract updated = contractService.updateContract(id, updatedContract);
+    public SaResult updateContract(@PathVariable Integer id, @RequestBody Contract updatedContract) {
+        ContractVo updated = contractService.updateContract(id, updatedContract);
         if (updated == null) {
-            return Result.failure("Contract not found");
+            throw new InvalidInputException("输入信息为空！");
         }
-        return Result.success(updated);
+        return SaResult.data(updated).setMsg("更新成功！");
     }
 
     /**
      * 获取合同列表
      */
-    @GetMapping(value = "/list")
-    public Result<?> getContractList(@RequestParam(required = false) String category,
-                                     @RequestParam(required = false) String keyword,
-                                     @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                     @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
-        Page<Contract> page = new Page<>(pageNo, pageSize);
-        Page<Contract> contractPage = contractService.getContract(category, keyword, page);
-        return Result.success(contractPage);
+    @GetMapping(value = "/page/{id}")
+    public SaResult getContractList(@PathVariable Integer id,
+                                     @RequestBody(required = false) ContractQuery contractQuery) {
+        if (contractQuery == null || id == null){
+            throw new InvalidInputException("输入信息为空！");
+        }
+        Integer currentUserId = StpUtil.getLoginIdAsInt();
+        if (!StpUtil.hasRole("admin") && !currentUserId.equals(id)) {
+            throw new ForbiddenException("无权查看其他用户的合同信息！");
+        }
+        if (contractQuery.getUserId() == null ) {
+            throw new InvalidInputException("输入信息为空！");
+        }
+        if (!id.equals(contractQuery.getUserId())){
+            throw new InvalidInputException("输入信息不一致！");
+        }
+        PageDto<ContractVo> contracts = contractService.getContract(contractQuery);
+        return SaResult.data(contracts);
     }
 
     /**
      * 删除合同
      */
     @DeleteMapping(value = "/delete/{id}")
-    public Result<?> deleteContract(@PathVariable Integer id) {
+    public SaResult deleteContract(@PathVariable Integer id) {
         contractService.deleteContract(id);
-        return Result.success("Contract deleted successfully");
+        return SaResult.ok("删除成功！");
     }
 
     /**
      * 改变合同状态
      */
     @PutMapping(value = "/status/{id}")
-    public Result<?> changeContractStatus(@PathVariable Integer id, @RequestParam int status) {
+    public SaResult changeContractStatus(@PathVariable Integer id, @RequestParam int status) {
         contractService.updateContractStatus(id,status);
-        return Result.success("Contract status updated successfully");
+        ContractVo contractVo = contractService.getTContractById(id);
+        return SaResult.data(contractVo).setMsg("更新成功！");
     }
-
-    /**
-     * 设置创建者
-     */
-    @PutMapping(value = "/creator/{userId}")
-    public Result<?> setCreator(@PathVariable Integer userId) {
-        contractService.setCreator(userId);
-        return Result.success("Creator set successfully");
-    }
+//
+//    /**
+//     * 设置创建者
+//     */
+//    @PutMapping(value = "/creator/{userId}")
+//    public Result<?> setCreator(@PathVariable Integer userId) {
+//        contractService.setCreator(userId);
+//        return Result.success("Creator set successfully");
+//    }
 }
