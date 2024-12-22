@@ -3,10 +3,7 @@ package cn.edu.zust.se.mapper;
 import cn.edu.zust.se.entity.po.Contract;
 import cn.edu.zust.se.entity.vo.ContractVo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -87,5 +84,13 @@ public interface ContractMapper extends BaseMapper<Contract> {
     //合同状态变更
     @Update("update erp.contract set status = #{status} where id = #{id}")
     void updateStatus(Integer id,int status);
-
+    //删除
+    @Delete("delete from contract " +
+            "where id = #{id}")
+    int deleteById(Integer id);
+    //软删除
+    @Delete("update contract " +
+            "set is_delete = 1 " +
+            "where id = #{id}")
+    int softDeleteById(Integer id);
 }
