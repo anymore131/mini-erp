@@ -15,11 +15,11 @@ import lombok.Data;
 @Data
 public class ContractVo{
     private Integer id;
-    private String clientId;
-    private String userId;
+    private Integer clientId;
+    private Integer userId;
     private String name;
     private String number;
-    private String type;
+    private Integer orderId;
     private String content;
     private LocalDateTime signTime;
     private LocalDateTime startTime;
@@ -28,6 +28,4 @@ public class ContractVo{
     private LocalDateTime lastUpdate;
     private Integer version;
     private String status;
-
-
 }

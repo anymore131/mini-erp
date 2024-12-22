@@ -1,10 +1,10 @@
 package cn.edu.zust.se.service;
 
 import cn.edu.zust.se.entity.po.Contract;
-import cn.edu.zust.se.entity.po.ContractTemplate;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.Date;
 import java.util.List;
 
 public interface IContractService  extends IService<Contract> {
@@ -20,8 +20,8 @@ public interface IContractService  extends IService<Contract> {
     Page<Contract> getContract(String category, String keyword, Page page);
     //删除合同
     void deleteContract(Integer id);
-    //发布/删除合同
-    void changeContractStatus(Integer id, boolean enabled);
+    //合同状态变更
+    void updateContractStatus(Integer id,int status);
     //设置创建者
     void setCreator(Integer userId);
 }

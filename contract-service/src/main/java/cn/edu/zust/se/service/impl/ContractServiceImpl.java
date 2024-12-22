@@ -1,7 +1,6 @@
 package cn.edu.zust.se.service.impl;
 
 import cn.edu.zust.se.entity.po.Contract;
-import cn.edu.zust.se.entity.po.ContractTemplate;
 import cn.edu.zust.se.mapper.ContractMapper;
 import cn.edu.zust.se.service.IContractService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -10,6 +9,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -41,7 +42,14 @@ public class ContractServiceImpl extends ServiceImpl<ContractMapper, Contract> i
 
     @Override
     public Contract updateContract(Integer id, Contract updatedContract) {
-        contractMapper.updateById(updatedContract);
+        int version = contractMapper.getVersion(id);
+        contractMapper.changeContract(updatedContract.getClientId(),
+                updatedContract.getUserId(), updatedContract.getName(),
+                updatedContract.getNumber(), updatedContract.getOrderId(),
+                updatedContract.getContent(), updatedContract.getSignTime(),
+                updatedContract.getStartTime(), updatedContract.getEndTime(),
+                updatedContract.getTotalAmout(), updatedContract.getLastUpdate(),version+1);
+        contractMapper.updateContract(id);
         return updatedContract;
     }
 
@@ -63,13 +71,8 @@ public class ContractServiceImpl extends ServiceImpl<ContractMapper, Contract> i
     }
 
     @Override
-    public void changeContractStatus(Integer id, boolean enabled) {
-        Contract contract = contractMapper.selectById(id);
-        if(enabled){
-            contract.setStatus(String.valueOf(1));
-        }else{
-            contract.setStatus(String.valueOf(2));
-        }
+    public void updateContractStatus(Integer id,int status) {
+        contractMapper.updateStatus(id,status);
     }
 
     @Override
