@@ -1,20 +1,14 @@
-package cn.edu.zust.se.entity.vo;
+package cn.edu.zust.se.entity.query;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import lombok.Data;
 
-/**
- * <p>
- *
- * </p>
- *
- * @author author
- * @since 2024-12-17
- */
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class ContractVo{
-    private Integer id;
+public class ContractQuery extends PageQuery{
     private Integer clientId;
     private Integer userId;
     private String name;

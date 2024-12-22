@@ -35,13 +35,13 @@ public class Contract implements Serializable {
      * 客户id，对应客户信息
      */
 
-    private String clientId;
+    private Integer clientId;
 
     /**
      * 职工id,对应职工信息
 
      */
-    private String userId;
+    private Integer userId;
 
     /**
      * 合同名称
@@ -54,9 +54,9 @@ public class Contract implements Serializable {
     private String number;
 
     /**
-     * 合同类型，如 “销售合同”“采购合同”“服务合同” 等，可用于分类统计和业务逻辑区分
+     * 订单id,对应订单信息
      */
-    private String type;
+    private Integer orderId;
 
     /**
      * 合同内容
@@ -94,9 +94,9 @@ public class Contract implements Serializable {
     private Integer version;
 
     /**
-     * 合同当前状态，如 0“新建” 1“审批中”2 “执行中”3“修改中” 4“已终止” 5“已违约”等，用于跟踪合同流程
+     * 合同当前状态，新建为0，审批通过为1，执行中为2，结束为3，用于跟踪合同流程
      */
-    private String status;
+    private int status;
 
     @TableLogic
     private Integer isDelete;
