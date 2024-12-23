@@ -11,6 +11,7 @@ import cn.edu.zust.se.mapper.OrderItemMapper;
 import cn.edu.zust.se.mapper.OrderMapper;
 import cn.edu.zust.se.service.IOrderItemService;
 import cn.edu.zust.se.service.IOrderService;
+import cn.edu.zust.se.service.IOrderLogService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -34,6 +35,9 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemMapper, OrderItem
 
     @Autowired
     private IOrderService orderService;
+
+    @Autowired
+    private IOrderLogService orderLogService;
 
     @Override
     public OrderItemVo getOrderItemById(Integer id) {
@@ -126,7 +130,8 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemMapper, OrderItem
         if (!save){
             throw new InvalidInputException("添加订单明细失败！");
         }
-        updateOrderTime(item.getOrderId());
+        orderLogService.addLog(item.getOrderId(), StpUtil.getLoginIdAsInt(), "ADD_ITEM", 
+            String.format("添加订单明细：%s，数量：%d，单价：%.2f", item.getProductName(), item.getQuantity(), item.getUnitPrice()/100.0));
         return true;
     }
 
@@ -163,7 +168,6 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemMapper, OrderItem
             b = update(item, new UpdateWrapper<OrderItem>().eq("id", item.getId()));
             orderService.refreshOrderAmount(order.getId());
         }
-        updateOrderTime(item.getOrderId());
         return b;
     }
 
@@ -189,7 +193,6 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemMapper, OrderItem
             throw new InvalidInputException("删除订单明细失败！");
         }
         orderService.refreshOrderAmount(order.getId());
-        updateOrderTime(order.getId());
         return true;
     }
 
@@ -209,7 +212,6 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemMapper, OrderItem
             throw new InvalidInputException("删除订单明细失败！");
         }
         orderService.refreshOrderAmount(orderId);
-        updateOrderTime(orderId);
         return true;
     }
 
@@ -218,11 +220,5 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemMapper, OrderItem
         if (!StpUtil.hasRole("admin") && !currentUserId.equals(order.getUserId())){
             throw new InvalidInputException(s);
         }
-    }
-
-    private void updateOrderTime(Integer orderId){
-        Order order = orderService.getById(orderId);
-        order.setUpdateTime(LocalDateTime.now());
-        orderService.save(order);
     }
 }

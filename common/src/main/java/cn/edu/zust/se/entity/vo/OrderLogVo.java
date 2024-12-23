@@ -9,7 +9,9 @@ import java.time.LocalDateTime;
 public class OrderLogVo {
     private Integer id;
     private Integer orderId;
+    private String orderNo;
     private Integer userId;
+    private String userName;
     private String action;
     private String content;
     private LocalDateTime createTime;

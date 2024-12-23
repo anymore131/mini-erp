@@ -1,6 +1,9 @@
 package cn.edu.zust.se.service;
 
+import cn.edu.zust.se.entity.dto.PageDto;
 import cn.edu.zust.se.entity.po.OrderLog;
+import cn.edu.zust.se.entity.query.OrderLogQuery;
+import cn.edu.zust.se.entity.vo.OrderLogVo;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -12,5 +15,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2024-12-21
  */
 public interface IOrderLogService extends IService<OrderLog> {
-
+    public PageDto<OrderLogVo> pageLogs(OrderLogQuery query);
+    void addLog(Integer orderId, Integer userId, String action, String content);
 }

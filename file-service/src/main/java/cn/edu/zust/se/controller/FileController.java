@@ -52,7 +52,7 @@ public class FileController {
     }
 
     @RequestMapping("/pageAll")
-    public SaResult pageAll(FileQuery fileQuery) {
+    public SaResult pageAll(@RequestBody FileQuery fileQuery) {
         if (fileQuery == null){
             throw new InvalidInputException("查询参数为空");
         }

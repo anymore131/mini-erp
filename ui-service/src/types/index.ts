@@ -155,4 +155,20 @@ export interface OrderForm {
   userId: number
   remark?: string
 }
+
+export interface FileQuery {
+  pageNum: number
+  pageSize: number
+  sortBy?: string
+  asc?: boolean
+}
+
+export interface FileInfo {
+  id: number
+  fileName: string
+  contentType: string
+  createTime: string
+  url: string
+  uuidFileName: string
+}
  

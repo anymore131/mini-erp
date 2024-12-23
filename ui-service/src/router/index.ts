@@ -4,6 +4,9 @@ import OrderManage from '../views/order/OrderManage.vue'
 import OrderDetail from '../views/order/OrderDetail.vue'
 import CreateOrder from '../views/order/CreateOrder.vue'
 import OrderApproval from '../views/order/OrderApproval.vue'
+import UserManage from '../views/user/UserManage.vue'
+import UserDetail from '../views/user/UserDetail.vue'
+import OrderLog from '../views/log/OrderLog.vue'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -121,6 +124,21 @@ const routes: RouteRecordRaw[] = [
             component: OrderApproval
           }
         ]
+      },
+      {
+        path: 'file-manage',
+        name: 'FileManage',
+        component: () => import('../views/file/FileManage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/log/order',
+        name: 'OrderLog',
+        component: OrderLog,
+        meta: {
+          requiresAuth: true,
+          requiresAdmin: true
+        }
       }
     ]
   },

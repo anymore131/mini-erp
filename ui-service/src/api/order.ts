@@ -122,7 +122,7 @@ export const orderApi = {
     })
   },
 
-  // 订单审批记录
+  // ���单审批记录
   getOrderApprovals(orderId: number) {
     return request.get(`/order/order-approval/list/${orderId}`)
   },
@@ -135,5 +135,22 @@ export const orderApi = {
     comment: string
   }) {
     return request.post('/order/order-approval/add', data)
+  },
+
+  // 获取订单日志
+  getOrderLogs(data: {
+    pageNum: number
+    pageSize: number
+    orderNo?: string
+    userName?: string
+    action?: string
+    sortBy?: string
+    asc?: boolean
+  }) {
+    return request({
+      url: '/order/order-log/pageLogs',
+      method: 'post',
+      data
+    })
   }
 } 

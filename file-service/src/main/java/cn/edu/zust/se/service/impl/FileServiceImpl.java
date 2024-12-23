@@ -60,7 +60,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements IF
         Page<File> page = fileQuery.toMpPage(fileQuery.getSortBy(),fileQuery.isAsc());
         lambdaQuery()
                 .like(fileQuery.getFileName() != null, File::getFileName, fileQuery.getFileName())
-                .eq(fileQuery.getContentType() != null,File::getContentType, fileQuery.getContentType())
+                .like(fileQuery.getContentType() != null,File::getContentType, fileQuery.getContentType())
                 .page(page);
         PageDto<FileVo> fileVos = PageDto.of(page, FileVo.class);
         for (FileVo fileVo : fileVos.getList()){

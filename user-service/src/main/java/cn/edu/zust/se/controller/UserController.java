@@ -140,4 +140,9 @@ public class UserController {
         }
         return new SaResult().setData(userService.pageUsersName(pageQuery));
     }
+
+    @GetMapping("/getUserIdByUserName/{userName}")
+    public Integer getUserIdByUserName(@PathVariable String userName){
+        return userService.getUserByUserName(userName).getId();
+    }
 }

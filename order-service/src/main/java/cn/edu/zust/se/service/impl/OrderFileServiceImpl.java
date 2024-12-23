@@ -12,6 +12,7 @@ import cn.edu.zust.se.feign.FileFeignServiceI;
 import cn.edu.zust.se.mapper.OrderFileMapper;
 import cn.edu.zust.se.service.IOrderFileService;
 import cn.edu.zust.se.service.IOrderService;
+import cn.edu.zust.se.service.IOrderLogService;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -33,6 +34,8 @@ public class OrderFileServiceImpl extends ServiceImpl<OrderFileMapper, OrderFile
     private FileFeignServiceI fileFeignService;
     @Autowired
     private IOrderService orderService;
+    @Autowired
+    private IOrderLogService orderLogService;
 
     @Override
     public SaResult addOrderFile(Integer orderId, String remark, MultipartFile multipartFile) {
@@ -66,6 +69,8 @@ public class OrderFileServiceImpl extends ServiceImpl<OrderFileMapper, OrderFile
         orderFile.setRemark(remark);
         orderFile.setIsDelete(0);
         save(orderFile);
+        orderLogService.addLog(orderId, StpUtil.getLoginIdAsInt(), "ADD_FILE", 
+            String.format("上传文件：%s", multipartFile.getOriginalFilename()));
         return upload;
     }
 

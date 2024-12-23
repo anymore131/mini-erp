@@ -18,14 +18,13 @@
           <span>控制台</span>
         </el-menu-item>
 
-        <el-sub-menu index="system" v-if="isAdmin">
-          <template #title>
-            <el-icon><Setting /></el-icon>
-            <span>系统管理</span>
-          </template>
-          <el-menu-item index="/user-manage">用户管理</el-menu-item>
-          <el-menu-item index="/client-manage">客户管理</el-menu-item>
-        </el-sub-menu>
+        <el-menu-item-group>
+          <template #title>系统管理</template>
+          <el-menu-item index="/user-manage">
+            <el-icon><User /></el-icon>
+            <span>用户管理</span>
+          </el-menu-item>
+        </el-menu-item-group>
 
         <el-sub-menu v-if="isAdmin" index="client">
           <template #title>
@@ -66,10 +65,54 @@
           <span>订单管理</span>
         </el-menu-item>
 
+        <el-sub-menu v-if="isAdmin" index="file">
+          <template #title>
+            <el-icon><Document /></el-icon>
+            <span>文件列表</span>
+          </template>
+          <el-menu-item index="/file-manage">
+            <span>所有文件</span>
+          </el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu v-if="isAdmin" index="log">
+          <template #title>
+            <el-icon><Document /></el-icon>
+            <span>日志管理</span>
+          </template>
+          <el-menu-item index="/log/order">
+            <span>订单日志</span>
+          </el-menu-item>
+        </el-sub-menu>
+
         <el-menu-item index="/profile">
           <el-icon><User /></el-icon>
           <span>个人中心</span>
         </el-menu-item>
+
+        <!-- 开发文档 -->
+        <el-sub-menu index="docs">
+          <template #title>
+            <el-icon><Document /></el-icon>
+            <span>开发文档</span>
+          </template>
+          <el-menu-item @click="openDoc('satoken')">
+            <span>Sa-Token</span>
+          </el-menu-item>
+          <el-menu-item @click="openDoc('mybatis')">
+            <span>MyBatis-Plus</span>
+          </el-menu-item>
+          <el-menu-item @click="openDoc('element')">
+            <span>Element Plus</span>
+          </el-menu-item>
+          <el-menu-item @click="openDoc('vue')">
+            <span>Vue3</span>
+          </el-menu-item>
+          <el-menu-item @click="openDoc('minio')">
+            <span>MinIO</span>
+          </el-menu-item>
+        </el-sub-menu>
+
       </el-menu>
     </el-aside>
 
@@ -170,6 +213,18 @@ export default defineComponent({
       router.push('/login')
     }
 
+    const DOC_URLS = {
+      satoken: 'https://sa-token.cc/',
+      mybatis: 'https://baomidou.com/getting-started/',
+      element: 'https://element-plus.org/zh-CN/component/overview.html',
+      vue: 'https://cn.vuejs.org/guide/introduction',
+      minio: 'https://min.io/docs/minio/linux/developers/javascript/API.html'
+    }
+
+    const openDoc = (type: keyof typeof DOC_URLS) => {
+      window.open(DOC_URLS[type], '_blank')
+    }
+
     const passwordDialogVisible = ref(false)
     const passwordFormRef = ref()
     const passwordForm = reactive({
@@ -209,6 +264,7 @@ export default defineComponent({
       isAdmin: store.isAdmin,
       userInfo: store.userInfo,
       handleLogout,
+      openDoc,
       passwordDialogVisible,
       passwordFormRef,
       passwordForm,

@@ -11,6 +11,7 @@ import cn.edu.zust.se.feign.ClientFeignServiceI;
 import cn.edu.zust.se.feign.UserFeignServiceI;
 import cn.edu.zust.se.mapper.OrderItemMapper;
 import cn.edu.zust.se.mapper.OrderMapper;
+import cn.edu.zust.se.service.IOrderLogService;
 import cn.edu.zust.se.service.IOrderService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
@@ -39,6 +40,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     private ClientFeignServiceI clientFeignService;
     @Autowired
     private OrderItemMapper orderItemMapper;
+    @Autowired
+    private IOrderLogService orderLogService;
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS");
     private static final Random random = new Random();
@@ -122,6 +125,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         order.setUpdateTime(LocalDateTime.now());
         order.setIsDelete(0);
         save(order);
+        orderLogService.addLog(order.getId(), order.getUserId(), "CREATE", "创建订单");
         return order.getId();
     }
 
@@ -153,6 +157,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             }
         }
         order.setTotalAmount(amount);
+        order.setUpdateTime(LocalDateTime.now());
         updateById(order);
     }
 
@@ -177,6 +182,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             throw new InvalidInputException("订单状态错误！");
         }
         order.setStatus("PENDING");
+        orderLogService.addLog(id, StpUtil.getLoginIdAsInt(), "SUBMIT", "提交检验");
         return updateById(order)? id : null;
     }
 

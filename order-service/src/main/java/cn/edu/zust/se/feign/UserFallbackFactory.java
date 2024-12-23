@@ -28,4 +28,9 @@ class UserFallback implements UserFeignServiceI {
     public UserVo getDeleteUserNameById(Integer id) {
         return null;
     }
+
+    @Override
+    public Integer getUserIdByUserName(String userName) {
+        return null;
+    }
 }

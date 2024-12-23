@@ -3,6 +3,7 @@ package cn.edu.zust.se.service.impl;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.edu.zust.se.entity.po.Order;
 import cn.edu.zust.se.entity.po.OrderApproval;
+import cn.edu.zust.se.entity.po.OrderLog;
 import cn.edu.zust.se.entity.vo.OrderApprovalVo;
 import cn.edu.zust.se.exception.InvalidInputException;
 import cn.edu.zust.se.feign.UserFeignServiceI;
@@ -10,6 +11,7 @@ import cn.edu.zust.se.mapper.OrderApprovalMapper;
 import cn.edu.zust.se.mapper.OrderMapper;
 import cn.edu.zust.se.service.IOrderApprovalService;
 import cn.edu.zust.se.service.IOrderService;
+import cn.edu.zust.se.service.IOrderLogService;
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -32,6 +34,8 @@ public class OrderApprovalServiceImpl extends ServiceImpl<OrderApprovalMapper, O
     private UserFeignServiceI userFeignService;
     @Autowired
     private IOrderService orderService;
+    @Autowired
+    private IOrderLogService orderLogService;
     private final OrderMapper orderMapper;
 
     public OrderApprovalServiceImpl(OrderMapper orderMapper) {
@@ -47,6 +51,9 @@ public class OrderApprovalServiceImpl extends ServiceImpl<OrderApprovalMapper, O
         checkInput(orderMapper.selectById(orderApproval.getOrderId()),"订单不存在！");
         orderApproval.setCreateTime(LocalDateTime.now()).setIsDelete(0);
         boolean b = save(orderApproval);
+        String result = "PASS".equals(orderApproval.getStatus()) ? "通过" : "不通过";
+        orderLogService.addLog(orderApproval.getOrderId(), orderApproval.getApproverId(), "APPROVE", 
+            String.format("审批%s，意见：%s", result, orderApproval.getComment()));
         if (b && "PASS".equals(orderApproval.getStatus())){
             orderService.ApproveOrder(orderApproval.getOrderId());
         }else if (b && "REJECT".equals(orderApproval.getStatus())) {
