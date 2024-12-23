@@ -1,6 +1,7 @@
 package cn.edu.zust.se.controller;
 
 
+import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
 import cn.edu.zust.se.entity.po.Order;
 import cn.edu.zust.se.entity.query.OrderQuery;
@@ -31,8 +32,11 @@ public class OrderController {
         if (order == null){
             throw new InvalidInputException("订单不能为空！");
         }
-        orderService.addOrder(order);
-        return SaResult.ok("订单添加成功！");
+        Integer i = orderService.addOrder(order);
+        if (i == null){
+            return SaResult.error("订单添加失败！");
+        }
+        return SaResult.ok("订单添加成功！").setData(i);
     }
 
     @RequestMapping("/page")
@@ -56,23 +60,49 @@ public class OrderController {
      */
     @RequestMapping("/pending/{id}")
     public SaResult pendingOrder(@PathVariable("id") Integer id) {
-        return null;
+        if (id == null){
+            throw new InvalidInputException("订单id不能为空！");
+        }
+        if (orderService.PendingOrder(id) != null){
+            return SaResult.ok("订单状态修改待检验成功！");
+        }
+        return SaResult.error("订单状态修改待检验失败！");
     }
 
     /**
+     * 失效
      * 检验通过
      */
     @RequestMapping("/approve/{id}")
     public SaResult approveOrder(@PathVariable("id") Integer id) {
-        return null;
+        if (id == null){
+            throw new InvalidInputException("订单id不能为空！");
+        }
+        if (!StpUtil.hasRole("admin")){
+            throw new InvalidInputException("无权操作！");
+        }
+        if (orderService.ApproveOrder(id) != null){
+            return SaResult.ok("订单检验通过成功！");
+        }
+        return SaResult.error("订单检验通过失败！");
     }
 
     /**
+     * 失效
      * 检验不通过
      */
     @RequestMapping("/reject/{id}")
     public SaResult rejectOrder(@PathVariable("id") Integer id) {
-        return null;
+        if (id == null){
+            throw new InvalidInputException("订单id不能为空！");
+        }
+        if (!StpUtil.hasRole("admin")){
+            throw new InvalidInputException("无权操作！");
+        }
+        if (orderService.RejectOrder(id) != null){
+            return SaResult.ok("订单检验不通过成功！");
+        }
+        return SaResult.error("订单检验不通过失败！");
     }
 
     /**
@@ -80,7 +110,13 @@ public class OrderController {
      */
     @RequestMapping("/complete/{id}")
     public SaResult completeOrder(@PathVariable("id") Integer id) {
-        return null;
+        if (id == null){
+            throw new InvalidInputException("订单id不能为空！");
+        }
+        if (orderService.CompleteOrder(id) != null){
+            return SaResult.ok("订单完成成功！");
+        }
+        return SaResult.error("订单完成失败！");
     }
 
     /**
@@ -88,6 +124,12 @@ public class OrderController {
      */
     @RequestMapping("/cancel/{id}")
     public SaResult cancelOrder(@PathVariable("id") Integer id) {
-        return null;
+        if (id == null){
+            throw new InvalidInputException("订单id不能为空！");
+        }
+        if (orderService.CancelledOrder(id) != null){
+            return SaResult.ok("订单取消成功！");
+        }
+        return SaResult.error("订单取消失败！");
     }
 }

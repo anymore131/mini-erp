@@ -67,9 +67,14 @@
     <el-table
       :data="orderList"
       :loading="loading"
+      @sort-change="handleSortChange"
       style="width: 100%; margin-top: 20px"
     >
-      <el-table-column prop="orderNo" label="订单编号">
+      <el-table-column 
+        prop="orderNo" 
+        label="订单编号"
+        sortable="custom"
+      >
         <template #default="{ row }">
           <el-button 
             link 
@@ -80,11 +85,43 @@
           </el-button>
         </template>
       </el-table-column>
-      <el-table-column prop="clientName" label="客户名称" />
+      <el-table-column prop="clientName" label="客户名称">
+        <template #default="{ row }">
+          <el-button 
+            link 
+            type="primary" 
+            @click="handleClientClick(row.clientId)"
+          >
+            {{ row.clientName }}
+          </el-button>
+        </template>
+      </el-table-column>
       <el-table-column prop="userName" label="负责人" />
-      <el-table-column prop="totalAmount" label="总金额">
+      <el-table-column 
+        prop="totalAmount" 
+        label="总金额"
+        sortable="custom"
+      >
         <template #default="{ row }">
           {{ (row.totalAmount / 100).toFixed(2) }}
+        </template>
+      </el-table-column>
+      <el-table-column 
+        prop="createTime" 
+        label="创建时间"
+        sortable="custom"
+      >
+        <template #default="{ row }">
+          {{ formatTime(row.createTime) }}
+        </template>
+      </el-table-column>
+      <el-table-column 
+        prop="updateTime" 
+        label="修改时间"
+        sortable="custom"
+      >
+        <template #default="{ row }">
+          {{ formatTime(row.updateTime) }}
         </template>
       </el-table-column>
       <el-table-column prop="status" label="状态">
@@ -104,9 +141,15 @@
           </span>
         </template>
       </el-table-column>
-      <el-table-column prop="createTime" label="创建时间">
+      <el-table-column label="操作" width="200">
         <template #default="{ row }">
-          {{ formatTime(row.createTime) }}
+          <el-button 
+            link 
+            type="primary" 
+            @click="handleOrderClick(row.id)"
+          >
+            查看
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -162,7 +205,9 @@ export default defineComponent({
       startTime: undefined as string | undefined,
       endTime: undefined as string | undefined,
       startUpdateTime: undefined as string | undefined,
-      endUpdateTime: undefined as string | undefined
+      endUpdateTime: undefined as string | undefined,
+      sortBy: undefined as string | undefined,
+      asc: true
     })
 
     const value2 = ref()
@@ -185,11 +230,17 @@ export default defineComponent({
           ...pagination,
           ...(searchForm.orderNo ? { orderNo: searchForm.orderNo } : {}),
           ...(searchForm.status ? { status: searchForm.status } : {}),
-          ...(searchForm.userId ? { userId: searchForm.userId } : {}),
+          ...(route.path === '/order-manage/pending' ? { status: 'PENDING' } : {}),
+          ...(route.params.userId ? { userId: Number(route.params.userId) } : {}),
+          ...(!store.userInfo.value?.role?.includes('admin') ? { userId: store.userInfo.value?.id } : {}),
           ...(searchForm.minAmount ? { minAmount: Math.round(searchForm.minAmount * 100) } : {}),
           ...(searchForm.maxAmount ? { maxAmount: Math.round(searchForm.maxAmount * 100) } : {}),
           ...(value2.value?.[0] ? { createTime: value2.value[0] } : {}),
-          ...(value2.value?.[1] ? { updateTime: value2.value[1] } : {})
+          ...(value2.value?.[1] ? { updateTime: value2.value[1] } : {}),
+          ...(searchForm.sortBy ? { 
+            sortBy: searchForm.sortBy,
+            asc: searchForm.asc 
+          } : {})
         }
         const res = await orderApi.getOrders(params)
         orderList.value = res.data.list
@@ -245,6 +296,16 @@ export default defineComponent({
       }
     }
 
+    const handleClientClick = (clientId: number) => {
+      router.push(`/client/${clientId}`)
+    }
+
+    const handleSortChange = ({ prop, order }: { prop: string, order: string | null }) => {
+      searchForm.sortBy = order ? prop.replace(/([A-Z])/g, '_$1').toLowerCase() : undefined
+      searchForm.asc = order === 'ascending'
+      fetchOrderList()
+    }
+
     onMounted(() => {
       fetchOrderList()
     })
@@ -262,7 +323,9 @@ export default defineComponent({
       formatTime: formatDateTime,
       handleTimeRangeChange,
       handleUpdateTimeRangeChange,
-      value2
+      value2,
+      handleClientClick,
+      handleSortChange
     }
   }
 })

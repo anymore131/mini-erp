@@ -1,6 +1,9 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import { useStore } from '../hooks/useStore'
-
+import OrderManage from '../views/order/OrderManage.vue'
+import OrderDetail from '../views/order/OrderDetail.vue'
+import CreateOrder from '../views/order/CreateOrder.vue'
+import OrderApproval from '../views/order/OrderApproval.vue'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -81,6 +84,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true }
       },
       {
+        path: 'order-manage/pending',
+        name: 'PendingOrders',
+        component: () => import('../views/order/PendingOrders.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
         path: 'order/create/:clientId',
         name: 'CreateOrder',
         component: () => import('../views/order/CreateOrder.vue'),
@@ -91,6 +100,27 @@ const routes: RouteRecordRaw[] = [
         name: 'OrderDetail',
         component: () => import('../views/order/OrderDetail.vue'),
         meta: { requiresAuth: true }
+      },
+      {
+        path: 'order',
+        children: [
+          {
+            path: '',
+            component: OrderManage
+          },
+          {
+            path: ':id',
+            component: OrderDetail
+          },
+          {
+            path: 'create/:clientId?',
+            component: CreateOrder
+          },
+          {
+            path: 'approval/:id',
+            component: OrderApproval
+          }
+        ]
       }
     ]
   },

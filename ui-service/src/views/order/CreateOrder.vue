@@ -82,13 +82,13 @@ export default defineComponent({
       await formRef.value.validate(async (valid) => {
         if (valid) {
           try {
-            await orderApi.addOrder({
+            const res = await orderApi.addOrder({
               clientId: form.value.clientId,
               userId: form.value.userId,
               remark: form.value.remark
             })
             ElMessage.success('创建成功')
-            router.back()
+            router.push(`/order/${res.data}`)
           } catch (error) {
             ElMessage.error('创建失败')
           }

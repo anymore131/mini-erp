@@ -15,4 +15,6 @@ public class OrderItemVo {
     private Integer totalPrice;
     private String remark;
     private LocalDateTime createTime;
+
+    private OrderVo order;
 }

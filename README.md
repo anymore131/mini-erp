@@ -6,4 +6,4 @@
     npm install
     npm run dev
 2.  后端：spring-cloud启动
-    本地部署：mysql数据库、redis
+    本地部署：mysql数据库、redis、nacos

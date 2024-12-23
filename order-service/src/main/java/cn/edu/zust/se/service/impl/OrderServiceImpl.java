@@ -2,18 +2,20 @@ package cn.edu.zust.se.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
 import cn.edu.zust.se.entity.dto.PageDto;
-import cn.edu.zust.se.entity.po.Client;
 import cn.edu.zust.se.entity.po.Order;
+import cn.edu.zust.se.entity.po.OrderItem;
 import cn.edu.zust.se.entity.query.OrderQuery;
-import cn.edu.zust.se.entity.vo.ClientVo;
 import cn.edu.zust.se.entity.vo.OrderVo;
 import cn.edu.zust.se.exception.InvalidInputException;
 import cn.edu.zust.se.feign.ClientFeignServiceI;
 import cn.edu.zust.se.feign.UserFeignServiceI;
+import cn.edu.zust.se.mapper.OrderItemMapper;
 import cn.edu.zust.se.mapper.OrderMapper;
 import cn.edu.zust.se.service.IOrderService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +23,6 @@ import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 
 /**
@@ -38,27 +37,17 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     private UserFeignServiceI userFeignService;
     @Autowired
     private ClientFeignServiceI clientFeignService;
+    @Autowired
+    private OrderItemMapper orderItemMapper;
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS");
     private static final Random random = new Random();
-
 
     @Override
     public OrderVo getOrderVoById(Integer id) {
         checkOrderId(id);
         Order order = getAndCheckOrderLive(id);
-        OrderVo orderVo = BeanUtil.copyProperties(order, OrderVo.class);
-        String userName = userFeignService.getUserNameById(order.getUserId());
-        if (userName == null){
-            userName = userFeignService.getDeleteUserNameById(order.getUserId()).getUserName();
-            orderVo.setUserId(null);
-            orderVo.setUserName(userName);
-        }else{
-            orderVo.setUserName(userName);
-        }
-        String clientName = clientFeignService.getClientNameById(order.getClientId());
-        orderVo.setClientName(clientName);
-        return orderVo;
+        return putOrderVo(order);
     }
 
     @Override
@@ -71,9 +60,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             System.out.println(StpUtil.getRoleList());
             throw new InvalidInputException("用户id不能为空！");
         }
-        if (StpUtil.hasRole("admin")){
-            System.out.println("admin");
-        }else if (!orderQuery.getUserId().equals(currentUserId)){
+        if (!StpUtil.hasRole("admin") && !orderQuery.getUserId().equals(currentUserId)){
             throw new InvalidInputException("无权查询订单！");
         }
         Page<Order> page = orderQuery.toMpPage(orderQuery.getSortBy(), orderQuery.isAsc());
@@ -117,7 +104,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
     // 起草
     @Override
-    public void addOrder(Order order) {
+    public Integer addOrder(Order order) {
         if (order == null){
             throw new InvalidInputException("订单不能为空！");
         }
@@ -135,7 +122,50 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         order.setUpdateTime(LocalDateTime.now());
         order.setIsDelete(0);
         save(order);
+        return order.getId();
     }
+
+    @Override
+    public Integer getOrderIdByOrderNo(String orderNo) {
+        if (orderNo == null){
+            throw new InvalidInputException("订单号不能为空！");
+        }
+        QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("order_no",orderNo);
+        Order one = getOne(queryWrapper);
+        return one.getId();
+    }
+
+    @Override
+    public void refreshOrderAmount(Integer id) {
+        Integer amount = 0;
+        if (id == null){
+            throw new InvalidInputException("订单id不能为空！");
+        }
+        Order order = getById(id);
+        if (order == null){
+            throw new InvalidInputException("订单不存在！");
+        }
+        List<OrderItem> orderItem = orderItemMapper.getByOrderId(id);
+        if (!CollUtil.isEmpty(orderItem)){
+            for (OrderItem o: orderItem){
+                amount += o.getTotalPrice();
+            }
+        }
+        order.setTotalAmount(amount);
+        updateById(order);
+    }
+
+    // 失效
+    @Override
+    public Integer backDraft(Integer id) {
+        checkOrderId(id);
+        Order order = getAndCheckOrderLive(id);
+        checkRole(order,"无权修改订单状态！");
+        order.setStatus("DRAFT");
+        return updateById(order)? id : null;
+    }
+
 
     // 待检验
     @Override
@@ -143,13 +173,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         checkOrderId(id);
         Order order = getAndCheckOrderLive(id);
         checkRole(order,"无权修改订单状态！");
-        if (!Objects.equals(order.getStatus(), "DRAFT")){
+        if (!Objects.equals(order.getStatus(), "DRAFT")&&!Objects.equals(order.getStatus(), "REJECTED")){
             throw new InvalidInputException("订单状态错误！");
         }
         order.setStatus("PENDING");
-
-
-
         return updateById(order)? id : null;
     }
 
@@ -158,12 +185,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     public Integer ApproveOrder(Integer id) {
         checkOrderId(id);
         Order order = getAndCheckOrderLive(id);
-        checkRoleAdmin(order,"权限错误！");
         if (!Objects.equals(order.getStatus(), "PENDING")){
             throw new InvalidInputException("订单状态错误！");
         }
         order.setStatus("APPROVED");
-
 
 
         return updateById(order)? id : null;
@@ -174,7 +199,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     public Integer RejectOrder(Integer id) {
         checkOrderId(id);
         Order order = getAndCheckOrderLive(id);
-        checkRoleAdmin(order,"权限错误！");
         if (!Objects.equals(order.getStatus(), "PENDING")){
             throw new InvalidInputException("订单状态错误！");
         }
@@ -196,8 +220,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         }
         order.setStatus("COMPLETED");
 
-
-
         return updateById(order)? id : null;
     }
 
@@ -208,9 +230,36 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         checkRole(order,"无权修改订单状态！");
         order.setStatus("CANCELLED");
 
-
-
         return updateById(order)? id : null;
+    }
+
+    @Override
+    public OrderVo getOrderVoByOrderNo(String orderNo) {
+        if (orderNo == null){
+            throw new InvalidInputException("订单号不能为空！");
+        }
+        QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("order_no",orderNo);
+        Order order = getOne(queryWrapper);
+        if (order == null){
+            return null;
+        }
+        return putOrderVo(order);
+    }
+
+    private OrderVo putOrderVo(Order order) {
+        OrderVo orderVo = BeanUtil.copyProperties(order, OrderVo.class);
+        String userName = userFeignService.getUserNameById(order.getUserId());
+        if (userName == null){
+            userName = userFeignService.getDeleteUserNameById(order.getUserId()).getUserName();
+            orderVo.setUserId(null);
+            orderVo.setUserName(userName);
+        }else{
+            orderVo.setUserName(userName);
+        }
+        String clientName = clientFeignService.getClientNameById(order.getClientId());
+        orderVo.setClientName(clientName);
+        return orderVo;
     }
 
     private void checkOrderId(Integer id){

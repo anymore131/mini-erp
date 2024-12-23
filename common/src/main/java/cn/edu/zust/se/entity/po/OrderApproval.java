@@ -37,6 +37,9 @@ public class OrderApproval implements Serializable {
 
     /**
      * 审批状态
+     * START 未批准
+     * PASS 通过
+     * REJECT 需修改
      */
     @TableField("status")
     private String status;
@@ -46,12 +49,6 @@ public class OrderApproval implements Serializable {
      */
     @TableField("comment")
     private String comment;
-
-    /**
-     * 审批时间
-     */
-    @TableField("approve_time")
-    private LocalDateTime approveTime;
 
     /**
      * 创建时间

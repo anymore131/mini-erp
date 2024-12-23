@@ -2,6 +2,9 @@ package cn.edu.zust.se.mapper;
 
 import cn.edu.zust.se.entity.po.OrderItem;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 /**
  * <p>
@@ -12,5 +15,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @since 2024-12-21
  */
 public interface OrderItemMapper extends BaseMapper<OrderItem> {
-
+    @Select("select * from erp.order_item where order_id = #{orderId} and is_delete = 0")
+    public List<OrderItem> getByOrderId(Integer orderId);
 }

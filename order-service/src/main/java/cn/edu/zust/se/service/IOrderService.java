@@ -13,10 +13,14 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface IOrderService extends IService<Order> {
     public OrderVo getOrderVoById(Integer id);
     public PageDto<OrderVo> pageOrders(OrderQuery orderQuery);
-    public void addOrder(Order order);
+    public Integer addOrder(Order order);
+    public Integer getOrderIdByOrderNo(String orderNo);
+    public void refreshOrderAmount(Integer id);
+    public Integer backDraft(Integer id);
     public Integer PendingOrder(Integer id);
     public Integer ApproveOrder(Integer id);
     public Integer RejectOrder(Integer id);
     public Integer CompleteOrder(Integer id);
     public Integer CancelledOrder(Integer id);
+    public OrderVo getOrderVoByOrderNo(String orderNo);
 }

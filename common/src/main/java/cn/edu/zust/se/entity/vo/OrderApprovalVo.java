@@ -9,12 +9,12 @@ import java.time.LocalDateTime;
 public class OrderApprovalVo {
     private Integer id;
     private Integer orderId;
+    private String orderNo;
     private Integer approverId;
 
     private String approverName;
 
     private String status;
     private String comment;
-    private LocalDateTime approveTime;
     private LocalDateTime createTime;
 }

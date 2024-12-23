@@ -53,6 +53,9 @@
           <el-menu-item index="/order-manage">
             <span>所有订单</span>
           </el-menu-item>
+          <el-menu-item index="/order-manage/pending">
+            <span>待检验订单</span>
+          </el-menu-item>
           <el-menu-item :index="`/order-manage/${userInfo?.id}`">
             <span>我的订单</span>
           </el-menu-item>
