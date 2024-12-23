@@ -1,6 +1,7 @@
 package cn.edu.zust.se.controller;
 
 
+import cn.dev33.satoken.util.SaResult;
 import cn.edu.zust.se.entity.po.Message;
 import cn.edu.zust.se.service.IMessageService;
 import com.alibaba.nacos.api.model.v2.Result;
@@ -66,18 +67,18 @@ public class MessageController {
      * 添加
      */
     @PostMapping(value = "/add")
-    public Result<?> add(@RequestBody Message message) {
+    public SaResult add(@RequestBody Message message) {
         messageService.save(message);
-        return Result.success("添加成功！");
+        return SaResult.data(message);
     }
 
     /**
      * 编辑
      */
     @PutMapping(value = "/edit")
-    public Result<?> edit(@RequestBody Message sysMessage) {
+    public SaResult edit(@RequestBody Message sysMessage) {
         messageService.updateById(sysMessage);
-        return Result.success("修改成功!");
+        return SaResult.data(sysMessage).ok("修改成功!");
 
     }
 
@@ -85,27 +86,27 @@ public class MessageController {
      * 通过id删除
      */
     @DeleteMapping(value = "/delete")
-    public Result<?> delete(@RequestParam(name = "id", required = false) String id) {
+    public SaResult delete(@RequestParam(name = "id", required = false) String id) {
         messageService.removeById(id);
-        return Result.success("删除成功!");
+        return SaResult.ok("删除成功!");
     }
 
     /**
      * 批量删除
      */
     @DeleteMapping(value = "/deleteBatch")
-    public Result<?> deleteBatch(@RequestParam(name = "ids", required = false) String ids) {
+    public SaResult deleteBatch(@RequestParam(name = "ids", required = false) String ids) {
         this.messageService.removeByIds(Arrays.asList(ids.split(",")));
-        return Result.success("批量删除成功！");
+        return SaResult.ok("批量删除成功！");
     }
 
     /**
      * 通过id查询
      */
     @GetMapping(value = "/queryById")
-    public Result<?> queryById(@RequestParam(name = "id", required = true) String id) {
+    public SaResult queryById(@RequestParam(name = "id", required = true) String id) {
         Message message = messageService.getById(id);
-        return Result.success(message);
+        return SaResult.data(message);
     }
 
 }

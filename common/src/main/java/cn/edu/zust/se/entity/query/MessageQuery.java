@@ -7,11 +7,11 @@ import java.time.LocalDateTime;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class ContractApprovalQuery extends PageQuery{
+public class MessageQuery extends PageQuery{
+    private Integer id;
+    private String content;
+    private Integer type;
+    private LocalDateTime sendTime;
     private Integer contractId;
     private Integer userId;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
-    private String approvalOpinion;
-    private String status;
 }
