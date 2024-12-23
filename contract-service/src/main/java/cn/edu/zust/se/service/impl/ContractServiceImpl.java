@@ -32,7 +32,7 @@ import java.util.List;
 @Transactional
 public class ContractServiceImpl extends ServiceImpl<ContractMapper, Contract> implements IContractService {
     private final ContractMapper contractMapper;
-    private Integer currentUserId = StpUtil.getLoginIdAsInt();
+//    private Integer currentUserId = StpUtil.getLoginIdAsInt();
 
     public ContractVo createContract(Contract contract) {
         if (contract.getUserId() == null){
@@ -41,9 +41,9 @@ public class ContractServiceImpl extends ServiceImpl<ContractMapper, Contract> i
         if (contract.getName() == null || contract.getName().isEmpty()){
             throw new InvalidInputException("合同名称不能为空！");
         }
-        if (!contract.getUserId().equals(currentUserId) && !StpUtil.hasRole("admin")){
-            throw new ForbiddenException("无权添加其他用户的客户信息！");
-        }
+//        if (!contract.getUserId().equals(currentUserId) && !StpUtil.hasRole("admin")){
+//            throw new ForbiddenException("无权添加其他用户的客户信息！");
+//        }
         if(contractMapper.getContractByName(contract.getName()) != null){
             throw new InvalidInputException("合同名称重复！");
         }
@@ -80,9 +80,9 @@ public class ContractServiceImpl extends ServiceImpl<ContractMapper, Contract> i
         if (updatedContract.getName() == null || updatedContract.getName().isEmpty()){
             throw new InvalidInputException("合同名称不能为空！");
         }
-        if (!updatedContract.getUserId().equals(currentUserId) && !StpUtil.hasRole("admin")){
-            throw new ForbiddenException("无权添加其他用户的客户信息！");
-        }
+//        if (!updatedContract.getUserId().equals(currentUserId) && !StpUtil.hasRole("admin")){
+//            throw new ForbiddenException("无权添加其他用户的客户信息！");
+//        }
         if(contractMapper.getContractByName(updatedContract.getName()) != null){
             throw new InvalidInputException("合同名称重复！");
         }

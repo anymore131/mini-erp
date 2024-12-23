@@ -55,6 +55,4 @@ public class Message implements Serializable {
     private Integer userId;
 
     private Integer isDelete;
-
-
 }
