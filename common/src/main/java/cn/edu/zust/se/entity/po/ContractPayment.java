@@ -1,6 +1,8 @@
 package cn.edu.zust.se.entity.po;
 
-import com.baomidou.mybatisplus.annotation.TableLogic;
+import java.math.BigDecimal;
+
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import java.time.LocalDateTime;
@@ -11,50 +13,59 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
+ * <p>
+ * 
+ * </p>
+ *
  * @author author
- * @since 2024-12-17
+ * @since 2024-12-22
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("contract_template")
-public class ContractTemplate implements Serializable {
+@TableName("contract_payment")
+public class ContractPayment implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
-    /**
-     * 模版名称
-     */
-    private String name;
+    @TableField("contract_id")
+    private Integer contractId;
 
     /**
-     * 模版内容
+     * 付款时间
      */
-    private String content;
+    @TableField("payment_time")
+    private LocalDateTime paymentTime;
 
     /**
-     * 模版描述简介
+     * 付款金额
      */
-    private String description;
+    @TableField("amount")
+    private BigDecimal amount;
 
     /**
-     * 创建时间
+     * 付款方式
      */
-    private LocalDateTime createTime;
+    @TableField("method")
+    private String method;
 
     /**
-     * 表示模板的当前状态，如草稿（0）、已发布（1）或已归档（2）
+     * 付款备注
      */
-    private Integer status;
+    @TableField("note")
+    private String note;
 
     /**
-     * 创建人id
+     * 负责员工id
      */
+    @TableField("user_id")
     private Integer userId;
 
-    @TableLogic
+    @TableField("is_delete")
     private Integer isDelete;
+
+
 }
