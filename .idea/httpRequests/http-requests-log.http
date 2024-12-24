@@ -1,0 +1,25 @@
+GET http://127.0.0.1:7000/user/list
+User-Agent: Apifox/1.0.0 (https://apifox.com)
+Accept: */*
+Host: 127.0.0.1:7000
+Connection: keep-alive
+Accept-Encoding: br, deflate, gzip, x-gzip
+Cookie: satoken=4e83031a-8b1a-4edb-ac17-9a03d7286064
+content-length: 0
+
+<> 2024-12-13T195152.200.json
+
+###
+
+GET http://127.0.0.1:7000/user/list
+User-Agent: Apifox/1.0.0 (https://apifox.com)
+Accept: */*
+Host: 127.0.0.1:7000
+Connection: keep-alive
+Accept-Encoding: br, deflate, gzip, x-gzip
+content-length: 0
+
+<> 2024-12-13T195139.200.json
+
+###
+

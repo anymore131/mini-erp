@@ -1,0 +1,4632 @@
+Index: customer-service/src/main/java/cn/edu/zust/se/controller/OrdersController.java
+===================================================================
+diff --git a/customer-service/src/main/java/cn/edu/zust/se/controller/OrdersController.java b/client-service/src/main/java/cn/edu/zust/se/controller/ClientController.java
+rename from customer-service/src/main/java/cn/edu/zust/se/controller/OrdersController.java
+rename to client-service/src/main/java/cn/edu/zust/se/controller/ClientController.java
+--- a/customer-service/src/main/java/cn/edu/zust/se/controller/OrdersController.java	
++++ b/client-service/src/main/java/cn/edu/zust/se/controller/ClientController.java	
+@@ -1,20 +1,67 @@
+ package cn.edu.zust.se.controller;
+ 
++import cn.dev33.satoken.annotation.SaCheckLogin;
++import cn.dev33.satoken.stp.StpUtil;
++import cn.dev33.satoken.util.SaResult;
++import cn.edu.zust.se.common.Result;
++import cn.edu.zust.se.entity.po.Client;
++import cn.edu.zust.se.service.IClientService;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.web.bind.annotation.*;
+ 
+-import org.springframework.web.bind.annotation.RequestMapping;
+-
+-import org.springframework.web.bind.annotation.RestController;
++import java.util.List;
+ 
+ /**
+- * <p>
+- *  前端控制器
+- * </p>
+- *
+  * @author anymore131
+- * @since 2024-11-16
++ * @since 2024-12-09
+  */
+ @RestController
+-@RequestMapping("/orders")
+-public class OrdersController {
++@RequestMapping("/client")
++public class ClientController {
++
++    @Autowired
++    private IClientService clientService;
++
++    @GetMapping
++    public SaResult getAllClients() {
++        return SaResult.data(clientService.list());
++    }
++
++    @GetMapping("/{id}")
++    public SaResult getClientByUserId(@PathVariable Integer userId) {
++        if (userId == null) {
++            return SaResult.error("未输入用户id");
++        }
++
++
++        return SaResult.data(null);
++    }
++
++    @PostMapping
++    public SaResult createClient(@RequestBody Client client) {
++        clientService.save(client);
++        return SaResult.data(client);
++    }
++
++    @PutMapping("/{id}")
++    public SaResult updateClient(@PathVariable Integer userId, @RequestBody Client client) {
+ 
++        boolean result = clientService.updateById(client);
++        if (!result){
++            return SaResult.error("修改失败");
++        }
++        return SaResult.ok("修改成功");
++    }
++
++    @DeleteMapping("/{id}")
++    public SaResult deleteClient(@PathVariable(required = false) Integer id) {
++        if (id == null) {
++            return SaResult.error( "未输入删除id");
++        }
++        boolean result = clientService.removeById(id);
++        if (!result){
++            return SaResult.error("删除失败");
++        }
++        return SaResult.ok("删除成功");
++    }
+ }
+Index: customer-service/src/main/java/cn/edu/zust/se/service/IOrdersService.java
+===================================================================
+diff --git a/customer-service/src/main/java/cn/edu/zust/se/service/IOrdersService.java b/client-service/src/main/java/cn/edu/zust/se/service/IClientService.java
+rename from customer-service/src/main/java/cn/edu/zust/se/service/IOrdersService.java
+rename to client-service/src/main/java/cn/edu/zust/se/service/IClientService.java
+--- a/customer-service/src/main/java/cn/edu/zust/se/service/IOrdersService.java	
++++ b/client-service/src/main/java/cn/edu/zust/se/service/IClientService.java	
+@@ -1,6 +1,6 @@
+ package cn.edu.zust.se.service;
+ 
+-import cn.edu.zust.se.entity.po.Orders;
++import cn.edu.zust.se.entity.po.Client;
+ import com.baomidou.mybatisplus.extension.service.IService;
+ 
+ /**
+@@ -9,8 +9,8 @@
+  * </p>
+  *
+  * @author anymore131
+- * @since 2024-11-16
++ * @since 2024-12-09
+  */
+-public interface IOrdersService extends IService<Orders> {
+-
++public interface IClientService extends IService<Client> {
++    String updateClient(int userId,Client client);
+ }
+Index: user-service/src/main/java/cn/edu/zust/se/service/IUsersService.java
+===================================================================
+diff --git a/user-service/src/main/java/cn/edu/zust/se/service/IUsersService.java b/user-service/src/main/java/cn/edu/zust/se/service/IUserService.java
+rename from user-service/src/main/java/cn/edu/zust/se/service/IUsersService.java
+rename to user-service/src/main/java/cn/edu/zust/se/service/IUserService.java
+--- a/user-service/src/main/java/cn/edu/zust/se/service/IUsersService.java	
++++ b/user-service/src/main/java/cn/edu/zust/se/service/IUserService.java	
+@@ -1,6 +1,9 @@
+ package cn.edu.zust.se.service;
+ 
+-import cn.edu.zust.se.entity.po.Users;
++import cn.edu.zust.se.domain.query.UserQuery;
++import cn.edu.zust.se.entity.dto.PageDto;
++import cn.edu.zust.se.entity.po.User;
++import cn.edu.zust.se.entity.vo.UserVo;
+ import com.baomidou.mybatisplus.extension.service.IService;
+ 
+ /**
+@@ -11,6 +14,8 @@
+  * @author anymore131
+  * @since 2024-11-16
+  */
+-public interface IUsersService extends IService<Users> {
+-
++public interface IUserService extends IService<User> {
++    PageDto<UserVo> queryUserPage(UserQuery userQuery);
++    UserVo login(User user);
++    String getUserRole(int id);
+ }
+Index: user-service/src/main/java/cn/edu/zust/se/controller/UsersController.java
+===================================================================
+diff --git a/user-service/src/main/java/cn/edu/zust/se/controller/UsersController.java b/user-service/src/main/java/cn/edu/zust/se/controller/UserController.java
+rename from user-service/src/main/java/cn/edu/zust/se/controller/UsersController.java
+rename to user-service/src/main/java/cn/edu/zust/se/controller/UserController.java
+--- a/user-service/src/main/java/cn/edu/zust/se/controller/UsersController.java	
++++ b/user-service/src/main/java/cn/edu/zust/se/controller/UserController.java	
+@@ -1,9 +1,18 @@
+ package cn.edu.zust.se.controller;
+ 
+ 
+-import org.springframework.web.bind.annotation.RequestMapping;
+-
+-import org.springframework.web.bind.annotation.RestController;
++import cn.dev33.satoken.annotation.SaCheckLogin;
++import cn.dev33.satoken.stp.StpUtil;
++import cn.dev33.satoken.util.SaResult;
++import cn.edu.zust.se.common.Result;
++import cn.edu.zust.se.domain.query.UserQuery;
++import cn.edu.zust.se.entity.dto.PageDto;
++import cn.edu.zust.se.entity.po.User;
++import cn.edu.zust.se.entity.vo.UserVo;
++import cn.edu.zust.se.service.IUserService;
++import cn.hutool.core.bean.BeanUtil;
++import lombok.RequiredArgsConstructor;
++import org.springframework.web.bind.annotation.*;
+ 
+ /**
+  * <p>
+@@ -14,11 +23,57 @@
+  * @since 2024-11-16
+  */
+ @RestController
+-@RequestMapping("/users")
+-public class UsersController {
++@RequestMapping
++@RequiredArgsConstructor
++public class UserController {
++    private final IUserService userService;
+ 
+     @RequestMapping("/test")
+     public String test(){
+         return "test";
+     }
++
++    @RequestMapping("/login")
++    public SaResult login(@RequestBody User user){
++        if (user.getUserName() == null || user.getPassword() == null){
++            return SaResult.error("用户名或密码不能为空");
++        }
++        UserVo userVo = userService.login(user);
++        if (userVo!=null){
++            StpUtil.kickout(userVo.getId());
++            StpUtil.login(userVo.getId());
++            return SaResult.ok("登录成功");
++        }
++        return SaResult.error("登录失败");
++    }
++
++    @RequestMapping("isLogin")
++    public SaResult isLogin() {
++        return SaResult.ok("当前会话是否登录：" + StpUtil.isLogin());
++    }
++
++    @SaCheckLogin
++    @RequestMapping("/get/{id}")
++    public Result<UserVo> getById(@PathVariable Integer id){
++        UserVo userVo = BeanUtil.copyProperties(userService.getById(id),UserVo.class);
++        return Result.success(userVo);
++    }
++
++    @SaCheckLogin
++    @RequestMapping("/getAll")
++    public SaResult getAll(@RequestBody UserQuery userQuery){
++        PageDto<UserVo> userPage = userService.queryUserPage(userQuery);
++        return SaResult.data(userPage);
++    }
++
++    @SaCheckLogin
++    @RequestMapping("/delete/{id}")
++    public Result<Boolean> deleteUserById(@PathVariable Integer id){
++        boolean result = userService.removeById(id);
++        if (!result){
++            return Result.error(500,"删除失败");
++        }else{
++            return Result.success(true);
++        }
++    }
+ }
+Index: order-processing-service/src/main/java/cn/edu/zust/se/controller/LogisticsInfoController.java
+===================================================================
+diff --git a/order-processing-service/src/main/java/cn/edu/zust/se/controller/LogisticsInfoController.java b/order-processing-service/src/main/java/cn/edu/zust/se/controller/LogisticsInfoController.java
+deleted file mode 100644
+--- a/order-processing-service/src/main/java/cn/edu/zust/se/controller/LogisticsInfoController.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.controller;
+-
+-
+-import org.springframework.web.bind.annotation.RequestMapping;
+-
+-import org.springframework.web.bind.annotation.RestController;
+-
+-/**
+- * <p>
+- *  前端控制器
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@RestController
+-@RequestMapping("/logistics-info")
+-public class LogisticsInfoController {
+-
+-}
+Index: financial-management-service/src/main/resources/mapper/ExpenseReimbursementsMapper.xml
+===================================================================
+diff --git a/financial-management-service/src/main/resources/mapper/ExpenseReimbursementsMapper.xml b/financial-management-service/src/main/resources/mapper/ExpenseReimbursementsMapper.xml
+deleted file mode 100644
+--- a/financial-management-service/src/main/resources/mapper/ExpenseReimbursementsMapper.xml	
++++ /dev/null	
+@@ -1,5 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+-<mapper namespace="cn.edu.zust.se.mapper.ExpenseReimbursementsMapper">
+-
+-</mapper>
+Index: inventory-management-service/src/main/java/cn/edu/zust/se/service/IInventoryOutRecordsService.java
+===================================================================
+diff --git a/inventory-management-service/src/main/java/cn/edu/zust/se/service/IInventoryOutRecordsService.java b/inventory-management-service/src/main/java/cn/edu/zust/se/service/IInventoryOutRecordsService.java
+deleted file mode 100644
+--- a/inventory-management-service/src/main/java/cn/edu/zust/se/service/IInventoryOutRecordsService.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.service;
+-
+-import cn.edu.zust.se.entity.po.InventoryOutRecords;
+-import com.baomidou.mybatisplus.extension.service.IService;
+-
+-/**
+- * <p>
+- *  服务类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface IInventoryOutRecordsService extends IService<InventoryOutRecords> {
+-
+-}
+Index: order-processing-service/src/main/java/cn/edu/zust/se/OrderProcessingApplication.java
+===================================================================
+diff --git a/order-processing-service/src/main/java/cn/edu/zust/se/OrderProcessingApplication.java b/order-processing-service/src/main/java/cn/edu/zust/se/OrderProcessingApplication.java
+deleted file mode 100644
+--- a/order-processing-service/src/main/java/cn/edu/zust/se/OrderProcessingApplication.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se;
+-
+-import org.springframework.boot.SpringApplication;
+-import org.springframework.boot.autoconfigure.SpringBootApplication;
+-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+-import org.springframework.cloud.openfeign.EnableFeignClients;
+-
+-@EnableDiscoveryClient
+-@SpringBootApplication
+-@EnableFeignClients
+-public class OrderProcessingApplication {
+-    public static void main(String[] args) {
+-        SpringApplication.run(OrderProcessingApplication.class, args);
+-        System.out.println("订单处理服务启动成功 ヾ(￣ー￣)X(^▽^)ゞ");
+-    }
+-}
+Index: inventory-management-service/src/main/java/cn/edu/zust/se/mapper/InventoryInRecordsMapper.java
+===================================================================
+diff --git a/inventory-management-service/src/main/java/cn/edu/zust/se/mapper/InventoryInRecordsMapper.java b/inventory-management-service/src/main/java/cn/edu/zust/se/mapper/InventoryInRecordsMapper.java
+deleted file mode 100644
+--- a/inventory-management-service/src/main/java/cn/edu/zust/se/mapper/InventoryInRecordsMapper.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.mapper;
+-
+-import cn.edu.zust.se.entity.po.InventoryInRecords;
+-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+-
+-/**
+- * <p>
+- *  Mapper 接口
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface InventoryInRecordsMapper extends BaseMapper<InventoryInRecords> {
+-
+-}
+Index: financial-management-service/src/main/java/cn/edu/zust/se/service/impl/FinancialTransactionsServiceImpl.java
+===================================================================
+diff --git a/financial-management-service/src/main/java/cn/edu/zust/se/service/impl/FinancialTransactionsServiceImpl.java b/financial-management-service/src/main/java/cn/edu/zust/se/service/impl/FinancialTransactionsServiceImpl.java
+deleted file mode 100644
+--- a/financial-management-service/src/main/java/cn/edu/zust/se/service/impl/FinancialTransactionsServiceImpl.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.service.impl;
+-
+-import cn.edu.zust.se.entity.po.FinancialTransactions;
+-import cn.edu.zust.se.mapper.FinancialTransactionsMapper;
+-import cn.edu.zust.se.service.IFinancialTransactionsService;
+-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+-import org.springframework.stereotype.Service;
+-
+-/**
+- * <p>
+- *  服务实现类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Service
+-public class FinancialTransactionsServiceImpl extends ServiceImpl<FinancialTransactionsMapper, FinancialTransactions> implements IFinancialTransactionsService {
+-
+-}
+Index: common/src/main/java/cn/edu/zust/se/entity/po/CustomerInteractions.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/po/CustomerInteractions.java b/common/src/main/java/cn/edu/zust/se/entity/po/CustomerInteractions.java
+deleted file mode 100644
+--- a/common/src/main/java/cn/edu/zust/se/entity/po/CustomerInteractions.java	
++++ /dev/null	
+@@ -1,53 +0,0 @@
+-package cn.edu.zust.se.entity.po;
+-
+-import com.baomidou.mybatisplus.annotation.TableField;
+-import com.baomidou.mybatisplus.annotation.TableName;
+-import com.baomidou.mybatisplus.annotation.IdType;
+-import com.baomidou.mybatisplus.annotation.TableId;
+-import java.time.LocalDateTime;
+-import java.io.Serializable;
+-import lombok.Data;
+-import lombok.EqualsAndHashCode;
+-import lombok.experimental.Accessors;
+-
+-/**
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Data
+-@EqualsAndHashCode(callSuper = false)
+-@Accessors(chain = true)
+-@TableName("customer_interactions")
+-public class CustomerInteractions implements Serializable {
+-    /**
+-     * 互动记录ID，唯一标识每次互动
+-     */
+-    @TableId(value = "id")
+-    private Integer id;
+-
+-    /**
+-     * 客户ID，关联到客户表
+-     */
+-    @TableField("customer_id")
+-    private Integer customerId;
+-
+-    /**
+-     * 互动类型，如电话、邮件等
+-     */
+-    @TableField("interaction_type")
+-    private String interactionType;
+-
+-    /**
+-     * 互动内容，记录互动的具体内容
+-     */
+-    @TableField("content")
+-    private String content;
+-
+-    /**
+-     * 创建时间，记录互动发生的时间
+-     */
+-    @TableField("created_time")
+-    private LocalDateTime createdTime;
+-
+-
+-}
+Index: financial-management-service/src/main/java/cn/edu/zust/se/controller/InvoicesController.java
+===================================================================
+diff --git a/financial-management-service/src/main/java/cn/edu/zust/se/controller/InvoicesController.java b/financial-management-service/src/main/java/cn/edu/zust/se/controller/InvoicesController.java
+deleted file mode 100644
+--- a/financial-management-service/src/main/java/cn/edu/zust/se/controller/InvoicesController.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.controller;
+-
+-
+-import org.springframework.web.bind.annotation.RequestMapping;
+-
+-import org.springframework.web.bind.annotation.RestController;
+-
+-/**
+- * <p>
+- *  前端控制器
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@RestController
+-@RequestMapping("/invoices")
+-public class InvoicesController {
+-
+-}
+Index: inventory-management-service/src/main/java/cn/edu/zust/se/service/impl/InventoryInRecordsServiceImpl.java
+===================================================================
+diff --git a/inventory-management-service/src/main/java/cn/edu/zust/se/service/impl/InventoryInRecordsServiceImpl.java b/inventory-management-service/src/main/java/cn/edu/zust/se/service/impl/InventoryInRecordsServiceImpl.java
+deleted file mode 100644
+--- a/inventory-management-service/src/main/java/cn/edu/zust/se/service/impl/InventoryInRecordsServiceImpl.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.service.impl;
+-
+-import cn.edu.zust.se.entity.po.InventoryInRecords;
+-import cn.edu.zust.se.mapper.InventoryInRecordsMapper;
+-import cn.edu.zust.se.service.IInventoryInRecordsService;
+-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+-import org.springframework.stereotype.Service;
+-
+-/**
+- * <p>
+- *  服务实现类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Service
+-public class InventoryInRecordsServiceImpl extends ServiceImpl<InventoryInRecordsMapper, InventoryInRecords> implements IInventoryInRecordsService {
+-
+-}
+Index: common/src/main/java/cn/edu/zust/se/entity/po/InventoryOutRecords.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/po/InventoryOutRecords.java b/common/src/main/java/cn/edu/zust/se/entity/po/InventoryOutRecords.java
+deleted file mode 100644
+--- a/common/src/main/java/cn/edu/zust/se/entity/po/InventoryOutRecords.java	
++++ /dev/null	
+@@ -1,60 +0,0 @@
+-package cn.edu.zust.se.entity.po;
+-
+-import com.baomidou.mybatisplus.annotation.TableField;
+-import com.baomidou.mybatisplus.annotation.TableName;
+-
+-import java.time.LocalDate;
+-import com.baomidou.mybatisplus.annotation.TableId;
+-import java.time.LocalDateTime;
+-import java.io.Serializable;
+-import lombok.Data;
+-import lombok.EqualsAndHashCode;
+-import lombok.experimental.Accessors;
+-
+-/**
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Data
+-@EqualsAndHashCode(callSuper = false)
+-@Accessors(chain = true)
+-@TableName("inventory_out_records")
+-public class InventoryOutRecords implements Serializable {
+-    /**
+-     * 出库记录ID，唯一标识每次出库记录
+-     */
+-    @TableId(value = "id")
+-    private Integer id;
+-
+-    /**
+-     * 商品ID，关联到商品表
+-     */
+-    @TableField("product_id")
+-    private Integer productId;
+-
+-    /**
+-     * 出库数量，出库的商品数量
+-     */
+-    @TableField("quantity")
+-    private Integer quantity;
+-
+-    /**
+-     * 出库日期，记录出库的日期
+-     */
+-    @TableField("date")
+-    private LocalDate date;
+-
+-    /**
+-     * 出库去向，出库商品的目的地
+-     */
+-    @TableField("destination")
+-    private String destination;
+-
+-    /**
+-     * 创建时间，记录出库记录创建的时间
+-     */
+-    @TableField("created_time")
+-    private LocalDateTime createdTime;
+-
+-
+-}
+Index: customer-service/src/main/java/cn/edu/zust/se/mapper/CustomerInteractionsMapper.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/customer-service/src/main/java/cn/edu/zust/se/mapper/CustomerInteractionsMapper.java b/customer-service/src/main/java/cn/edu/zust/se/mapper/CustomerInteractionsMapper.java
+deleted file mode 100644
+--- a/customer-service/src/main/java/cn/edu/zust/se/mapper/CustomerInteractionsMapper.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.mapper;
+-
+-import cn.edu.zust.se.entity.po.CustomerInteractions;
+-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+-
+-/**
+- * <p>
+- *  Mapper 接口
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface CustomerInteractionsMapper extends BaseMapper<CustomerInteractions> {
+-
+-}
+Index: financial-management-service/src/main/java/cn/edu/zust/se/service/impl/ExpenseReimbursementsServiceImpl.java
+===================================================================
+diff --git a/financial-management-service/src/main/java/cn/edu/zust/se/service/impl/ExpenseReimbursementsServiceImpl.java b/financial-management-service/src/main/java/cn/edu/zust/se/service/impl/ExpenseReimbursementsServiceImpl.java
+deleted file mode 100644
+--- a/financial-management-service/src/main/java/cn/edu/zust/se/service/impl/ExpenseReimbursementsServiceImpl.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.service.impl;
+-
+-import cn.edu.zust.se.entity.po.ExpenseReimbursements;
+-import cn.edu.zust.se.mapper.ExpenseReimbursementsMapper;
+-import cn.edu.zust.se.service.IExpenseReimbursementsService;
+-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+-import org.springframework.stereotype.Service;
+-
+-/**
+- * <p>
+- *  服务实现类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Service
+-public class ExpenseReimbursementsServiceImpl extends ServiceImpl<ExpenseReimbursementsMapper, ExpenseReimbursements> implements IExpenseReimbursementsService {
+-
+-}
+Index: customer-service/src/main/java/cn/edu/zust/se/mapper/CustomersMapper.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/customer-service/src/main/java/cn/edu/zust/se/mapper/CustomersMapper.java b/customer-service/src/main/java/cn/edu/zust/se/mapper/CustomersMapper.java
+deleted file mode 100644
+--- a/customer-service/src/main/java/cn/edu/zust/se/mapper/CustomersMapper.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.mapper;
+-
+-import cn.edu.zust.se.entity.po.Customers;
+-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+-
+-/**
+- * <p>
+- *  Mapper 接口
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface CustomersMapper extends BaseMapper<Customers> {
+-
+-}
+Index: common/src/main/java/cn/edu/zust/se/entity/po/ExpenseReimbursements.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/po/ExpenseReimbursements.java b/common/src/main/java/cn/edu/zust/se/entity/po/ExpenseReimbursements.java
+deleted file mode 100644
+--- a/common/src/main/java/cn/edu/zust/se/entity/po/ExpenseReimbursements.java	
++++ /dev/null	
+@@ -1,66 +0,0 @@
+-package cn.edu.zust.se.entity.po;
+-
+-import java.math.BigDecimal;
+-
+-import com.baomidou.mybatisplus.annotation.TableField;
+-import com.baomidou.mybatisplus.annotation.TableName;
+-import com.baomidou.mybatisplus.annotation.TableId;
+-import java.time.LocalDateTime;
+-import java.io.Serializable;
+-import lombok.Data;
+-import lombok.EqualsAndHashCode;
+-import lombok.experimental.Accessors;
+-
+-/**
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Data
+-@EqualsAndHashCode(callSuper = false)
+-@Accessors(chain = true)
+-@TableName("expense_reimbursements")
+-public class ExpenseReimbursements implements Serializable {
+-    /**
+-     * 报销ID，唯一标识每笔报销
+-     */
+-    @TableId(value = "id")
+-    private Integer id;
+-
+-    /**
+-     * 员工ID，报销人的员工ID
+-     */
+-    @TableField("employee_id")
+-    private Integer employeeId;
+-
+-    /**
+-     * 报销金额，报销的金额
+-     */
+-    @TableField("amount")
+-    private BigDecimal amount;
+-
+-    /**
+-     * 报销描述，报销的详细描述
+-     */
+-    @TableField("description")
+-    private String description;
+-
+-    /**
+-     * 报销状态，如待审批、已批准等
+-     */
+-    @TableField("status")
+-    private String status;
+-
+-    /**
+-     * 创建时间，记录报销信息创建的时间
+-     */
+-    @TableField("created_time")
+-    private LocalDateTime createdTime;
+-
+-    /**
+-     * 更新时间，记录报销信息最后更新的时间
+-     */
+-    @TableField("updated_time")
+-    private LocalDateTime updatedTime;
+-
+-
+-}
+Index: common/src/main/java/cn/edu/zust/se/entity/po/OrderDetails.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/po/OrderDetails.java b/common/src/main/java/cn/edu/zust/se/entity/po/OrderDetails.java
+deleted file mode 100644
+--- a/common/src/main/java/cn/edu/zust/se/entity/po/OrderDetails.java	
++++ /dev/null	
+@@ -1,60 +0,0 @@
+-package cn.edu.zust.se.entity.po;
+-
+-import java.math.BigDecimal;
+-
+-import com.baomidou.mybatisplus.annotation.TableField;
+-import com.baomidou.mybatisplus.annotation.TableName;
+-import com.baomidou.mybatisplus.annotation.IdType;
+-import com.baomidou.mybatisplus.annotation.TableId;
+-import java.io.Serializable;
+-import lombok.Data;
+-import lombok.EqualsAndHashCode;
+-import lombok.experimental.Accessors;
+-
+-/**
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Data
+-@EqualsAndHashCode(callSuper = false)
+-@Accessors(chain = true)
+-@TableName("order_details")
+-public class OrderDetails implements Serializable {
+-    /**
+-     * 订单详情ID，唯一标识每个订单详情
+-     */
+-    @TableId(value = "id")
+-    private Integer id;
+-
+-    /**
+-     * 订单ID，关联到订单表
+-     */
+-    @TableField("order_id")
+-    private Integer orderId;
+-
+-    /**
+-     * 产品ID，关联到商品表
+-     */
+-    @TableField("product_id")
+-    private Integer productId;
+-
+-    /**
+-     * 数量，订单中产品的数量
+-     */
+-    @TableField("quantity")
+-    private Integer quantity;
+-
+-    /**
+-     * 单价，产品的单价
+-     */
+-    @TableField("price")
+-    private BigDecimal price;
+-
+-    /**
+-     * 小计，订单中产品的总价
+-     */
+-    @TableField("subtotal")
+-    private BigDecimal subtotal;
+-
+-
+-}
+Index: order-processing-service/src/main/java/cn/edu/zust/se/mapper/LogisticsInfoMapper.java
+===================================================================
+diff --git a/order-processing-service/src/main/java/cn/edu/zust/se/mapper/LogisticsInfoMapper.java b/order-processing-service/src/main/java/cn/edu/zust/se/mapper/LogisticsInfoMapper.java
+deleted file mode 100644
+--- a/order-processing-service/src/main/java/cn/edu/zust/se/mapper/LogisticsInfoMapper.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.mapper;
+-
+-import cn.edu.zust.se.entity.po.LogisticsInfo;
+-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+-
+-/**
+- * <p>
+- *  Mapper 接口
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface LogisticsInfoMapper extends BaseMapper<LogisticsInfo> {
+-
+-}
+Index: financial-management-service/src/main/java/cn/edu/zust/se/mapper/InvoicesMapper.java
+===================================================================
+diff --git a/financial-management-service/src/main/java/cn/edu/zust/se/mapper/InvoicesMapper.java b/financial-management-service/src/main/java/cn/edu/zust/se/mapper/InvoicesMapper.java
+deleted file mode 100644
+--- a/financial-management-service/src/main/java/cn/edu/zust/se/mapper/InvoicesMapper.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.mapper;
+-
+-import cn.edu.zust.se.entity.po.Invoices;
+-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+-
+-/**
+- * <p>
+- *  Mapper 接口
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface InvoicesMapper extends BaseMapper<Invoices> {
+-
+-}
+Index: customer-service/src/main/java/cn/edu/zust/se/service/ICustomerInteractionsService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/customer-service/src/main/java/cn/edu/zust/se/service/ICustomerInteractionsService.java b/customer-service/src/main/java/cn/edu/zust/se/service/ICustomerInteractionsService.java
+deleted file mode 100644
+--- a/customer-service/src/main/java/cn/edu/zust/se/service/ICustomerInteractionsService.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.service;
+-
+-import cn.edu.zust.se.entity.po.CustomerInteractions;
+-import com.baomidou.mybatisplus.extension.service.IService;
+-
+-/**
+- * <p>
+- *  服务类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface ICustomerInteractionsService extends IService<CustomerInteractions> {
+-
+-}
+Index: common/src/main/java/cn/edu/zust/se/entity/po/InventoryInRecords.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/po/InventoryInRecords.java b/common/src/main/java/cn/edu/zust/se/entity/po/InventoryInRecords.java
+deleted file mode 100644
+--- a/common/src/main/java/cn/edu/zust/se/entity/po/InventoryInRecords.java	
++++ /dev/null	
+@@ -1,54 +0,0 @@
+-package cn.edu.zust.se.entity.po;
+-
+-import com.baomidou.mybatisplus.annotation.TableField;
+-import com.baomidou.mybatisplus.annotation.TableName;
+-
+-import java.time.LocalDate;
+-import com.baomidou.mybatisplus.annotation.TableId;
+-import java.time.LocalDateTime;
+-import java.io.Serializable;
+-import lombok.Data;
+-import lombok.EqualsAndHashCode;
+-import lombok.experimental.Accessors;
+-
+-/**
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Data
+-@EqualsAndHashCode(callSuper = false)
+-@Accessors(chain = true)
+-@TableName("inventory_in_records")
+-public class InventoryInRecords implements Serializable {
+-    /**
+-     * 入库记录ID，唯一标识每次入库记录
+-     */
+-    @TableId(value = "id")
+-    private Integer id;
+-
+-    /**
+-     * 商品ID，关联到商品表
+-     */
+-    @TableField("product_id")
+-    private Integer productId;
+-
+-    /**
+-     * 入库数量，入库的商品数量
+-     */
+-    @TableField("quantity")
+-    private Integer quantity;
+-
+-    /**
+-     * 入库日期，记录入库的日期
+-     */
+-    @TableField("date")
+-    private LocalDate date;
+-
+-    /**
+-     * 创建时间，记录入库记录创建的时间
+-     */
+-    @TableField("created_time")
+-    private LocalDateTime createdTime;
+-
+-
+-}
+Index: order-processing-service/src/main/java/cn/edu/zust/se/service/ILogisticsInfoService.java
+===================================================================
+diff --git a/order-processing-service/src/main/java/cn/edu/zust/se/service/ILogisticsInfoService.java b/order-processing-service/src/main/java/cn/edu/zust/se/service/ILogisticsInfoService.java
+deleted file mode 100644
+--- a/order-processing-service/src/main/java/cn/edu/zust/se/service/ILogisticsInfoService.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.service;
+-
+-import cn.edu.zust.se.entity.po.LogisticsInfo;
+-import com.baomidou.mybatisplus.extension.service.IService;
+-
+-/**
+- * <p>
+- *  服务类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface ILogisticsInfoService extends IService<LogisticsInfo> {
+-
+-}
+Index: inventory-management-service/src/main/java/cn/edu/zust/se/controller/InventoryOutRecordsController.java
+===================================================================
+diff --git a/inventory-management-service/src/main/java/cn/edu/zust/se/controller/InventoryOutRecordsController.java b/inventory-management-service/src/main/java/cn/edu/zust/se/controller/InventoryOutRecordsController.java
+deleted file mode 100644
+--- a/inventory-management-service/src/main/java/cn/edu/zust/se/controller/InventoryOutRecordsController.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.controller;
+-
+-
+-import org.springframework.web.bind.annotation.RequestMapping;
+-
+-import org.springframework.web.bind.annotation.RestController;
+-
+-/**
+- * <p>
+- *  前端控制器
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@RestController
+-@RequestMapping("/inventory-out-records")
+-public class InventoryOutRecordsController {
+-
+-}
+Index: customer-service/src/main/resources/mapper/OrderDetailsMapper.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/customer-service/src/main/resources/mapper/OrderDetailsMapper.xml b/customer-service/src/main/resources/mapper/OrderDetailsMapper.xml
+deleted file mode 100644
+--- a/customer-service/src/main/resources/mapper/OrderDetailsMapper.xml	
++++ /dev/null	
+@@ -1,5 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+-<mapper namespace="cn.edu.zust.se.mapper.OrderDetailsMapper">
+-
+-</mapper>
+Index: common/src/main/java/cn/edu/zust/se/entity/po/Suppliers.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/po/Suppliers.java b/common/src/main/java/cn/edu/zust/se/entity/po/Suppliers.java
+deleted file mode 100644
+--- a/common/src/main/java/cn/edu/zust/se/entity/po/Suppliers.java	
++++ /dev/null	
+@@ -1,54 +0,0 @@
+-package cn.edu.zust.se.entity.po;
+-
+-import com.baomidou.mybatisplus.annotation.TableField;
+-import com.baomidou.mybatisplus.annotation.TableName;
+-
+-import java.time.LocalDateTime;
+-import com.baomidou.mybatisplus.annotation.TableId;
+-import java.io.Serializable;
+-import lombok.Data;
+-import lombok.EqualsAndHashCode;
+-import lombok.experimental.Accessors;
+-
+-/**
+- * <p>
+- * 
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Data
+-@EqualsAndHashCode(callSuper = false)
+-@Accessors(chain = true)
+-@TableName("suppliers")
+-public class Suppliers implements Serializable {
+-    @TableId(value = "id")
+-    private Integer id;
+-
+-    @TableField("name")
+-    private String name;
+-
+-    /**
+-     * 联系人
+-     */
+-    @TableField("contact_person")
+-    private String contactPerson;
+-
+-    @TableField("phone")
+-    private String phone;
+-
+-    @TableField("email")
+-    private String email;
+-
+-    @TableField("address")
+-    private String address;
+-
+-    @TableField("created_time")
+-    private LocalDateTime createdTime;
+-
+-    @TableField("update_time")
+-    private LocalDateTime updateTime;
+-
+-
+-}
+Index: inventory-management-service/src/main/java/cn/edu/zust/se/service/impl/ProductsServiceImpl.java
+===================================================================
+diff --git a/inventory-management-service/src/main/java/cn/edu/zust/se/service/impl/ProductsServiceImpl.java b/inventory-management-service/src/main/java/cn/edu/zust/se/service/impl/ProductsServiceImpl.java
+deleted file mode 100644
+--- a/inventory-management-service/src/main/java/cn/edu/zust/se/service/impl/ProductsServiceImpl.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.service.impl;
+-
+-import cn.edu.zust.se.entity.po.Products;
+-import cn.edu.zust.se.mapper.ProductsMapper;
+-import cn.edu.zust.se.service.IProductsService;
+-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+-import org.springframework.stereotype.Service;
+-
+-/**
+- * <p>
+- *  服务实现类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Service
+-public class ProductsServiceImpl extends ServiceImpl<ProductsMapper, Products> implements IProductsService {
+-
+-}
+Index: inventory-management-service/pom.xml
+===================================================================
+diff --git a/inventory-management-service/pom.xml b/inventory-management-service/pom.xml
+deleted file mode 100644
+--- a/inventory-management-service/pom.xml	
++++ /dev/null	
+@@ -1,59 +0,0 @@
+-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+-    <modelVersion>4.0.0</modelVersion>
+-    <parent>
+-        <groupId>cn.edu.zust.se</groupId>
+-        <artifactId>mini-erp</artifactId>
+-        <version>1.0-SNAPSHOT</version>
+-    </parent>
+-
+-    <artifactId>inventory-management-service</artifactId>
+-    <packaging>jar</packaging>
+-
+-    <name>inventory-management-service</name>
+-    <url>http://maven.apache.org</url>
+-
+-    <properties>
+-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+-    </properties>
+-
+-    <dependencies>
+-        <dependency>
+-            <groupId>junit</groupId>
+-            <artifactId>junit</artifactId>
+-            <version>3.8.1</version>
+-            <scope>test</scope>
+-        </dependency>
+-        <dependency>
+-            <groupId>com.baomidou</groupId>
+-            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+-            <version>3.5.7</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>cn.edu.zust.se</groupId>
+-            <artifactId>common</artifactId>
+-            <version>1.0-SNAPSHOT</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.springframework.cloud</groupId>
+-            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.springframework.boot</groupId>
+-            <artifactId>spring-boot-starter-web</artifactId>
+-        </dependency>
+-        <dependency>
+-            <groupId>com.mysql</groupId>
+-            <artifactId>mysql-connector-j</artifactId>
+-            <version>8.0.32</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.springframework.cloud</groupId>
+-            <artifactId>spring-cloud-starter-openfeign</artifactId>
+-        </dependency>
+-        <dependency>
+-            <groupId>com.alibaba.cloud</groupId>
+-            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+-        </dependency>
+-    </dependencies>
+-</project>
+Index: inventory-management-service/src/main/resources/mapper/InventoryInRecordsMapper.xml
+===================================================================
+diff --git a/inventory-management-service/src/main/resources/mapper/InventoryInRecordsMapper.xml b/inventory-management-service/src/main/resources/mapper/InventoryInRecordsMapper.xml
+deleted file mode 100644
+--- a/inventory-management-service/src/main/resources/mapper/InventoryInRecordsMapper.xml	
++++ /dev/null	
+@@ -1,5 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+-<mapper namespace="cn.edu.zust.se.mapper.InventoryInRecordsMapper">
+-
+-</mapper>
+Index: order-processing-service/src/main/java/cn/edu/zust/se/service/impl/LogisticsInfoServiceImpl.java
+===================================================================
+diff --git a/order-processing-service/src/main/java/cn/edu/zust/se/service/impl/LogisticsInfoServiceImpl.java b/order-processing-service/src/main/java/cn/edu/zust/se/service/impl/LogisticsInfoServiceImpl.java
+deleted file mode 100644
+--- a/order-processing-service/src/main/java/cn/edu/zust/se/service/impl/LogisticsInfoServiceImpl.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.service.impl;
+-
+-import cn.edu.zust.se.entity.po.LogisticsInfo;
+-import cn.edu.zust.se.mapper.LogisticsInfoMapper;
+-import cn.edu.zust.se.service.ILogisticsInfoService;
+-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+-import org.springframework.stereotype.Service;
+-
+-/**
+- * <p>
+- *  服务实现类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Service
+-public class LogisticsInfoServiceImpl extends ServiceImpl<LogisticsInfoMapper, LogisticsInfo> implements ILogisticsInfoService {
+-
+-}
+Index: common/src/main/java/cn/edu/zust/se/entity/po/Invoices.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/po/Invoices.java b/common/src/main/java/cn/edu/zust/se/entity/po/Invoices.java
+deleted file mode 100644
+--- a/common/src/main/java/cn/edu/zust/se/entity/po/Invoices.java	
++++ /dev/null	
+@@ -1,68 +0,0 @@
+-package cn.edu.zust.se.entity.po;
+-
+-import java.math.BigDecimal;
+-
+-import com.baomidou.mybatisplus.annotation.TableField;
+-import com.baomidou.mybatisplus.annotation.TableName;
+-
+-import java.time.LocalDate;
+-import com.baomidou.mybatisplus.annotation.TableId;
+-import java.time.LocalDateTime;
+-import java.io.Serializable;
+-import lombok.Data;
+-import lombok.EqualsAndHashCode;
+-import lombok.experimental.Accessors;
+-
+-/**
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Data
+-@EqualsAndHashCode(callSuper = false)
+-@Accessors(chain = true)
+-@TableName("invoices")
+-public class Invoices implements Serializable {
+-    /**
+-     * 发票ID，唯一标识每张发票
+-     */
+-    @TableId(value = "id")
+-    private Integer id;
+-
+-    /**
+-     * 发票号码，唯一的发票编号
+-     */
+-    @TableField("invoice_number")
+-    private String invoiceNumber;
+-
+-    /**
+-     * 客户ID，关联到客户表
+-     */
+-    @TableField("customer_id")
+-    private Integer customerId;
+-
+-    /**
+-     * 发票金额，发票的总金额
+-     */
+-    @TableField("amount")
+-    private BigDecimal amount;
+-
+-    /**
+-     * 开票日期，记录发票开具的日期
+-     */
+-    @TableField("issue_date")
+-    private LocalDate issueDate;
+-
+-    /**
+-     * 发票状态，如已开、已收等
+-     */
+-    @TableField("status")
+-    private String status;
+-
+-    /**
+-     * 创建时间，记录发票信息创建的时间
+-     */
+-    @TableField("created_time")
+-    private LocalDateTime createdTime;
+-
+-
+-}
+Index: financial-management-service/src/main/java/cn/edu/zust/se/service/IExpenseReimbursementsService.java
+===================================================================
+diff --git a/financial-management-service/src/main/java/cn/edu/zust/se/service/IExpenseReimbursementsService.java b/financial-management-service/src/main/java/cn/edu/zust/se/service/IExpenseReimbursementsService.java
+deleted file mode 100644
+--- a/financial-management-service/src/main/java/cn/edu/zust/se/service/IExpenseReimbursementsService.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.service;
+-
+-import cn.edu.zust.se.entity.po.ExpenseReimbursements;
+-import com.baomidou.mybatisplus.extension.service.IService;
+-
+-/**
+- * <p>
+- *  服务类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface IExpenseReimbursementsService extends IService<ExpenseReimbursements> {
+-
+-}
+Index: inventory-management-service/src/main/resources/mapper/InventoryOutRecordsMapper.xml
+===================================================================
+diff --git a/inventory-management-service/src/main/resources/mapper/InventoryOutRecordsMapper.xml b/inventory-management-service/src/main/resources/mapper/InventoryOutRecordsMapper.xml
+deleted file mode 100644
+--- a/inventory-management-service/src/main/resources/mapper/InventoryOutRecordsMapper.xml	
++++ /dev/null	
+@@ -1,5 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+-<mapper namespace="cn.edu.zust.se.mapper.InventoryOutRecordsMapper">
+-
+-</mapper>
+Index: common/src/main/java/cn/edu/zust/se/entity/po/Customers.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/po/Customers.java b/common/src/main/java/cn/edu/zust/se/entity/po/Customers.java
+deleted file mode 100644
+--- a/common/src/main/java/cn/edu/zust/se/entity/po/Customers.java	
++++ /dev/null	
+@@ -1,75 +0,0 @@
+-package cn.edu.zust.se.entity.po;
+-
+-import com.baomidou.mybatisplus.annotation.TableField;
+-import com.baomidou.mybatisplus.annotation.TableName;
+-import com.baomidou.mybatisplus.annotation.IdType;
+-import com.baomidou.mybatisplus.annotation.TableId;
+-import java.time.LocalDateTime;
+-import java.io.Serializable;
+-import lombok.Data;
+-import lombok.EqualsAndHashCode;
+-import lombok.experimental.Accessors;
+-
+-/**
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Data
+-@EqualsAndHashCode(callSuper = false)
+-@Accessors(chain = true)
+-@TableName("customers")
+-public class Customers implements Serializable {
+-    /**
+-     * 客户ID，唯一标识每个客户
+-     */
+-    @TableId(value = "id")
+-    private Integer id;
+-
+-    /**
+-     * 客户名称，客户的公司或个人名称
+-     */
+-    @TableField("name")
+-    private String name;
+-
+-    /**
+-     * 联系人，客户的联系人姓名
+-     */
+-    @TableField("contact_person")
+-    private String contactPerson;
+-
+-    /**
+-     * 联系电话，客户的联系电话
+-     */
+-    @TableField("phone")
+-    private String phone;
+-
+-    /**
+-     * 邮箱，客户的电子邮箱
+-     */
+-    @TableField("email")
+-    private String email;
+-
+-    /**
+-     * 地址，客户的详细地址
+-     */
+-    @TableField("address")
+-    private String address;
+-
+-    /**
+-     * 客户分类，客户的分类标签，如VIP、普通等
+-     */
+-    @TableField("category")
+-    private String category;
+-
+-    /**
+-     * 创建时间，记录客户信息创建的时间
+-     */
+-    @TableField("created_time")
+-    private LocalDateTime createdTime;
+-
+-    /**
+-     * 更新时间，记录客户信息最后更新的时间
+-     */
+-    @TableField("updated_time")
+-    private LocalDateTime updatedTime;
+-}
+Index: customer-service/src/main/resources/mapper/CustomersMapper.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/customer-service/src/main/resources/mapper/CustomersMapper.xml b/customer-service/src/main/resources/mapper/CustomersMapper.xml
+deleted file mode 100644
+--- a/customer-service/src/main/resources/mapper/CustomersMapper.xml	
++++ /dev/null	
+@@ -1,5 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+-<mapper namespace="cn.edu.zust.se.mapper.CustomersMapper">
+-
+-</mapper>
+Index: common/src/main/java/cn/edu/zust/se/entity/po/Orders.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/po/Orders.java b/common/src/main/java/cn/edu/zust/se/entity/po/Orders.java
+deleted file mode 100644
+--- a/common/src/main/java/cn/edu/zust/se/entity/po/Orders.java	
++++ /dev/null	
+@@ -1,67 +0,0 @@
+-package cn.edu.zust.se.entity.po;
+-
+-import java.math.BigDecimal;
+-
+-import com.baomidou.mybatisplus.annotation.TableField;
+-import com.baomidou.mybatisplus.annotation.TableName;
+-import com.baomidou.mybatisplus.annotation.IdType;
+-import com.baomidou.mybatisplus.annotation.TableId;
+-import java.time.LocalDateTime;
+-import java.io.Serializable;
+-import lombok.Data;
+-import lombok.EqualsAndHashCode;
+-import lombok.experimental.Accessors;
+-
+-/**
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Data
+-@EqualsAndHashCode(callSuper = false)
+-@Accessors(chain = true)
+-@TableName("orders")
+-public class Orders implements Serializable {
+-    /**
+-     * 订单ID，唯一标识每个订单
+-     */
+-    @TableId(value = "id")
+-    private Integer id;
+-
+-    /**
+-     * 客户ID，关联到客户表
+-     */
+-    @TableField("customer_id")
+-    private Integer customerId;
+-
+-    /**
+-     * 订单号，唯一的订单编号
+-     */
+-    @TableField("order_number")
+-    private String orderNumber;
+-
+-    /**
+-     * 订单总金额，订单的总金额
+-     */
+-    @TableField("total_amount")
+-    private BigDecimal totalAmount;
+-
+-    /**
+-     * 订单状态，如待支付、已发货、已完成等
+-     */
+-    @TableField("status")
+-    private String status;
+-
+-    /**
+-     * 创建时间，记录订单创建的时间
+-     */
+-    @TableField("created_time")
+-    private LocalDateTime createdTime;
+-
+-    /**
+-     * 更新时间，记录订单最后更新的时间
+-     */
+-    @TableField("updated_time")
+-    private LocalDateTime updatedTime;
+-
+-
+-}
+Index: financial-management-service/src/main/java/cn/edu/zust/se/service/IInvoicesService.java
+===================================================================
+diff --git a/financial-management-service/src/main/java/cn/edu/zust/se/service/IInvoicesService.java b/financial-management-service/src/main/java/cn/edu/zust/se/service/IInvoicesService.java
+deleted file mode 100644
+--- a/financial-management-service/src/main/java/cn/edu/zust/se/service/IInvoicesService.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.service;
+-
+-import cn.edu.zust.se.entity.po.Invoices;
+-import com.baomidou.mybatisplus.extension.service.IService;
+-
+-/**
+- * <p>
+- *  服务类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface IInvoicesService extends IService<Invoices> {
+-
+-}
+Index: inventory-management-service/src/main/java/cn/edu/zust/se/InventoryManagementApplication.java
+===================================================================
+diff --git a/inventory-management-service/src/main/java/cn/edu/zust/se/InventoryManagementApplication.java b/inventory-management-service/src/main/java/cn/edu/zust/se/InventoryManagementApplication.java
+deleted file mode 100644
+--- a/inventory-management-service/src/main/java/cn/edu/zust/se/InventoryManagementApplication.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se;
+-
+-import org.springframework.boot.SpringApplication;
+-import org.springframework.boot.autoconfigure.SpringBootApplication;
+-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+-import org.springframework.cloud.openfeign.EnableFeignClients;
+-
+-@EnableDiscoveryClient
+-@SpringBootApplication
+-@EnableFeignClients
+-public class InventoryManagementApplication {
+-    public static void main(String[] args) {
+-        SpringApplication.run(InventoryManagementApplication.class, args);
+-        System.out.println("库存管理服务启动成功 ヾ(￣ー￣)X(^▽^)ゞ");
+-    }
+-}
+Index: inventory-management-service/src/main/java/cn/edu/zust/se/service/impl/SuppliersServiceImpl.java
+===================================================================
+diff --git a/inventory-management-service/src/main/java/cn/edu/zust/se/service/impl/SuppliersServiceImpl.java b/inventory-management-service/src/main/java/cn/edu/zust/se/service/impl/SuppliersServiceImpl.java
+deleted file mode 100644
+--- a/inventory-management-service/src/main/java/cn/edu/zust/se/service/impl/SuppliersServiceImpl.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.service.impl;
+-
+-import cn.edu.zust.se.entity.po.Suppliers;
+-import cn.edu.zust.se.mapper.SuppliersMapper;
+-import cn.edu.zust.se.service.ISuppliersService;
+-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+-import org.springframework.stereotype.Service;
+-
+-/**
+- * <p>
+- *  服务实现类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Service
+-public class SuppliersServiceImpl extends ServiceImpl<SuppliersMapper, Suppliers> implements ISuppliersService {
+-
+-}
+Index: customer-service/src/main/java/cn/edu/zust/se/controller/CustomersController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/customer-service/src/main/java/cn/edu/zust/se/controller/CustomersController.java b/customer-service/src/main/java/cn/edu/zust/se/controller/CustomersController.java
+deleted file mode 100644
+--- a/customer-service/src/main/java/cn/edu/zust/se/controller/CustomersController.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.controller;
+-
+-
+-import org.springframework.web.bind.annotation.RequestMapping;
+-
+-import org.springframework.web.bind.annotation.RestController;
+-
+-/**
+- * <p>
+- *  前端控制器
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@RestController
+-@RequestMapping("/customers")
+-public class CustomersController {
+-
+-}
+Index: financial-management-service/src/main/resources/mapper/InvoicesMapper.xml
+===================================================================
+diff --git a/financial-management-service/src/main/resources/mapper/InvoicesMapper.xml b/financial-management-service/src/main/resources/mapper/InvoicesMapper.xml
+deleted file mode 100644
+--- a/financial-management-service/src/main/resources/mapper/InvoicesMapper.xml	
++++ /dev/null	
+@@ -1,5 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+-<mapper namespace="cn.edu.zust.se.mapper.InvoicesMapper">
+-
+-</mapper>
+Index: financial-management-service/src/main/java/cn/edu/zust/se/service/IFinancialTransactionsService.java
+===================================================================
+diff --git a/financial-management-service/src/main/java/cn/edu/zust/se/service/IFinancialTransactionsService.java b/financial-management-service/src/main/java/cn/edu/zust/se/service/IFinancialTransactionsService.java
+deleted file mode 100644
+--- a/financial-management-service/src/main/java/cn/edu/zust/se/service/IFinancialTransactionsService.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.service;
+-
+-import cn.edu.zust.se.entity.po.FinancialTransactions;
+-import com.baomidou.mybatisplus.extension.service.IService;
+-
+-/**
+- * <p>
+- *  服务类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface IFinancialTransactionsService extends IService<FinancialTransactions> {
+-
+-}
+Index: financial-management-service/src/main/java/cn/edu/zust/se/service/impl/InvoicesServiceImpl.java
+===================================================================
+diff --git a/financial-management-service/src/main/java/cn/edu/zust/se/service/impl/InvoicesServiceImpl.java b/financial-management-service/src/main/java/cn/edu/zust/se/service/impl/InvoicesServiceImpl.java
+deleted file mode 100644
+--- a/financial-management-service/src/main/java/cn/edu/zust/se/service/impl/InvoicesServiceImpl.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.service.impl;
+-
+-import cn.edu.zust.se.entity.po.Invoices;
+-import cn.edu.zust.se.mapper.InvoicesMapper;
+-import cn.edu.zust.se.service.IInvoicesService;
+-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+-import org.springframework.stereotype.Service;
+-
+-/**
+- * <p>
+- *  服务实现类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Service
+-public class InvoicesServiceImpl extends ServiceImpl<InvoicesMapper, Invoices> implements IInvoicesService {
+-
+-}
+Index: financial-management-service/src/main/java/cn/edu/zust/se/controller/ExpenseReimbursementsController.java
+===================================================================
+diff --git a/financial-management-service/src/main/java/cn/edu/zust/se/controller/ExpenseReimbursementsController.java b/financial-management-service/src/main/java/cn/edu/zust/se/controller/ExpenseReimbursementsController.java
+deleted file mode 100644
+--- a/financial-management-service/src/main/java/cn/edu/zust/se/controller/ExpenseReimbursementsController.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.controller;
+-
+-
+-import org.springframework.web.bind.annotation.RequestMapping;
+-
+-import org.springframework.web.bind.annotation.RestController;
+-
+-/**
+- * <p>
+- *  前端控制器
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@RestController
+-@RequestMapping("/expense-reimbursements")
+-public class ExpenseReimbursementsController {
+-
+-}
+Index: financial-management-service/src/main/resources/mapper/FinancialTransactionsMapper.xml
+===================================================================
+diff --git a/financial-management-service/src/main/resources/mapper/FinancialTransactionsMapper.xml b/financial-management-service/src/main/resources/mapper/FinancialTransactionsMapper.xml
+deleted file mode 100644
+--- a/financial-management-service/src/main/resources/mapper/FinancialTransactionsMapper.xml	
++++ /dev/null	
+@@ -1,5 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+-<mapper namespace="cn.edu.zust.se.mapper.FinancialTransactionsMapper">
+-
+-</mapper>
+Index: inventory-management-service/src/main/java/cn/edu/zust/se/controller/ProductsController.java
+===================================================================
+diff --git a/inventory-management-service/src/main/java/cn/edu/zust/se/controller/ProductsController.java b/inventory-management-service/src/main/java/cn/edu/zust/se/controller/ProductsController.java
+deleted file mode 100644
+--- a/inventory-management-service/src/main/java/cn/edu/zust/se/controller/ProductsController.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.controller;
+-
+-
+-import org.springframework.web.bind.annotation.RequestMapping;
+-
+-import org.springframework.web.bind.annotation.RestController;
+-
+-/**
+- * <p>
+- *  前端控制器
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@RestController
+-@RequestMapping("/products")
+-public class ProductsController {
+-
+-}
+Index: customer-service/src/main/java/cn/edu/zust/se/service/ICustomersService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/customer-service/src/main/java/cn/edu/zust/se/service/ICustomersService.java b/customer-service/src/main/java/cn/edu/zust/se/service/ICustomersService.java
+deleted file mode 100644
+--- a/customer-service/src/main/java/cn/edu/zust/se/service/ICustomersService.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.service;
+-
+-import cn.edu.zust.se.entity.po.Customers;
+-import com.baomidou.mybatisplus.extension.service.IService;
+-
+-/**
+- * <p>
+- *  服务类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface ICustomersService extends IService<Customers> {
+-
+-}
+Index: inventory-management-service/src/main/java/cn/edu/zust/se/controller/SuppliersController.java
+===================================================================
+diff --git a/inventory-management-service/src/main/java/cn/edu/zust/se/controller/SuppliersController.java b/inventory-management-service/src/main/java/cn/edu/zust/se/controller/SuppliersController.java
+deleted file mode 100644
+--- a/inventory-management-service/src/main/java/cn/edu/zust/se/controller/SuppliersController.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.controller;
+-
+-
+-import org.springframework.web.bind.annotation.RequestMapping;
+-
+-import org.springframework.web.bind.annotation.RestController;
+-
+-/**
+- * <p>
+- *  前端控制器
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@RestController
+-@RequestMapping("/suppliers")
+-public class SuppliersController {
+-
+-}
+Index: inventory-management-service/src/main/java/cn/edu/zust/se/service/ISuppliersService.java
+===================================================================
+diff --git a/inventory-management-service/src/main/java/cn/edu/zust/se/service/ISuppliersService.java b/inventory-management-service/src/main/java/cn/edu/zust/se/service/ISuppliersService.java
+deleted file mode 100644
+--- a/inventory-management-service/src/main/java/cn/edu/zust/se/service/ISuppliersService.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.service;
+-
+-import cn.edu.zust.se.entity.po.Suppliers;
+-import com.baomidou.mybatisplus.extension.service.IService;
+-
+-/**
+- * <p>
+- *  服务类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface ISuppliersService extends IService<Suppliers> {
+-
+-}
+Index: inventory-management-service/src/main/java/cn/edu/zust/se/controller/InventoryInRecordsController.java
+===================================================================
+diff --git a/inventory-management-service/src/main/java/cn/edu/zust/se/controller/InventoryInRecordsController.java b/inventory-management-service/src/main/java/cn/edu/zust/se/controller/InventoryInRecordsController.java
+deleted file mode 100644
+--- a/inventory-management-service/src/main/java/cn/edu/zust/se/controller/InventoryInRecordsController.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.controller;
+-
+-
+-import org.springframework.web.bind.annotation.RequestMapping;
+-
+-import org.springframework.web.bind.annotation.RestController;
+-
+-/**
+- * <p>
+- *  前端控制器
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@RestController
+-@RequestMapping("/inventory-in-records")
+-public class InventoryInRecordsController {
+-
+-}
+Index: common/src/main/java/cn/edu/zust/se/entity/po/LogisticsInfo.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/po/LogisticsInfo.java b/common/src/main/java/cn/edu/zust/se/entity/po/LogisticsInfo.java
+deleted file mode 100644
+--- a/common/src/main/java/cn/edu/zust/se/entity/po/LogisticsInfo.java	
++++ /dev/null	
+@@ -1,68 +0,0 @@
+-package cn.edu.zust.se.entity.po;
+-
+-import com.baomidou.mybatisplus.annotation.TableField;
+-import com.baomidou.mybatisplus.annotation.TableName;
+-import com.baomidou.mybatisplus.annotation.TableId;
+-import java.time.LocalDateTime;
+-import java.io.Serializable;
+-import lombok.Data;
+-import lombok.EqualsAndHashCode;
+-import lombok.experimental.Accessors;
+-
+-/**
+- * <p>
+- * 
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Data
+-@EqualsAndHashCode(callSuper = false)
+-@Accessors(chain = true)
+-@TableName("logistics_info")
+-public class LogisticsInfo implements Serializable {
+-    /**
+-     * 物流信息ID，唯一标识每次物流信息
+-     */
+-    @TableId(value = "id")
+-    private Integer id;
+-
+-    /**
+-     * 订单ID，关联到订单表
+-     */
+-    @TableField("order_id")
+-    private Integer orderId;
+-
+-    /**
+-     * 物流单号，物流公司的单号
+-     */
+-    @TableField("tracking_number")
+-    private String trackingNumber;
+-
+-    /**
+-     * 物流公司，物流服务提供商的名称
+-     */
+-    @TableField("carrier")
+-    private String carrier;
+-
+-    /**
+-     * 物流状态，如已发货、配送中、已签收等
+-     */
+-    @TableField("status")
+-    private String status;
+-
+-    /**
+-     * 创建时间，记录物流信息创建的时间
+-     */
+-    @TableField("created_time")
+-    private LocalDateTime createdTime;
+-
+-    /**
+-     * 更新时间，记录物流信息最后更新的时间
+-     */
+-    @TableField("updated_time")
+-    private LocalDateTime updatedTime;
+-
+-
+-}
+Index: inventory-management-service/src/main/java/cn/edu/zust/se/service/IProductsService.java
+===================================================================
+diff --git a/inventory-management-service/src/main/java/cn/edu/zust/se/service/IProductsService.java b/inventory-management-service/src/main/java/cn/edu/zust/se/service/IProductsService.java
+deleted file mode 100644
+--- a/inventory-management-service/src/main/java/cn/edu/zust/se/service/IProductsService.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.service;
+-
+-import cn.edu.zust.se.entity.po.Products;
+-import com.baomidou.mybatisplus.extension.service.IService;
+-
+-/**
+- * <p>
+- *  服务类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface IProductsService extends IService<Products> {
+-
+-}
+Index: customer-service/src/main/java/cn/edu/zust/se/controller/OrderDetailsController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/customer-service/src/main/java/cn/edu/zust/se/controller/OrderDetailsController.java b/customer-service/src/main/java/cn/edu/zust/se/controller/OrderDetailsController.java
+deleted file mode 100644
+--- a/customer-service/src/main/java/cn/edu/zust/se/controller/OrderDetailsController.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.controller;
+-
+-
+-import org.springframework.web.bind.annotation.RequestMapping;
+-
+-import org.springframework.web.bind.annotation.RestController;
+-
+-/**
+- * <p>
+- *  前端控制器
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@RestController
+-@RequestMapping("/order-details")
+-public class OrderDetailsController {
+-
+-}
+Index: customer-service/src/main/java/cn/edu/zust/se/service/impl/OrdersServiceImpl.java
+===================================================================
+diff --git a/customer-service/src/main/java/cn/edu/zust/se/service/impl/OrdersServiceImpl.java b/customer-service/src/main/java/cn/edu/zust/se/service/impl/OrdersServiceImpl.java
+deleted file mode 100644
+--- a/customer-service/src/main/java/cn/edu/zust/se/service/impl/OrdersServiceImpl.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.service.impl;
+-
+-import cn.edu.zust.se.entity.po.Orders;
+-import cn.edu.zust.se.mapper.OrdersMapper;
+-import cn.edu.zust.se.service.IOrdersService;
+-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+-import org.springframework.stereotype.Service;
+-
+-/**
+- * <p>
+- *  服务实现类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Service
+-public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> implements IOrdersService {
+-
+-}
+Index: financial-management-service/src/main/java/cn/edu/zust/se/mapper/ExpenseReimbursementsMapper.java
+===================================================================
+diff --git a/financial-management-service/src/main/java/cn/edu/zust/se/mapper/ExpenseReimbursementsMapper.java b/financial-management-service/src/main/java/cn/edu/zust/se/mapper/ExpenseReimbursementsMapper.java
+deleted file mode 100644
+--- a/financial-management-service/src/main/java/cn/edu/zust/se/mapper/ExpenseReimbursementsMapper.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.mapper;
+-
+-import cn.edu.zust.se.entity.po.ExpenseReimbursements;
+-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+-
+-/**
+- * <p>
+- *  Mapper 接口
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface ExpenseReimbursementsMapper extends BaseMapper<ExpenseReimbursements> {
+-
+-}
+Index: order-processing-service/pom.xml
+===================================================================
+diff --git a/order-processing-service/pom.xml b/order-processing-service/pom.xml
+deleted file mode 100644
+--- a/order-processing-service/pom.xml	
++++ /dev/null	
+@@ -1,59 +0,0 @@
+-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+-    <modelVersion>4.0.0</modelVersion>
+-    <parent>
+-        <groupId>cn.edu.zust.se</groupId>
+-        <artifactId>mini-erp</artifactId>
+-        <version>1.0-SNAPSHOT</version>
+-    </parent>
+-
+-    <artifactId>order-processing-service</artifactId>
+-    <packaging>jar</packaging>
+-
+-    <name>order-processing-service</name>
+-    <url>http://maven.apache.org</url>
+-
+-    <properties>
+-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+-    </properties>
+-
+-    <dependencies>
+-        <dependency>
+-            <groupId>junit</groupId>
+-            <artifactId>junit</artifactId>
+-            <version>3.8.1</version>
+-            <scope>test</scope>
+-        </dependency>
+-        <dependency>
+-            <groupId>com.baomidou</groupId>
+-            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+-            <version>3.5.7</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>cn.edu.zust.se</groupId>
+-            <artifactId>common</artifactId>
+-            <version>1.0-SNAPSHOT</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.springframework.cloud</groupId>
+-            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.springframework.boot</groupId>
+-            <artifactId>spring-boot-starter-web</artifactId>
+-        </dependency>
+-        <dependency>
+-            <groupId>com.mysql</groupId>
+-            <artifactId>mysql-connector-j</artifactId>
+-            <version>8.0.32</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.springframework.cloud</groupId>
+-            <artifactId>spring-cloud-starter-openfeign</artifactId>
+-        </dependency>
+-        <dependency>
+-            <groupId>com.alibaba.cloud</groupId>
+-            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+-        </dependency>
+-    </dependencies>
+-</project>
+Index: customer-service/src/main/java/cn/edu/zust/se/controller/CustomerInteractionsController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/customer-service/src/main/java/cn/edu/zust/se/controller/CustomerInteractionsController.java b/customer-service/src/main/java/cn/edu/zust/se/controller/CustomerInteractionsController.java
+deleted file mode 100644
+--- a/customer-service/src/main/java/cn/edu/zust/se/controller/CustomerInteractionsController.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.controller;
+-
+-
+-import org.springframework.web.bind.annotation.RequestMapping;
+-
+-import org.springframework.web.bind.annotation.RestController;
+-
+-/**
+- * <p>
+- *  前端控制器
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@RestController
+-@RequestMapping("/customer-interactions")
+-public class CustomerInteractionsController {
+-
+-}
+Index: financial-management-service/src/main/java/cn/edu/zust/se/controller/FinancialTransactionsController.java
+===================================================================
+diff --git a/financial-management-service/src/main/java/cn/edu/zust/se/controller/FinancialTransactionsController.java b/financial-management-service/src/main/java/cn/edu/zust/se/controller/FinancialTransactionsController.java
+deleted file mode 100644
+--- a/financial-management-service/src/main/java/cn/edu/zust/se/controller/FinancialTransactionsController.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.controller;
+-
+-
+-import org.springframework.web.bind.annotation.RequestMapping;
+-
+-import org.springframework.web.bind.annotation.RestController;
+-
+-/**
+- * <p>
+- *  前端控制器
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@RestController
+-@RequestMapping("/financial-transactions")
+-public class FinancialTransactionsController {
+-
+-}
+Index: inventory-management-service/src/main/java/cn/edu/zust/se/service/impl/InventoryOutRecordsServiceImpl.java
+===================================================================
+diff --git a/inventory-management-service/src/main/java/cn/edu/zust/se/service/impl/InventoryOutRecordsServiceImpl.java b/inventory-management-service/src/main/java/cn/edu/zust/se/service/impl/InventoryOutRecordsServiceImpl.java
+deleted file mode 100644
+--- a/inventory-management-service/src/main/java/cn/edu/zust/se/service/impl/InventoryOutRecordsServiceImpl.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.service.impl;
+-
+-import cn.edu.zust.se.entity.po.InventoryOutRecords;
+-import cn.edu.zust.se.mapper.InventoryOutRecordsMapper;
+-import cn.edu.zust.se.service.IInventoryOutRecordsService;
+-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+-import org.springframework.stereotype.Service;
+-
+-/**
+- * <p>
+- *  服务实现类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Service
+-public class InventoryOutRecordsServiceImpl extends ServiceImpl<InventoryOutRecordsMapper, InventoryOutRecords> implements IInventoryOutRecordsService {
+-
+-}
+Index: customer-service/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/customer-service/pom.xml b/customer-service/pom.xml
+deleted file mode 100644
+--- a/customer-service/pom.xml	
++++ /dev/null	
+@@ -1,59 +0,0 @@
+-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+-    <modelVersion>4.0.0</modelVersion>
+-    <parent>
+-        <groupId>cn.edu.zust.se</groupId>
+-        <artifactId>mini-erp</artifactId>
+-        <version>1.0-SNAPSHOT</version>
+-    </parent>
+-
+-    <artifactId>customer-service</artifactId>
+-    <packaging>jar</packaging>
+-
+-    <name>customer-service</name>
+-    <url>http://maven.apache.org</url>
+-
+-    <properties>
+-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+-    </properties>
+-
+-    <dependencies>
+-        <dependency>
+-            <groupId>junit</groupId>
+-            <artifactId>junit</artifactId>
+-            <version>3.8.1</version>
+-            <scope>test</scope>
+-        </dependency>
+-        <dependency>
+-            <groupId>com.baomidou</groupId>
+-            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+-            <version>3.5.7</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.springframework.cloud</groupId>
+-            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+-        </dependency>
+-        <dependency>
+-            <groupId>cn.edu.zust.se</groupId>
+-            <artifactId>common</artifactId>
+-            <version>1.0-SNAPSHOT</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.springframework.boot</groupId>
+-            <artifactId>spring-boot-starter-web</artifactId>
+-        </dependency>
+-        <dependency>
+-            <groupId>com.mysql</groupId>
+-            <artifactId>mysql-connector-j</artifactId>
+-            <version>8.0.32</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.springframework.cloud</groupId>
+-            <artifactId>spring-cloud-starter-openfeign</artifactId>
+-        </dependency>
+-        <dependency>
+-            <groupId>com.alibaba.cloud</groupId>
+-            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+-        </dependency>
+-    </dependencies>
+-</project>
+Index: financial-management-service/src/main/java/cn/edu/zust/se/mapper/FinancialTransactionsMapper.java
+===================================================================
+diff --git a/financial-management-service/src/main/java/cn/edu/zust/se/mapper/FinancialTransactionsMapper.java b/financial-management-service/src/main/java/cn/edu/zust/se/mapper/FinancialTransactionsMapper.java
+deleted file mode 100644
+--- a/financial-management-service/src/main/java/cn/edu/zust/se/mapper/FinancialTransactionsMapper.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.mapper;
+-
+-import cn.edu.zust.se.entity.po.FinancialTransactions;
+-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+-
+-/**
+- * <p>
+- *  Mapper 接口
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface FinancialTransactionsMapper extends BaseMapper<FinancialTransactions> {
+-
+-}
+Index: inventory-management-service/src/main/resources/mapper/ProductsMapper.xml
+===================================================================
+diff --git a/inventory-management-service/src/main/resources/mapper/ProductsMapper.xml b/inventory-management-service/src/main/resources/mapper/ProductsMapper.xml
+deleted file mode 100644
+--- a/inventory-management-service/src/main/resources/mapper/ProductsMapper.xml	
++++ /dev/null	
+@@ -1,5 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+-<mapper namespace="cn.edu.zust.se.mapper.ProductsMapper">
+-
+-</mapper>
+Index: customer-service/src/main/java/cn/edu/zust/se/mapper/OrderDetailsMapper.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/customer-service/src/main/java/cn/edu/zust/se/mapper/OrderDetailsMapper.java b/customer-service/src/main/java/cn/edu/zust/se/mapper/OrderDetailsMapper.java
+deleted file mode 100644
+--- a/customer-service/src/main/java/cn/edu/zust/se/mapper/OrderDetailsMapper.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.mapper;
+-
+-import cn.edu.zust.se.entity.po.OrderDetails;
+-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+-
+-/**
+- * <p>
+- *  Mapper 接口
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface OrderDetailsMapper extends BaseMapper<OrderDetails> {
+-
+-}
+Index: inventory-management-service/src/main/java/cn/edu/zust/se/mapper/ProductsMapper.java
+===================================================================
+diff --git a/inventory-management-service/src/main/java/cn/edu/zust/se/mapper/ProductsMapper.java b/inventory-management-service/src/main/java/cn/edu/zust/se/mapper/ProductsMapper.java
+deleted file mode 100644
+--- a/inventory-management-service/src/main/java/cn/edu/zust/se/mapper/ProductsMapper.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.mapper;
+-
+-import cn.edu.zust.se.entity.po.Products;
+-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+-
+-/**
+- * <p>
+- *  Mapper 接口
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface ProductsMapper extends BaseMapper<Products> {
+-
+-}
+Index: customer-service/src/main/java/cn/edu/zust/se/service/IOrderDetailsService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/customer-service/src/main/java/cn/edu/zust/se/service/IOrderDetailsService.java b/customer-service/src/main/java/cn/edu/zust/se/service/IOrderDetailsService.java
+deleted file mode 100644
+--- a/customer-service/src/main/java/cn/edu/zust/se/service/IOrderDetailsService.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.service;
+-
+-import cn.edu.zust.se.entity.po.OrderDetails;
+-import com.baomidou.mybatisplus.extension.service.IService;
+-
+-/**
+- * <p>
+- *  服务类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface IOrderDetailsService extends IService<OrderDetails> {
+-
+-}
+Index: customer-service/src/main/java/cn/edu/zust/se/service/impl/CustomersServiceImpl.java
+===================================================================
+diff --git a/customer-service/src/main/java/cn/edu/zust/se/service/impl/CustomersServiceImpl.java b/customer-service/src/main/java/cn/edu/zust/se/service/impl/CustomersServiceImpl.java
+deleted file mode 100644
+--- a/customer-service/src/main/java/cn/edu/zust/se/service/impl/CustomersServiceImpl.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.service.impl;
+-
+-import cn.edu.zust.se.entity.po.Customers;
+-import cn.edu.zust.se.mapper.CustomersMapper;
+-import cn.edu.zust.se.service.ICustomersService;
+-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+-import org.springframework.stereotype.Service;
+-
+-/**
+- * <p>
+- *  服务实现类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Service
+-public class CustomersServiceImpl extends ServiceImpl<CustomersMapper, Customers> implements ICustomersService {
+-
+-}
+Index: customer-service/src/main/resources/mapper/CustomerInteractionsMapper.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/customer-service/src/main/resources/mapper/CustomerInteractionsMapper.xml b/customer-service/src/main/resources/mapper/CustomerInteractionsMapper.xml
+deleted file mode 100644
+--- a/customer-service/src/main/resources/mapper/CustomerInteractionsMapper.xml	
++++ /dev/null	
+@@ -1,5 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+-<mapper namespace="cn.edu.zust.se.mapper.CustomerInteractionsMapper">
+-
+-</mapper>
+Index: common/src/main/java/cn/edu/zust/se/entity/po/Products.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/po/Products.java b/common/src/main/java/cn/edu/zust/se/entity/po/Products.java
+deleted file mode 100644
+--- a/common/src/main/java/cn/edu/zust/se/entity/po/Products.java	
++++ /dev/null	
+@@ -1,84 +0,0 @@
+-package cn.edu.zust.se.entity.po;
+-
+-import java.math.BigDecimal;
+-
+-import com.baomidou.mybatisplus.annotation.TableField;
+-import com.baomidou.mybatisplus.annotation.TableName;
+-import com.baomidou.mybatisplus.annotation.TableId;
+-import java.time.LocalDateTime;
+-import java.io.Serializable;
+-import lombok.Data;
+-import lombok.EqualsAndHashCode;
+-import lombok.experimental.Accessors;
+-
+-/**
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Data
+-@EqualsAndHashCode(callSuper = false)
+-@Accessors(chain = true)
+-@TableName("products")
+-public class Products implements Serializable {
+-    /**
+-     * 商品ID，唯一标识每个商品
+-     */
+-    @TableId(value = "id")
+-    private Integer id;
+-
+-    /**
+-     * 商品名称，商品的名称
+-     */
+-    @TableField("name")
+-    private String name;
+-
+-    /**
+-     * 商品描述，商品的详细描述
+-     */
+-    @TableField("description")
+-    private String description;
+-
+-    /**
+-     * 商品分类，商品的分类标签
+-     */
+-    @TableField("category")
+-    private String category;
+-
+-    /**
+-     * 供应商
+-     */
+-    @TableField("supplier_id")
+-    private Integer supplierId;
+-
+-    /**
+-     * 成本价，商品的成本价格
+-     */
+-    @TableField("cost_price")
+-    private BigDecimal costPrice;
+-
+-    /**
+-     * 销售价，商品的销售价格
+-     */
+-    @TableField("sale_price")
+-    private BigDecimal salePrice;
+-
+-    /**
+-     * 库存数量，商品的库存数量
+-     */
+-    @TableField("stock_quantity")
+-    private Integer stockQuantity;
+-
+-    /**
+-     * 创建时间，记录商品信息创建的时间
+-     */
+-    @TableField("created_time")
+-    private LocalDateTime createdTime;
+-
+-    /**
+-     * 更新时间，记录商品信息最后更新的时间
+-     */
+-    @TableField("updated_time")
+-    private LocalDateTime updatedTime;
+-
+-
+-}
+Index: customer-service/src/main/java/cn/edu/zust/se/service/impl/CustomerInteractionsServiceImpl.java
+===================================================================
+diff --git a/customer-service/src/main/java/cn/edu/zust/se/service/impl/CustomerInteractionsServiceImpl.java b/customer-service/src/main/java/cn/edu/zust/se/service/impl/CustomerInteractionsServiceImpl.java
+deleted file mode 100644
+--- a/customer-service/src/main/java/cn/edu/zust/se/service/impl/CustomerInteractionsServiceImpl.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.service.impl;
+-
+-import cn.edu.zust.se.entity.po.CustomerInteractions;
+-import cn.edu.zust.se.mapper.CustomerInteractionsMapper;
+-import cn.edu.zust.se.service.ICustomerInteractionsService;
+-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+-import org.springframework.stereotype.Service;
+-
+-/**
+- * <p>
+- *  服务实现类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Service
+-public class CustomerInteractionsServiceImpl extends ServiceImpl<CustomerInteractionsMapper, CustomerInteractions> implements ICustomerInteractionsService {
+-
+-}
+Index: common/src/main/java/cn/edu/zust/se/entity/po/FinancialTransactions.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/po/FinancialTransactions.java b/common/src/main/java/cn/edu/zust/se/entity/po/FinancialTransactions.java
+deleted file mode 100644
+--- a/common/src/main/java/cn/edu/zust/se/entity/po/FinancialTransactions.java	
++++ /dev/null	
+@@ -1,62 +0,0 @@
+-package cn.edu.zust.se.entity.po;
+-
+-import java.math.BigDecimal;
+-
+-import com.baomidou.mybatisplus.annotation.TableField;
+-import com.baomidou.mybatisplus.annotation.TableName;
+-
+-import java.time.LocalDate;
+-import com.baomidou.mybatisplus.annotation.TableId;
+-import java.time.LocalDateTime;
+-import java.io.Serializable;
+-import lombok.Data;
+-import lombok.EqualsAndHashCode;
+-import lombok.experimental.Accessors;
+-
+-/**
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Data
+-@EqualsAndHashCode(callSuper = false)
+-@Accessors(chain = true)
+-@TableName("financial_transactions")
+-public class FinancialTransactions implements Serializable {
+-    /**
+-     * 交易ID，唯一标识每笔交易
+-     */
+-    @TableId(value = "id")
+-    private Integer id;
+-
+-    /**
+-     * 交易类型，如收入、支出
+-     */
+-    @TableField("transaction_type")
+-    private String transactionType;
+-
+-    /**
+-     * 金额，交易的金额
+-     */
+-    @TableField("amount")
+-    private BigDecimal amount;
+-
+-    /**
+-     * 交易描述，交易的详细描述
+-     */
+-    @TableField("description")
+-    private String description;
+-
+-    /**
+-     * 交易日期，记录交易发生的日期
+-     */
+-    @TableField("date")
+-    private LocalDate date;
+-
+-    /**
+-     * 创建时间，记录交易信息创建的时间
+-     */
+-    @TableField("created_time")
+-    private LocalDateTime createdTime;
+-
+-
+-}
+Index: financial-management-service/pom.xml
+===================================================================
+diff --git a/financial-management-service/pom.xml b/financial-management-service/pom.xml
+deleted file mode 100644
+--- a/financial-management-service/pom.xml	
++++ /dev/null	
+@@ -1,59 +0,0 @@
+-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+-    <modelVersion>4.0.0</modelVersion>
+-    <parent>
+-        <groupId>cn.edu.zust.se</groupId>
+-        <artifactId>mini-erp</artifactId>
+-        <version>1.0-SNAPSHOT</version>
+-    </parent>
+-
+-    <artifactId>financial-management-service</artifactId>
+-    <packaging>jar</packaging>
+-
+-    <name>financial-management-service</name>
+-    <url>http://maven.apache.org</url>
+-
+-    <properties>
+-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+-    </properties>
+-
+-    <dependencies>
+-        <dependency>
+-            <groupId>junit</groupId>
+-            <artifactId>junit</artifactId>
+-            <version>3.8.1</version>
+-            <scope>test</scope>
+-        </dependency>
+-        <dependency>
+-            <groupId>com.baomidou</groupId>
+-            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+-            <version>3.5.7</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>cn.edu.zust.se</groupId>
+-            <artifactId>common</artifactId>
+-            <version>1.0-SNAPSHOT</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.springframework.cloud</groupId>
+-            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.springframework.boot</groupId>
+-            <artifactId>spring-boot-starter-web</artifactId>
+-        </dependency>
+-        <dependency>
+-            <groupId>com.mysql</groupId>
+-            <artifactId>mysql-connector-j</artifactId>
+-            <version>8.0.32</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.springframework.cloud</groupId>
+-            <artifactId>spring-cloud-starter-openfeign</artifactId>
+-        </dependency>
+-        <dependency>
+-            <groupId>com.alibaba.cloud</groupId>
+-            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+-        </dependency>
+-    </dependencies>
+-</project>
+Index: inventory-management-service/src/main/java/cn/edu/zust/se/service/IInventoryInRecordsService.java
+===================================================================
+diff --git a/inventory-management-service/src/main/java/cn/edu/zust/se/service/IInventoryInRecordsService.java b/inventory-management-service/src/main/java/cn/edu/zust/se/service/IInventoryInRecordsService.java
+deleted file mode 100644
+--- a/inventory-management-service/src/main/java/cn/edu/zust/se/service/IInventoryInRecordsService.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.service;
+-
+-import cn.edu.zust.se.entity.po.InventoryInRecords;
+-import com.baomidou.mybatisplus.extension.service.IService;
+-
+-/**
+- * <p>
+- *  服务类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface IInventoryInRecordsService extends IService<InventoryInRecords> {
+-
+-}
+Index: inventory-management-service/src/main/java/cn/edu/zust/se/mapper/SuppliersMapper.java
+===================================================================
+diff --git a/inventory-management-service/src/main/java/cn/edu/zust/se/mapper/SuppliersMapper.java b/inventory-management-service/src/main/java/cn/edu/zust/se/mapper/SuppliersMapper.java
+deleted file mode 100644
+--- a/inventory-management-service/src/main/java/cn/edu/zust/se/mapper/SuppliersMapper.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.mapper;
+-
+-import cn.edu.zust.se.entity.po.Suppliers;
+-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+-
+-/**
+- * <p>
+- *  Mapper 接口
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface SuppliersMapper extends BaseMapper<Suppliers> {
+-
+-}
+Index: customer-service/src/main/java/cn/edu/zust/se/service/impl/OrderDetailsServiceImpl.java
+===================================================================
+diff --git a/customer-service/src/main/java/cn/edu/zust/se/service/impl/OrderDetailsServiceImpl.java b/customer-service/src/main/java/cn/edu/zust/se/service/impl/OrderDetailsServiceImpl.java
+deleted file mode 100644
+--- a/customer-service/src/main/java/cn/edu/zust/se/service/impl/OrderDetailsServiceImpl.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package cn.edu.zust.se.service.impl;
+-
+-import cn.edu.zust.se.entity.po.OrderDetails;
+-import cn.edu.zust.se.mapper.OrderDetailsMapper;
+-import cn.edu.zust.se.service.IOrderDetailsService;
+-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+-import org.springframework.stereotype.Service;
+-
+-/**
+- * <p>
+- *  服务实现类
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-@Service
+-public class OrderDetailsServiceImpl extends ServiceImpl<OrderDetailsMapper, OrderDetails> implements IOrderDetailsService {
+-
+-}
+Index: financial-management-service/src/main/java/cn/edu/zust/se/FinancialManagementApplication.java
+===================================================================
+diff --git a/financial-management-service/src/main/java/cn/edu/zust/se/FinancialManagementApplication.java b/financial-management-service/src/main/java/cn/edu/zust/se/FinancialManagementApplication.java
+deleted file mode 100644
+--- a/financial-management-service/src/main/java/cn/edu/zust/se/FinancialManagementApplication.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se;
+-
+-import org.springframework.boot.SpringApplication;
+-import org.springframework.boot.autoconfigure.SpringBootApplication;
+-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+-import org.springframework.cloud.openfeign.EnableFeignClients;
+-
+-@EnableDiscoveryClient
+-@SpringBootApplication
+-@EnableFeignClients
+-public class FinancialManagementApplication {
+-    public static void main(String[] args) {
+-        SpringApplication.run(FinancialManagementApplication.class, args);
+-        System.out.println("财务管理服务启动成功 ヾ(￣ー￣)X(^▽^)ゞ");
+-    }
+-}
+Index: inventory-management-service/src/main/java/cn/edu/zust/se/mapper/InventoryOutRecordsMapper.java
+===================================================================
+diff --git a/inventory-management-service/src/main/java/cn/edu/zust/se/mapper/InventoryOutRecordsMapper.java b/inventory-management-service/src/main/java/cn/edu/zust/se/mapper/InventoryOutRecordsMapper.java
+deleted file mode 100644
+--- a/inventory-management-service/src/main/java/cn/edu/zust/se/mapper/InventoryOutRecordsMapper.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package cn.edu.zust.se.mapper;
+-
+-import cn.edu.zust.se.entity.po.InventoryOutRecords;
+-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+-
+-/**
+- * <p>
+- *  Mapper 接口
+- * </p>
+- *
+- * @author anymore131
+- * @since 2024-11-16
+- */
+-public interface InventoryOutRecordsMapper extends BaseMapper<InventoryOutRecords> {
+-
+-}
+Index: inventory-management-service/src/main/resources/mapper/SuppliersMapper.xml
+===================================================================
+diff --git a/inventory-management-service/src/main/resources/mapper/SuppliersMapper.xml b/inventory-management-service/src/main/resources/mapper/SuppliersMapper.xml
+deleted file mode 100644
+--- a/inventory-management-service/src/main/resources/mapper/SuppliersMapper.xml	
++++ /dev/null	
+@@ -1,5 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+-<mapper namespace="cn.edu.zust.se.mapper.SuppliersMapper">
+-
+-</mapper>
+Index: order-processing-service/src/main/resources/mapper/LogisticsInfoMapper.xml
+===================================================================
+diff --git a/order-processing-service/src/main/resources/mapper/LogisticsInfoMapper.xml b/order-processing-service/src/main/resources/mapper/LogisticsInfoMapper.xml
+deleted file mode 100644
+--- a/order-processing-service/src/main/resources/mapper/LogisticsInfoMapper.xml	
++++ /dev/null	
+@@ -1,5 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+-<mapper namespace="cn.edu.zust.se.mapper.LogisticsInfoMapper">
+-
+-</mapper>
+Index: user-service/src/main/resources/application.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>server:\r\n  port: 18080\r\nspring:\r\n  application:\r\n    name: user-service\r\n  datasource:\r\n    driver-class-name: com.mysql.cj.jdbc.Driver\r\n    url: jdbc:mysql://47.99.150.135:13306/erp?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8\r\n    username: root\r\n    password: 0408\r\n  cloud:\r\n    nacos:\r\n      discovery:\r\n        server-addr: 47.99.150.135:18848\r\nmybatis-plus:\r\n  mapper-locations: classpath*:mapper/*Mapper.xml\r\n  type-aliases-package: cn.edu.zust.se.po
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/user-service/src/main/resources/application.yml b/user-service/src/main/resources/application.yml
+--- a/user-service/src/main/resources/application.yml	
++++ b/user-service/src/main/resources/application.yml	
+@@ -2,16 +2,51 @@
+   port: 18080
+ spring:
+   application:
+-    name: user-service
++    name: service-user
+   datasource:
+     driver-class-name: com.mysql.cj.jdbc.Driver
+     url: jdbc:mysql://47.99.150.135:13306/erp?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8
+     username: root
+     password: 0408
++  data:
++    redis:
++      host: 192.168.235.128
++      port: 6379
++      password: 0408
+   cloud:
+     nacos:
+       discovery:
+         server-addr: 47.99.150.135:18848
+ mybatis-plus:
+   mapper-locations: classpath*:mapper/*Mapper.xml
+-  type-aliases-package: cn.edu.zust.se.po
+\ No newline at end of file
++  type-aliases-package: cn.edu.zust.se.po
++  global-config:
++    db-config:
++      logic-delete-field: is_delete # 全局逻辑删除字段名
++      logic-delete-value: 1 # 逻辑已删除值
++      logic-not-delete-value: 0 # 逻辑未删除值
++  configuration:
++    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
++logging:
++  level:
++    cn.edu.zust.se.mapper: DEBUG
++
++feign:
++  hystrix:
++    enabled: true
++
++sa-token:
++  # token 名称（同时也是 cookie 名称）
++  token-name: satoken
++  # token 有效期（单位：秒） 默认30天，-1 代表永久有效
++  timeout: 2592000
++  # token 最低活跃频率（单位：秒），如果 token 超过此时间没有访问系统就会被冻结，默认-1 代表不限制，永不冻结
++  active-timeout: -1
++  # 是否允许同一账号多地同时登录 （为 true 时允许一起登录, 为 false 时新登录挤掉旧登录）
++  is-concurrent: true
++  # 在多人登录同一账号时，是否共用一个 token （为 true 时所有登录共用一个 token, 为 false 时每次登录新建一个 token）
++  is-share: true
++  # token 风格（默认可取值：uuid、simple-uuid、random-32、random-64、random-128、tik）
++  token-style: uuid
++  # 是否输出操作日志
++  is-log: true
+\ No newline at end of file
+Index: user-service/src/main/java/cn/edu/zust/se/UserApplication.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package cn.edu.zust.se;\r\n\r\nimport org.springframework.boot.SpringApplication;\r\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\r\nimport org.springframework.cloud.client.discovery.EnableDiscoveryClient;\r\nimport org.springframework.cloud.openfeign.EnableFeignClients;\r\n\r\n@EnableDiscoveryClient\r\n@SpringBootApplication\r\n@EnableFeignClients\r\npublic class UserApplication {\r\n    public static void main(String[] args) {\r\n        SpringApplication.run(UserApplication.class, args);\r\n        System.out.println(\"用户服务启动成功 ヾ(￣ー￣)X(^▽^)ゞ\");\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/user-service/src/main/java/cn/edu/zust/se/UserApplication.java b/user-service/src/main/java/cn/edu/zust/se/UserApplication.java
+--- a/user-service/src/main/java/cn/edu/zust/se/UserApplication.java	
++++ b/user-service/src/main/java/cn/edu/zust/se/UserApplication.java	
+@@ -1,5 +1,6 @@
+ package cn.edu.zust.se;
+ 
++import org.mybatis.spring.annotation.MapperScan;
+ import org.springframework.boot.SpringApplication;
+ import org.springframework.boot.autoconfigure.SpringBootApplication;
+ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+@@ -8,6 +9,7 @@
+ @EnableDiscoveryClient
+ @SpringBootApplication
+ @EnableFeignClients
++@MapperScan("cn.edu.zust.se.mapper")
+ public class UserApplication {
+     public static void main(String[] args) {
+         SpringApplication.run(UserApplication.class, args);
+Index: .idea/codeStyles/codeStyleConfig.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/codeStyles/codeStyleConfig.xml b/.idea/codeStyles/codeStyleConfig.xml
+new file mode 100644
+--- /dev/null	
++++ b/.idea/codeStyles/codeStyleConfig.xml	
+@@ -0,0 +1,5 @@
++<component name="ProjectCodeStyleConfiguration">
++  <state>
++    <option name="PREFERRED_PROJECT_CODE_STYLE" value="Default" />
++  </state>
++</component>
+\ No newline at end of file
+Index: common/src/main/java/cn/edu/zust/se/entity/vo/ClientVo.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/vo/ClientVo.java b/common/src/main/java/cn/edu/zust/se/entity/vo/ClientVo.java
+new file mode 100644
+--- /dev/null	
++++ b/common/src/main/java/cn/edu/zust/se/entity/vo/ClientVo.java	
+@@ -0,0 +1,21 @@
++package cn.edu.zust.se.entity.vo;
++
++import cn.edu.zust.se.enums.ClientStatusEnum;
++import com.baomidou.mybatisplus.annotation.TableField;
++import io.swagger.v3.oas.annotations.media.Schema;
++import lombok.Data;
++
++import java.time.LocalDateTime;
++
++@Data
++public class ClientVo {
++    private Integer id;
++    private String name;
++    private String mobile;
++    private String email;
++    private Integer sum;
++    private Integer userId;
++    private LocalDateTime createTime;
++    private LocalDateTime lastTime;
++    private ClientStatusEnum status;
++}
+Index: common/src/main/java/cn/edu/zust/se/enums/ClientStatusEnum.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/enums/ClientStatusEnum.java b/common/src/main/java/cn/edu/zust/se/enums/ClientStatusEnum.java
+new file mode 100644
+--- /dev/null	
++++ b/common/src/main/java/cn/edu/zust/se/enums/ClientStatusEnum.java	
+@@ -0,0 +1,27 @@
++package cn.edu.zust.se.enums;
++
++import lombok.Getter;
++
++@Getter
++public enum ClientStatusEnum {
++    COOPERATING(0, "合作中"),
++    STOPPED_COOPERATION(1, "已停止合作");
++
++    private final int code;
++    private final String description;
++
++    ClientStatusEnum(int code, String description) {
++        this.code = code;
++        this.description = description;
++    }
++
++    public static ClientStatusEnum fromCode(int code) {
++        for (ClientStatusEnum status : ClientStatusEnum.values()) {
++            if (status.getCode() == code) {
++                return status;
++            }
++        }
++        throw new IllegalArgumentException("Unknown code: " + code);
++    }
++}
++
+Index: .idea/inspectionProfiles/Project_Default.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><component name=\"InspectionProjectProfileManager\">\r\n  <profile version=\"1.0\">\r\n    <option name=\"myName\" value=\"Project Default\" />\r\n  </profile>\r\n</component>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/inspectionProfiles/Project_Default.xml b/.idea/inspectionProfiles/Project_Default.xml
+--- a/.idea/inspectionProfiles/Project_Default.xml	
++++ b/.idea/inspectionProfiles/Project_Default.xml	
+@@ -1,5 +1,8 @@
+ <component name="InspectionProjectProfileManager">
+   <profile version="1.0">
+     <option name="myName" value="Project Default" />
++    <inspection_tool class="AutoCloseableResource" enabled="true" level="WARNING" enabled_by_default="true">
++      <option name="METHOD_MATCHER_CONFIG" value="java.util.Formatter,format,java.io.Writer,append,com.google.common.base.Preconditions,checkNotNull,org.hibernate.Session,close,java.io.PrintWriter,printf,java.io.PrintStream,printf,org.mockito.MockitoAnnotations,openMocks" />
++    </inspection_tool>
+   </profile>
+ </component>
+\ No newline at end of file
+Index: user-service/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\r\n    <modelVersion>4.0.0</modelVersion>\r\n    <parent>\r\n        <groupId>cn.edu.zust.se</groupId>\r\n        <artifactId>mini-erp</artifactId>\r\n        <version>1.0-SNAPSHOT</version>\r\n    </parent>\r\n\r\n    <artifactId>user-service</artifactId>\r\n    <packaging>jar</packaging>\r\n\r\n    <name>user-service</name>\r\n    <url>http://maven.apache.org</url>\r\n\r\n    <properties>\r\n        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>\r\n    </properties>\r\n\r\n    <dependencies>\r\n        <dependency>\r\n            <groupId>junit</groupId>\r\n            <artifactId>junit</artifactId>\r\n            <version>3.8.1</version>\r\n            <scope>test</scope>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>com.baomidou</groupId>\r\n            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>\r\n            <version>3.5.7</version>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>cn.edu.zust.se</groupId>\r\n            <artifactId>common</artifactId>\r\n            <version>1.0-SNAPSHOT</version>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>org.springframework.boot</groupId>\r\n            <artifactId>spring-boot-starter-web</artifactId>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>org.springframework.cloud</groupId>\r\n            <artifactId>spring-cloud-starter-loadbalancer</artifactId>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>com.mysql</groupId>\r\n            <artifactId>mysql-connector-j</artifactId>\r\n            <version>8.0.32</version>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>org.springframework.cloud</groupId>\r\n            <artifactId>spring-cloud-starter-openfeign</artifactId>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>com.alibaba.cloud</groupId>\r\n            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>\r\n        </dependency>\r\n    </dependencies>\r\n</project>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/user-service/pom.xml b/user-service/pom.xml
+--- a/user-service/pom.xml	
++++ b/user-service/pom.xml	
+@@ -1,59 +1,110 @@
+ <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+-    <modelVersion>4.0.0</modelVersion>
+-    <parent>
+-        <groupId>cn.edu.zust.se</groupId>
+-        <artifactId>mini-erp</artifactId>
+-        <version>1.0-SNAPSHOT</version>
+-    </parent>
++  <modelVersion>4.0.0</modelVersion>
++  <parent>
++    <groupId>cn.edu.zust.se</groupId>
++    <artifactId>mini-erp</artifactId>
++    <version>1.0-SNAPSHOT</version>
++  </parent>
+ 
+-    <artifactId>user-service</artifactId>
+-    <packaging>jar</packaging>
++  <artifactId>user-service</artifactId>
++  <packaging>jar</packaging>
+ 
+-    <name>user-service</name>
+-    <url>http://maven.apache.org</url>
++  <name>user-service</name>
++  <url>http://maven.apache.org</url>
+ 
+-    <properties>
+-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+-    </properties>
++  <properties>
++    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
++  </properties>
+ 
+-    <dependencies>
+-        <dependency>
+-            <groupId>junit</groupId>
+-            <artifactId>junit</artifactId>
+-            <version>3.8.1</version>
+-            <scope>test</scope>
+-        </dependency>
+-        <dependency>
+-            <groupId>com.baomidou</groupId>
+-            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+-            <version>3.5.7</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>cn.edu.zust.se</groupId>
+-            <artifactId>common</artifactId>
+-            <version>1.0-SNAPSHOT</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.springframework.boot</groupId>
+-            <artifactId>spring-boot-starter-web</artifactId>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.springframework.cloud</groupId>
+-            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+-        </dependency>
+-        <dependency>
+-            <groupId>com.mysql</groupId>
+-            <artifactId>mysql-connector-j</artifactId>
+-            <version>8.0.32</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.springframework.cloud</groupId>
+-            <artifactId>spring-cloud-starter-openfeign</artifactId>
+-        </dependency>
+-        <dependency>
+-            <groupId>com.alibaba.cloud</groupId>
+-            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+-        </dependency>
+-    </dependencies>
++  <dependencies>
++    <dependency>
++      <groupId>junit</groupId>
++      <artifactId>junit</artifactId>
++      <version>3.8.1</version>
++      <scope>test</scope>
++    </dependency>
++
++    <dependency>
++      <groupId>com.baomidou</groupId>
++      <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
++      <version>3.5.7</version>
++    </dependency>
++
++    <dependency>
++      <groupId>cn.edu.zust.se</groupId>
++      <artifactId>common</artifactId>
++      <version>1.0-SNAPSHOT</version>
++    </dependency>
++
++    <dependency>
++      <groupId>org.springframework.boot</groupId>
++      <artifactId>spring-boot-starter-web</artifactId>
++    </dependency>
++
++    <dependency>
++      <groupId>org.springframework.cloud</groupId>
++      <artifactId>spring-cloud-starter-loadbalancer</artifactId>
++    </dependency>
++
++    <dependency>
++      <groupId>com.mysql</groupId>
++      <artifactId>mysql-connector-j</artifactId>
++      <version>8.0.32</version>
++    </dependency>
++
++    <dependency>
++      <groupId>org.springframework.cloud</groupId>
++      <artifactId>spring-cloud-starter-openfeign</artifactId>
++    </dependency>
++
++    <dependency>
++      <groupId>com.alibaba.cloud</groupId>
++      <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
++    </dependency>
++
++    <!-- Sa-Token 权限认证, 在线文档：https://sa-token.cc -->
++    <dependency>
++      <groupId>cn.dev33</groupId>
++      <artifactId>sa-token-spring-boot3-starter</artifactId>
++      <version>1.39.0</version>
++    </dependency>
++
++    <!-- Sa-Token 整合 Redis （使用 jackson 序列化方式） -->
++    <dependency>
++      <groupId>cn.dev33</groupId>
++      <artifactId>sa-token-redis-jackson</artifactId>
++      <version>1.39.0</version>
++    </dependency>
++    <dependency>
++      <groupId>org.apache.commons</groupId>
++      <artifactId>commons-pool2</artifactId>
++    </dependency>
++
++    <!-- 测试 -->
++    <dependency>
++      <groupId>org.springframework.boot</groupId>
++      <artifactId>spring-boot-starter-test</artifactId>
++      <scope>test</scope>
++    </dependency>
++
++    <!-- es -->
++    <dependency>
++      <groupId>org.elasticsearch.client</groupId>
++      <artifactId>elasticsearch-rest-high-level-client</artifactId>
++      <version>7.17.25</version>
++    </dependency>
++
++    <dependency>
++      <groupId>com.google.code.gson</groupId>
++      <artifactId>gson</artifactId>
++      <version>2.9.0</version>
++    </dependency>
++
++    <dependency>
++      <groupId>org.junit.jupiter</groupId>
++      <artifactId>junit-jupiter</artifactId>
++      <scope>test</scope>
++    </dependency>
++  </dependencies>
+ </project>
+Index: common/src/main/java/cn/edu/zust/se/entity/po/Users.java
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/po/Users.java b/common/src/main/java/cn/edu/zust/se/entity/po/User.java
+rename from common/src/main/java/cn/edu/zust/se/entity/po/Users.java
+rename to common/src/main/java/cn/edu/zust/se/entity/po/User.java
+--- a/common/src/main/java/cn/edu/zust/se/entity/po/Users.java	
++++ b/common/src/main/java/cn/edu/zust/se/entity/po/User.java	
+@@ -1,6 +1,7 @@
+ package cn.edu.zust.se.entity.po;
+ 
+ import com.baomidou.mybatisplus.annotation.TableField;
++import com.baomidou.mybatisplus.annotation.TableLogic;
+ import com.baomidou.mybatisplus.annotation.TableName;
+ import com.baomidou.mybatisplus.annotation.TableId;
+ import java.time.LocalDateTime;
+@@ -16,8 +17,11 @@
+ @Data
+ @EqualsAndHashCode(callSuper = false)
+ @Accessors(chain = true)
+-@TableName("users")
+-public class Users implements Serializable {
++@TableName("user")
++public class User implements Serializable {
++
++    private static final long serialVersionUID = 1L;
++
+     @TableId(value = "id")
+     private Integer id;
+ 
+@@ -36,25 +40,16 @@
+     @TableField("phone")
+     private String phone;
+ 
+-    /**
+-     * 用户角色，如admin, user等，用于权限管理
+-     */
+     @TableField("role")
+     private String role;
+ 
+-    /**
+-     * 创建时间
+-     */
+-    @TableField("created_time")
+-    private LocalDateTime createdTime;
++    @TableField("create_time")
++    private LocalDateTime createTime;
+ 
+-    /**
+-     * 更新时间
+-     */
+-    @TableField("updated_time")
+-    private LocalDateTime updatedTime;
++    @TableField("last_update")
++    private LocalDateTime updateTime;
+ 
+-    @TableField("is_delete")
++    @TableLogic
+     private Integer isDelete;
+ 
+ }
+Index: pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n  xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\r\n  <modelVersion>4.0.0</modelVersion>\r\n\r\n  <groupId>cn.edu.zust.se</groupId>\r\n  <artifactId>mini-erp</artifactId>\r\n  <version>1.0-SNAPSHOT</version>\r\n  <packaging>pom</packaging>\r\n\r\n  <name>mini-erp</name>\r\n  <url>http://maven.apache.org</url>\r\n  <modules>\r\n    <module>user-service</module>\r\n    <module>customer-service</module>\r\n    <module>inventory-management-service</module>\r\n    <module>order-processing-service</module>\r\n    <module>financial-management-service</module>\r\n    <module>api-gateway</module>\r\n    <module>common</module>\r\n  </modules>\r\n\r\n  <properties>\r\n    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>\r\n    <app.version>0.0.1-SNAPSHOT</app.version>\r\n    <java.version>17</java.version>\r\n    <spring.boot.version>3.0.2</spring.boot.version>\r\n    <spring.cloud.version>2022.0.0</spring.cloud.version>\r\n    <spring.cloud.alibaba.version>2022.0.0.0-RC2</spring.cloud.alibaba.version>\r\n  </properties>\r\n\r\n  <parent>\r\n    <groupId>org.springframework.boot</groupId>\r\n    <artifactId>spring-boot-starter-parent</artifactId>\r\n    <version>3.0.2</version>\r\n    <relativePath/>\r\n  </parent>\r\n\r\n  <dependencies>\r\n    <dependency>\r\n      <groupId>org.projectlombok</groupId>\r\n      <artifactId>lombok</artifactId>\r\n    </dependency>\r\n    <dependency>\r\n      <groupId>junit</groupId>\r\n      <artifactId>junit</artifactId>\r\n      <version>3.8.1</version>\r\n      <scope>test</scope>\r\n    </dependency>\r\n  </dependencies>\r\n\r\n  <dependencyManagement>\r\n    <dependencies>\r\n      <dependency>\r\n        <groupId>org.springframework.cloud</groupId>\r\n        <artifactId>spring-cloud-dependencies</artifactId>\r\n        <version>${spring.cloud.version}</version>\r\n        <type>pom</type>\r\n        <scope>import</scope>\r\n      </dependency>\r\n      <dependency>\r\n        <groupId>com.alibaba.cloud</groupId>\r\n        <artifactId>spring-cloud-alibaba-dependencies</artifactId>\r\n        <version>${spring.cloud.alibaba.version}</version>\r\n        <type>pom</type>\r\n        <scope>import</scope>\r\n      </dependency>\r\n    </dependencies>\r\n  </dependencyManagement>\r\n</project>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/pom.xml b/pom.xml
+--- a/pom.xml	
++++ b/pom.xml	
+@@ -11,10 +11,7 @@
+   <url>http://maven.apache.org</url>
+   <modules>
+     <module>user-service</module>
+-    <module>customer-service</module>
+-    <module>inventory-management-service</module>
+-    <module>order-processing-service</module>
+-    <module>financial-management-service</module>
++    <module>client-service</module>
+     <module>api-gateway</module>
+     <module>common</module>
+   </modules>
+@@ -26,6 +23,7 @@
+     <spring.boot.version>3.0.2</spring.boot.version>
+     <spring.cloud.version>2022.0.0</spring.cloud.version>
+     <spring.cloud.alibaba.version>2022.0.0.0-RC2</spring.cloud.alibaba.version>
++    <elasticsearch.version>7.17.25</elasticsearch.version>
+   </properties>
+ 
+   <parent>
+@@ -40,6 +38,24 @@
+       <groupId>org.projectlombok</groupId>
+       <artifactId>lombok</artifactId>
+     </dependency>
++    <dependency>
++      <groupId>org.slf4j</groupId>
++      <artifactId>slf4j-api</artifactId>
++      <version>1.7.30</version>
++    </dependency>
++
++    <dependency>
++      <groupId>ch.qos.logback</groupId>
++      <artifactId>logback-classic</artifactId>
++      <version>1.2.3</version>
++    </dependency>
++
++    <dependency>
++      <groupId>cn.hutool</groupId>
++      <artifactId>hutool-all</artifactId>
++      <version>5.8.11</version>
++    </dependency>
++
+     <dependency>
+       <groupId>junit</groupId>
+       <artifactId>junit</artifactId>
+Index: user-service/src/main/java/cn/edu/zust/se/service/impl/UsersServiceImpl.java
+===================================================================
+diff --git a/user-service/src/main/java/cn/edu/zust/se/service/impl/UsersServiceImpl.java b/user-service/src/main/java/cn/edu/zust/se/service/impl/UserServiceImpl.java
+rename from user-service/src/main/java/cn/edu/zust/se/service/impl/UsersServiceImpl.java
+rename to user-service/src/main/java/cn/edu/zust/se/service/impl/UserServiceImpl.java
+--- a/user-service/src/main/java/cn/edu/zust/se/service/impl/UsersServiceImpl.java	
++++ b/user-service/src/main/java/cn/edu/zust/se/service/impl/UserServiceImpl.java	
+@@ -1,20 +1,74 @@
+ package cn.edu.zust.se.service.impl;
+ 
+-import cn.edu.zust.se.entity.po.Users;
+-import cn.edu.zust.se.mapper.UsersMapper;
+-import cn.edu.zust.se.service.IUsersService;
++import cn.edu.zust.se.config.CustomGsonConfig;
++import cn.edu.zust.se.domain.query.UserQuery;
++import cn.edu.zust.se.entity.dto.PageDto;
++import cn.edu.zust.se.entity.po.User;
++import cn.edu.zust.se.entity.vo.UserVo;
++import cn.edu.zust.se.mapper.UserMapper;
++import cn.edu.zust.se.service.IUserService;
++import cn.hutool.core.bean.BeanUtil;
++import com.baomidou.mybatisplus.core.metadata.OrderItem;
++import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
++import com.google.gson.Gson;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++import org.springframework.beans.BeanUtils;
+ import org.springframework.stereotype.Service;
+ 
++import java.util.Collections;
++import java.util.List;
++
+ /**
+- * <p>
+- *  服务实现类
+- * </p>
+- *
+  * @author anymore131
+  * @since 2024-11-16
+  */
+ @Service
+-public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users> implements IUsersService {
++public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
++    private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
++
++    @Override
++    public PageDto<UserVo> queryUserPage(UserQuery userQuery) {
++        String userName = userQuery.getUserName();
++        String role = userQuery.getRole();
++
++        Page<User> page = userQuery.toMpPageByUpdateTime();
++
++        Page<User> userPage = lambdaQuery()
++                .like(userName != null, User::getUserName, userName)
++                .eq(role != null, User::getRole, role)
++                .page(page);
++
++        LOGGER.info("查询用户分页数据");
+ 
++        return PageDto.of(userPage, UserVo.class);
++    }
++
++    @Override
++    public UserVo login(User user) {
++        String userName = user.getUserName();
++        String password = user.getPassword();
++        User user1 = lambdaQuery()
++                .eq(User::getUserName, userName)
++                .eq(User::getPassword, password)
++                .eq(User::getIsDelete, 0)
++                .one();
++        if (user1 != null) {
++            LOGGER.info("用户{}登录成功", userName);
++            UserVo userVo = new UserVo();
++            BeanUtils.copyProperties(user1, userVo);
++            return userVo;
++        }
++        return null;
++    }
++
++    @Override
++    public String getUserRole(int id) {
++        User user = getById(id);
++        if (user == null) {
++            return "用户不存在";
++        }
++        return user.getRole();
++    }
+ }
+Index: client-service/src/main/java/cn/edu/zust/se/service/impl/ClientServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/client-service/src/main/java/cn/edu/zust/se/service/impl/ClientServiceImpl.java b/client-service/src/main/java/cn/edu/zust/se/service/impl/ClientServiceImpl.java
+new file mode 100644
+--- /dev/null	
++++ b/client-service/src/main/java/cn/edu/zust/se/service/impl/ClientServiceImpl.java	
+@@ -0,0 +1,32 @@
++package cn.edu.zust.se.service.impl;
++
++import cn.edu.zust.se.entity.po.Client;
++import cn.edu.zust.se.mapper.ClientMapper;
++import cn.edu.zust.se.service.IClientService;
++import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
++import org.springframework.stereotype.Service;
++
++/**
++ * <p>
++ *  服务实现类
++ * </p>
++ *
++ * @author anymore131
++ * @since 2024-12-09
++ */
++@Service
++public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> implements IClientService {
++
++    @Override
++    public String updateClient(int userId, Client client) {
++
++        Client oldClient = this.getById(client.getId());
++        if (oldClient == null){
++            return "客户不存在";
++        }
++        if (oldClient.getUserId() != userId){
++            return "无权限修改客户信息";
++        }
++        return "";
++    }
++}
+Index: user-service/src/main/java/cn/edu/zust/se/mapper/UsersMapper.java
+===================================================================
+diff --git a/user-service/src/main/java/cn/edu/zust/se/mapper/UsersMapper.java b/user-service/src/main/java/cn/edu/zust/se/mapper/UserMapper.java
+rename from user-service/src/main/java/cn/edu/zust/se/mapper/UsersMapper.java
+rename to user-service/src/main/java/cn/edu/zust/se/mapper/UserMapper.java
+--- a/user-service/src/main/java/cn/edu/zust/se/mapper/UsersMapper.java	
++++ b/user-service/src/main/java/cn/edu/zust/se/mapper/UserMapper.java	
+@@ -1,7 +1,8 @@
+ package cn.edu.zust.se.mapper;
+ 
+-import cn.edu.zust.se.entity.po.Users;
++import cn.edu.zust.se.entity.po.User;
+ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
++import org.apache.ibatis.annotations.Mapper;
+ 
+ /**
+  * <p>
+@@ -11,6 +12,7 @@
+  * @author anymore131
+  * @since 2024-11-16
+  */
+-public interface UsersMapper extends BaseMapper<Users> {
++@Mapper
++public interface UserMapper extends BaseMapper<User> {
+ 
+ }
+Index: customer-service/src/main/java/cn/edu/zust/se/mapper/OrdersMapper.java
+===================================================================
+diff --git a/customer-service/src/main/java/cn/edu/zust/se/mapper/OrdersMapper.java b/client-service/src/main/java/cn/edu/zust/se/mapper/ClientMapper.java
+rename from customer-service/src/main/java/cn/edu/zust/se/mapper/OrdersMapper.java
+rename to client-service/src/main/java/cn/edu/zust/se/mapper/ClientMapper.java
+--- a/customer-service/src/main/java/cn/edu/zust/se/mapper/OrdersMapper.java	
++++ b/client-service/src/main/java/cn/edu/zust/se/mapper/ClientMapper.java	
+@@ -1,6 +1,6 @@
+ package cn.edu.zust.se.mapper;
+ 
+-import cn.edu.zust.se.entity.po.Orders;
++import cn.edu.zust.se.entity.po.Client;
+ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+ 
+ /**
+@@ -9,8 +9,8 @@
+  * </p>
+  *
+  * @author anymore131
+- * @since 2024-11-16
++ * @since 2024-12-09
+  */
+-public interface OrdersMapper extends BaseMapper<Orders> {
++public interface ClientMapper extends BaseMapper<Client> {
+ 
+ }
+Index: common/src/main/java/cn/edu/zust/se/entity/po/Client.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/po/Client.java b/common/src/main/java/cn/edu/zust/se/entity/po/Client.java
+new file mode 100644
+--- /dev/null	
++++ b/common/src/main/java/cn/edu/zust/se/entity/po/Client.java	
+@@ -0,0 +1,60 @@
++package cn.edu.zust.se.entity.po;
++
++import com.baomidou.mybatisplus.annotation.*;
++
++import java.time.LocalDateTime;
++import java.io.Serializable;
++
++import io.swagger.v3.oas.annotations.media.Schema;
++import lombok.Data;
++import lombok.EqualsAndHashCode;
++import lombok.experimental.Accessors;
++
++@Data
++@EqualsAndHashCode(callSuper = false)
++@Accessors(chain = true)
++@TableName("client")
++@Schema(description = "Client对象")
++public class Client implements Serializable {
++
++    private static final long serialVersionUID = 1L;
++
++    @TableId(value = "id", type = IdType.NONE)
++    private Integer id;
++
++    @Schema(description = "客户名称")
++    @TableField("name")
++    private String name;
++
++    @Schema(description = "客户联系方式")
++    @TableField("mobile")
++    private String mobile;
++
++    @Schema(description = "客户邮箱")
++    @TableField("email")
++    private String email;
++
++    @Schema(description = "交易总次数")
++    @TableField("sum")
++    private Integer sum;
++
++    @Schema(description = "客户交易相关员工负责人")
++    @TableField("user_id")
++    private Integer userId;
++
++    @Schema(description = "创建时间")
++    @TableField("create_time")
++    private LocalDateTime createTime;
++
++    @Schema(description = "最近更新时间")
++    @TableField("last_time")
++    private LocalDateTime lastTime;
++
++    @Schema(description = "客户状态，是否正在合作")
++    @TableField("status")
++    private Integer status;
++
++    @Schema(description = "是否删除")
++    @TableLogic
++    private Integer isDelete;
++}
+Index: user-service/src/test/java/cn/edu/zust/se/ElasticTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/user-service/src/test/java/cn/edu/zust/se/ElasticTest.java b/user-service/src/test/java/cn/edu/zust/se/ElasticTest.java
+new file mode 100644
+--- /dev/null	
++++ b/user-service/src/test/java/cn/edu/zust/se/ElasticTest.java	
+@@ -0,0 +1,178 @@
++package cn.edu.zust.se;
++
++import cn.edu.zust.se.domain.po.UserDoc;
++import cn.edu.zust.se.entity.po.User;
++import cn.edu.zust.se.service.IUserService;
++import cn.hutool.core.bean.BeanUtil;
++import cn.hutool.json.JSONUtil;
++import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
++import org.apache.http.HttpHost;
++import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
++import org.elasticsearch.action.bulk.BulkRequest;
++import org.elasticsearch.action.get.GetRequest;
++import org.elasticsearch.action.get.GetResponse;
++import org.elasticsearch.action.index.IndexRequest;
++import org.elasticsearch.action.update.UpdateRequest;
++import org.elasticsearch.client.RequestOptions;
++import org.elasticsearch.client.RestClient;
++import org.elasticsearch.client.RestHighLevelClient;
++import org.elasticsearch.client.indices.CreateIndexRequest;
++import org.elasticsearch.client.indices.GetIndexRequest;
++import org.elasticsearch.xcontent.XContentType;
++import org.junit.jupiter.api.AfterEach;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.Test;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.test.context.SpringBootTest;
++
++import java.io.IOException;
++import java.util.List;
++
++@SpringBootTest()
++public class ElasticTest {
++    private RestHighLevelClient client;
++    @Autowired
++    private IUserService userService;
++
++    // 插入数据
++    @Test
++    void testInsertUserById() throws IOException {
++        User user = userService.getById(1);
++        //数据类型转换（要导入的包：import cn.hutool.core.bean.BeanUtil;）
++        UserDoc userDoc = BeanUtil.copyProperties(user, UserDoc.class);
++        IndexRequest request = new IndexRequest("user").id(userDoc.getId());
++        request.source(JSONUtil.toJsonStr(userDoc), XContentType.JSON);
++        client.index(request, RequestOptions.DEFAULT);
++    }
++
++    // 获取数据
++    @Test
++    void testGetUserById() throws IOException {
++        GetRequest request = new GetRequest("user", "1");
++        GetResponse response = client.get(request, RequestOptions.DEFAULT);
++        String json = response.getSourceAsString();
++        UserDoc userDoc = JSONUtil.toBean(json, UserDoc.class);
++        System.out.println("result: " + userDoc);
++    }
++
++    // 全局修改(与插入数据相同)
++    @Test
++    void testUpdateUserAllById() throws IOException {
++        User user = userService.getById(1);
++        UserDoc userDoc = BeanUtil.copyProperties(user, UserDoc.class);
++        userDoc.setPhone("123456789");
++        IndexRequest request = new IndexRequest("user").id(userDoc.getId());
++        request.source(JSONUtil.toJsonStr(userDoc), XContentType.JSON);
++        client.index(request, RequestOptions.DEFAULT);
++    }
++
++    // 局部修改
++    @Test
++    void testUpdateUserById() throws IOException {
++        UpdateRequest request = new UpdateRequest("user", "1");
++        request.doc(
++                "phone", "123456789",
++                "role", "admin"
++        );
++        client.update(request, RequestOptions.DEFAULT);
++    }
++
++    // 批处理，结合分页查询
++    @Test
++    void testBulk() throws IOException {
++        int pageNo = 1;
++        int pageSize = 10;
++        int totalPage = (int) (userService.lambdaQuery()
++                .eq(User::getIsDelete, 0)
++                .count() / pageSize + (userService.lambdaQuery()
++                .eq(User::getIsDelete, 0)
++                .count() % pageSize > 0 ? 1 : 0));
++        while (true) {
++            Page<User> page = userService.lambdaQuery()
++                    .eq(User::getIsDelete, 0)
++                    .page(Page.of(pageNo, pageSize));
++            List<User> records = page.getRecords();
++            if (records == null || records.isEmpty() || pageNo > totalPage) {
++                return;
++            }
++            BulkRequest request = new BulkRequest();
++            for (User record : records) {
++                UserDoc userDoc = BeanUtil.copyProperties(record, UserDoc.class);
++                request.add(new IndexRequest("user")
++                        .id(userDoc.getId())
++                        .source(JSONUtil.toJsonStr(userDoc), XContentType.JSON));
++            }
++            client.bulk(request, RequestOptions.DEFAULT);
++            pageNo++;
++        }
++    }
++
++    // 创建用户索引
++    @Test
++    void testCreateUserIndex() throws IOException {
++        // 创建一个名为"user"的索引请求对象
++        CreateIndexRequest request = new CreateIndexRequest("user");
++        // 设置索引的源数据，这里为空，使用JSON格式
++        request.source(MAPPING_TEMPLATE, XContentType.JSON);
++        // 执行创建索引操作，使用默认的请求选项
++        client.indices().create(request, RequestOptions.DEFAULT);
++    }
++
++    // 用户索引是否存在
++    @Test
++    void testGetUserIndex() throws IOException {
++        GetIndexRequest request = new GetIndexRequest("user");
++        boolean exists = client.indices().exists(request, RequestOptions.DEFAULT);
++        System.out.println("索引是否存在：" + exists);
++    }
++
++    // 删除用户索引
++    @Test
++    void testDeleteUserIndex() throws IOException {
++        DeleteIndexRequest request = new DeleteIndexRequest("user");
++        client.indices().delete(request, RequestOptions.DEFAULT);
++    }
++
++    @BeforeEach
++    void setUp() {
++        client = new RestHighLevelClient(RestClient.builder(
++                HttpHost.create("http://localhost:9200")
++        ));
++    }
++
++    @AfterEach
++    void tearDown() throws IOException {
++        if (client != null) {
++            client.close();
++        }
++    }
++
++    private static final String MAPPING_TEMPLATE = """
++            {
++              "mappings": {
++                "properties": {
++                  "userName": {
++                    "type": "text",
++                    "analyzer": "ik_smart"
++                  },
++                  "id":{
++                    "type": "keyword"
++                  },
++                  "email": {
++                    "type": "keyword",
++                    "index": false
++                  },
++                  "phone":{
++                    "type": "keyword",
++                    "index": false
++                  },
++                  "role":{
++                    "type": "text"
++                  },
++                  "createTime":{
++                    "type": "date"
++                   }
++                }
++              }
++            }""";
++}
+Index: user-service/src/main/resources/mapper/UsersMapper.xml
+===================================================================
+diff --git a/user-service/src/main/resources/mapper/UsersMapper.xml b/user-service/src/main/resources/mapper/IUserService.xml
+rename from user-service/src/main/resources/mapper/UsersMapper.xml
+rename to user-service/src/main/resources/mapper/IUserService.xml
+--- a/user-service/src/main/resources/mapper/UsersMapper.xml	
++++ b/user-service/src/main/resources/mapper/IUserService.xml	
+@@ -1,5 +1,5 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+-<mapper namespace="cn.edu.zust.se.mapper.UsersMapper">
++<mapper namespace="cn.edu.zust.se.mapper.UserMapper">
+ 
+ </mapper>
+Index: user-service/src/main/java/cn/edu/zust/se/feign/client/UserClientFallback.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/user-service/src/main/java/cn/edu/zust/se/feign/client/UserClientFallback.java b/user-service/src/main/java/cn/edu/zust/se/feign/client/UserClientFallback.java
+new file mode 100644
+--- /dev/null	
++++ b/user-service/src/main/java/cn/edu/zust/se/feign/client/UserClientFallback.java	
+@@ -0,0 +1,27 @@
++package cn.edu.zust.se.feign.client;
++
++import lombok.extern.slf4j.Slf4j;
++import org.springframework.cloud.openfeign.FallbackFactory;
++import org.springframework.stereotype.Component;
++
++@Component
++@Slf4j
++public class UserClientFallback implements FallbackFactory<UserClient> {
++
++    @Override
++    public UserClient create(Throwable throwable) {
++        log.error("异常原因:{}", throwable.getMessage(), throwable);
++        return new UserClient(){
++            @Override
++            public Object bigDataTest(Object o) {
++                //出现异常，自定义返回内容，保证接口安全
++                return throwable.getMessage();
++            }
++
++            @Override
++            public String getRole(int id) {
++                return throwable.getMessage();
++            }
++        };
++    }
++}
+\ No newline at end of file
+Index: client-service/src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>ISO-8859-1
+===================================================================
+diff --git a/client-service/src/main/resources/application.properties b/client-service/src/main/resources/application.properties
+new file mode 100644
+--- /dev/null	
++++ b/client-service/src/main/resources/application.properties	
+@@ -0,0 +1,1 @@
++spring.application.name=client-service
+Index: user-service/src/main/java/cn/edu/zust/se/feign/client/UserClient.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/user-service/src/main/java/cn/edu/zust/se/feign/client/UserClient.java b/user-service/src/main/java/cn/edu/zust/se/feign/client/UserClient.java
+new file mode 100644
+--- /dev/null	
++++ b/user-service/src/main/java/cn/edu/zust/se/feign/client/UserClient.java	
+@@ -0,0 +1,21 @@
++package cn.edu.zust.se.feign.client;
++
++import cn.edu.zust.se.feign.interceptor.FeignInterceptor;
++import org.springframework.cloud.openfeign.FeignClient;
++import org.springframework.http.MediaType;
++import org.springframework.web.bind.annotation.GetMapping;
++import org.springframework.web.bind.annotation.PostMapping;
++import org.springframework.web.bind.annotation.RequestBody;
++
++@FeignClient(
++        name = "user-service",                 // 服务名称
++        configuration = FeignInterceptor.class,        // 请求拦截器 （关键代码）
++        fallbackFactory = UserClientFallback.class    // 服务降级处理
++)
++public interface UserClient {
++    @PostMapping(value = "/bigDataTest")
++    public Object bigDataTest(@RequestBody Object o);
++
++    @GetMapping("/getRole")
++    public String getRole(int id);
++}
+Index: user-service/src/main/java/cn/edu/zust/se/feign/interceptor/FeignInterceptor.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/user-service/src/main/java/cn/edu/zust/se/feign/interceptor/FeignInterceptor.java b/user-service/src/main/java/cn/edu/zust/se/feign/interceptor/FeignInterceptor.java
+new file mode 100644
+--- /dev/null	
++++ b/user-service/src/main/java/cn/edu/zust/se/feign/interceptor/FeignInterceptor.java	
+@@ -0,0 +1,21 @@
++package cn.edu.zust.se.feign.interceptor;
++
++import cn.dev33.satoken.same.SaSameUtil;
++import feign.RequestInterceptor;
++import feign.RequestTemplate;
++import org.springframework.stereotype.Component;
++
++/**
++ * feign拦截器, 在feign请求发出之前，加入一些操作
++ */
++@Component
++public class FeignInterceptor implements RequestInterceptor {
++    // 为 Feign 的 RCP调用 添加请求头Same-Token
++    @Override
++    public void apply(RequestTemplate requestTemplate) {
++        requestTemplate.header(SaSameUtil.SAME_TOKEN, SaSameUtil.getToken());
++
++        // 如果希望被调用方有会话状态，此处就还需要将 satoken 添加到请求头中
++        // requestTemplate.header(StpUtil.getTokenName(), StpUtil.getTokenValue());
++    }
++}
+\ No newline at end of file
+Index: user-service/src/main/java/cn/edu/zust/se/current/GlobalException.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/user-service/src/main/java/cn/edu/zust/se/current/GlobalException.java b/user-service/src/main/java/cn/edu/zust/se/current/GlobalException.java
+new file mode 100644
+--- /dev/null	
++++ b/user-service/src/main/java/cn/edu/zust/se/current/GlobalException.java	
+@@ -0,0 +1,73 @@
++package cn.edu.zust.se.current;
++
++import org.springframework.web.bind.annotation.ExceptionHandler;
++import org.springframework.web.bind.annotation.RestControllerAdvice;
++
++import cn.dev33.satoken.exception.DisableServiceException;
++import cn.dev33.satoken.exception.NotHttpBasicAuthException;
++import cn.dev33.satoken.exception.NotLoginException;
++import cn.dev33.satoken.exception.NotPermissionException;
++import cn.dev33.satoken.exception.NotRoleException;
++import cn.dev33.satoken.exception.NotSafeException;
++import cn.dev33.satoken.util.SaResult;
++
++/**
++ * 全局异常处理
++ */
++@RestControllerAdvice
++public class GlobalException {
++
++    // 拦截：未登录异常
++    @ExceptionHandler(NotLoginException.class)
++    public SaResult handlerException(NotLoginException e) {
++
++        // 打印堆栈，以供调试
++        e.printStackTrace();
++
++        // 返回给前端
++        return SaResult.error(e.getMessage());
++    }
++
++    // 拦截：缺少权限异常
++    @ExceptionHandler(NotPermissionException.class)
++    public SaResult handlerException(NotPermissionException e) {
++        e.printStackTrace();
++        return SaResult.error("缺少权限：" + e.getPermission());
++    }
++
++    // 拦截：缺少角色异常
++    @ExceptionHandler(NotRoleException.class)
++    public SaResult handlerException(NotRoleException e) {
++        e.printStackTrace();
++        return SaResult.error("缺少角色：" + e.getRole());
++    }
++
++    // 拦截：二级认证校验失败异常
++    @ExceptionHandler(NotSafeException.class)
++    public SaResult handlerException(NotSafeException e) {
++        e.printStackTrace();
++        return SaResult.error("二级认证校验失败：" + e.getService());
++    }
++
++    // 拦截：服务封禁异常
++    @ExceptionHandler(DisableServiceException.class)
++    public SaResult handlerException(DisableServiceException e) {
++        e.printStackTrace();
++        return SaResult.error("当前账号 " + e.getService() + " 服务已被封禁 (level=" + e.getLevel() + ")：" + e.getDisableTime() + "秒后解封");
++    }
++
++    // 拦截：Http Basic 校验失败异常
++    @ExceptionHandler(NotHttpBasicAuthException.class)
++    public SaResult handlerException(NotHttpBasicAuthException e) {
++        e.printStackTrace();
++        return SaResult.error(e.getMessage());
++    }
++
++    // 拦截：其它所有异常
++    @ExceptionHandler(Exception.class)
++    public SaResult handlerException(Exception e) {
++        e.printStackTrace();
++        return SaResult.error(e.getMessage());
++    }
++
++}
+\ No newline at end of file
+Index: common/src/main/java/cn/edu/zust/se/entity/query/PageQuery.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/query/PageQuery.java b/common/src/main/java/cn/edu/zust/se/entity/query/PageQuery.java
+new file mode 100644
+--- /dev/null	
++++ b/common/src/main/java/cn/edu/zust/se/entity/query/PageQuery.java	
+@@ -0,0 +1,39 @@
++package cn.edu.zust.se.entity.query;
++
++import com.baomidou.mybatisplus.core.metadata.OrderItem;
++import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
++import lombok.Data;
++
++@Data
++public class PageQuery {
++    // 当前页码
++    private Integer pageNo = 1;
++    // 每页条数
++    private Integer pageSize = 10;
++    // 排序字段
++    private String sortBy;
++    // 是否正序
++    private Boolean isAsc = true;
++
++    public <T> Page<T> toMpPage(OrderItem ... items) {
++        Page<T> page = Page.of(pageNo, pageSize);
++        if (sortBy != null && !sortBy.isEmpty()){
++            page.addOrder(new OrderItem().setColumn(sortBy).setAsc(isAsc));
++        }else if (items != null){
++            page.addOrder(items);
++        }
++        return page;
++    }
++
++    public <T> Page<T> toMpPage(String column, Boolean isAsc) {
++        return toMpPage(new OrderItem().setColumn(column).setAsc(isAsc));
++    }
++
++    public <T> Page<T> toMpPageByCreateTime() {
++        return toMpPage(new OrderItem().setColumn("create_time").setAsc(false));
++    }
++
++    public <T> Page<T> toMpPageByUpdateTime() {
++        return toMpPage(new OrderItem().setColumn("last_update").setAsc(false));
++    }
++}
+Index: common/src/main/java/cn/edu/zust/se/entity/dto/PageDto.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/dto/PageDto.java b/common/src/main/java/cn/edu/zust/se/entity/dto/PageDto.java
+new file mode 100644
+--- /dev/null	
++++ b/common/src/main/java/cn/edu/zust/se/entity/dto/PageDto.java	
+@@ -0,0 +1,32 @@
++package cn.edu.zust.se.entity.dto;
++
++import cn.hutool.core.bean.BeanUtil;
++import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
++import lombok.Data;
++
++import java.util.Collections;
++import java.util.List;
++
++@Data
++public class PageDto<T> {
++    //总条数
++    private Integer total;
++    //总页数
++    private Integer pages;
++    //数据
++    private List<T> list;
++
++    public static <VO,PO> PageDto<VO> of(Page<PO> page, Class<VO> clazz){
++        PageDto<VO> pageDto = new PageDto<>();
++        pageDto.setTotal((int) page.getTotal());
++        pageDto.setPages((int) page.getPages());
++        List<PO> records = page.getRecords();
++        if (records == null||records.isEmpty()){
++            pageDto.setList(Collections.emptyList());
++            return pageDto;
++        }
++        List<VO> userVos = BeanUtil.copyToList(records, clazz);
++        pageDto.setList(userVos);
++        return pageDto;
++    }
++}
+Index: user-service/src/main/java/cn/edu/zust/se/service/impl/StpInterfaceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/user-service/src/main/java/cn/edu/zust/se/service/impl/StpInterfaceImpl.java b/user-service/src/main/java/cn/edu/zust/se/service/impl/StpInterfaceImpl.java
+new file mode 100644
+--- /dev/null	
++++ b/user-service/src/main/java/cn/edu/zust/se/service/impl/StpInterfaceImpl.java	
+@@ -0,0 +1,42 @@
++package cn.edu.zust.se.service.impl;
++
++import cn.dev33.satoken.stp.StpInterface;
++import org.springframework.stereotype.Component;
++
++import java.util.ArrayList;
++import java.util.List;
++
++/**
++ * 自定义权限加载接口实现类
++ */
++@Component    // 保证此类被 SpringBoot 扫描，完成 Sa-Token 的自定义权限验证扩展
++public class StpInterfaceImpl implements StpInterface {
++
++    /**
++     * 返回一个账号所拥有的权限码集合
++     */
++    @Override
++    public List<String> getPermissionList(Object loginId, String loginType) {
++        // 本 list 仅做模拟，实际项目中要根据具体业务逻辑来查询权限
++        List<String> list = new ArrayList<String>();
++        list.add("101");
++        list.add("user.add");
++        list.add("user.update");
++        list.add("user.get");
++        // list.add("user.delete");
++        list.add("art.*");
++        return list;
++    }
++
++    /**
++     * 返回一个账号所拥有的角色标识集合 (权限与角色可分开校验)
++     */
++    @Override
++    public List<String> getRoleList(Object loginId, String loginType) {
++        List<String> list = new ArrayList<String>();
++        list.add("admin");
++        list.add("normal");
++        return list;
++    }
++
++}
+Index: api-gateway/src/main/java/cn/edu/zust/se/filter/ForwardAuthFilter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/api-gateway/src/main/java/cn/edu/zust/se/filter/ForwardAuthFilter.java b/api-gateway/src/main/java/cn/edu/zust/se/filter/ForwardAuthFilter.java
+new file mode 100644
+--- /dev/null	
++++ b/api-gateway/src/main/java/cn/edu/zust/se/filter/ForwardAuthFilter.java	
+@@ -0,0 +1,27 @@
++package cn.edu.zust.se.filter;
++
++import cn.dev33.satoken.same.SaSameUtil;
++import org.springframework.cloud.gateway.filter.GatewayFilterChain;
++import org.springframework.cloud.gateway.filter.GlobalFilter;
++import org.springframework.http.server.reactive.ServerHttpRequest;
++import org.springframework.stereotype.Component;
++import org.springframework.web.server.ServerWebExchange;
++import reactor.core.publisher.Mono;
++
++/**
++ * 全局过滤器，为请求添加 Same-Token
++ */
++@Component
++public class ForwardAuthFilter implements GlobalFilter {
++    @Override
++    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
++        ServerHttpRequest newRequest = exchange
++                .getRequest()
++                .mutate()
++                // 为请求追加 Same-Token 参数
++                .header(SaSameUtil.SAME_TOKEN, SaSameUtil.getToken())
++                .build();
++        ServerWebExchange newExchange = exchange.mutate().request(newRequest).build();
++        return chain.filter(newExchange);
++    }
++}
+Index: user-service/src/main/java/cn/edu/zust/se/config/MybatisPlusConfig.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/user-service/src/main/java/cn/edu/zust/se/config/MybatisPlusConfig.java b/user-service/src/main/java/cn/edu/zust/se/config/MybatisPlusConfig.java
+new file mode 100644
+--- /dev/null	
++++ b/user-service/src/main/java/cn/edu/zust/se/config/MybatisPlusConfig.java	
+@@ -0,0 +1,24 @@
++package cn.edu.zust.se.config;
++
++import com.baomidou.mybatisplus.annotation.DbType;
++import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
++import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
++import org.mybatis.spring.annotation.MapperScan;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++
++@Configuration
++@MapperScan("cn.edu.zust.se.mapper")
++public class MybatisPlusConfig {
++
++    /**
++     * 添加分页插件
++     */
++    @Bean
++    public MybatisPlusInterceptor mybatisPlusInterceptor() {
++        MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
++        interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.MYSQL)); // 如果配置多个插件, 切记分页最后添加
++        // 如果有多数据源可以不配具体类型, 否则都建议配上具体的 DbType
++        return interceptor;
++    }
++}
+Index: common/src/main/java/cn/edu/zust/se/entity/vo/UserVo.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/entity/vo/UserVo.java b/common/src/main/java/cn/edu/zust/se/entity/vo/UserVo.java
+new file mode 100644
+--- /dev/null	
++++ b/common/src/main/java/cn/edu/zust/se/entity/vo/UserVo.java	
+@@ -0,0 +1,17 @@
++package cn.edu.zust.se.entity.vo;
++
++import lombok.Data;
++
++import java.time.LocalDateTime;
++
++@Data
++public class UserVo {
++    private Integer id;
++    private String userName;
++    private String email;
++    private String realName;
++    private String phone;
++    private String role;
++    private LocalDateTime createTime;
++    private LocalDateTime updateTime;
++}
+Index: user-service/src/main/java/cn/edu/zust/se/domain/po/UserDoc.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/user-service/src/main/java/cn/edu/zust/se/domain/po/UserDoc.java b/user-service/src/main/java/cn/edu/zust/se/domain/po/UserDoc.java
+new file mode 100644
+--- /dev/null	
++++ b/user-service/src/main/java/cn/edu/zust/se/domain/po/UserDoc.java	
+@@ -0,0 +1,20 @@
++package cn.edu.zust.se.domain.po;
++
++import lombok.Data;
++
++import java.time.LocalDateTime;
++
++@Data
++public class UserDoc {
++    private String id;
++
++    private String userName;
++
++    private String email;
++
++    private String phone;
++
++    private String role;
++
++    private LocalDateTime createTime;
++}
+Index: user-service/src/main/java/cn/edu/zust/se/config/SaTokenConfigure.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/user-service/src/main/java/cn/edu/zust/se/config/SaTokenConfigure.java b/user-service/src/main/java/cn/edu/zust/se/config/SaTokenConfigure.java
+new file mode 100644
+--- /dev/null	
++++ b/user-service/src/main/java/cn/edu/zust/se/config/SaTokenConfigure.java	
+@@ -0,0 +1,38 @@
++package cn.edu.zust.se.config;
++
++import cn.dev33.satoken.context.SaHolder;
++import cn.dev33.satoken.filter.SaServletFilter;
++import cn.dev33.satoken.interceptor.SaInterceptor;
++import cn.dev33.satoken.same.SaSameUtil;
++import cn.dev33.satoken.util.SaResult;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
++import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
++
++@Configuration
++public class SaTokenConfigure implements WebMvcConfigurer {
++    // 注册 Sa-Token 拦截器，打开注解式鉴权功能
++    @Override
++    public void addInterceptors(InterceptorRegistry registry) {
++        // 注册 Sa-Token 拦截器，打开注解式鉴权功能
++        registry.addInterceptor(new SaInterceptor()).addPathPatterns("/**");
++    }
++
++    // 注册 Sa-Token 全局过滤器
++    @Bean
++    public SaServletFilter getSaServletFilter() {
++        return new SaServletFilter()
++                .addInclude("/**")
++                .addExclude("/favicon.ico")
++                .setAuth(obj -> {
++                    // 校验 Same-Token 身份凭证     —— 以下两句代码可简化为：SaSameUtil.checkCurrentRequestToken();
++                    String token = SaHolder.getRequest().getHeader(SaSameUtil.SAME_TOKEN);
++                    SaSameUtil.checkToken(token);
++                })
++                .setError(e -> {
++                    return SaResult.error(e.getMessage());
++                })
++                ;
++    }
++}
+Index: api-gateway/src/main/resources/application.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>server:\r\n  port: 7000\r\nspring:\r\n  application:\r\n    name: api-gateway\r\n  cloud:\r\n    nacos:\r\n      discovery:\r\n        server-addr: 47.99.150.135:18848\r\n    gateway:\r\n      routes:\r\n        - id: user-route\r\n          uri: lb://service-user\r\n          order: 1\r\n          predicates:\r\n            - Path=/user/**\r\n          filters:\r\n            - StripPrefix=1\r\n      discovery:\r\n        locator:\r\n          enabled: true
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/api-gateway/src/main/resources/application.yml b/api-gateway/src/main/resources/application.yml
+--- a/api-gateway/src/main/resources/application.yml	
++++ b/api-gateway/src/main/resources/application.yml	
+@@ -18,4 +18,9 @@
+             - StripPrefix=1
+       discovery:
+         locator:
+-          enabled: true
+\ No newline at end of file
++          enabled: true
++  data:
++    redis:
++      host: 192.168.235.128
++      port: 6379
++      password: 0408
+\ No newline at end of file
+Index: user-service/src/test/java/cn/edu/zust/se/DSLTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/user-service/src/test/java/cn/edu/zust/se/DSLTest.java b/user-service/src/test/java/cn/edu/zust/se/DSLTest.java
+new file mode 100644
+--- /dev/null	
++++ b/user-service/src/test/java/cn/edu/zust/se/DSLTest.java	
+@@ -0,0 +1,15 @@
++package cn.edu.zust.se;
++
++import cn.edu.zust.se.service.IUserService;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.test.context.SpringBootTest;
++import org.elasticsearch.client.RestHighLevelClient;
++
++@SpringBootTest
++public class DSLTest {
++    private RestHighLevelClient client;
++    @Autowired
++    private IUserService usersService;
++
++
++}
+\ No newline at end of file
+Index: customer-service/src/main/java/cn/edu/zust/se/CustomerApplication.java
+===================================================================
+diff --git a/customer-service/src/main/java/cn/edu/zust/se/CustomerApplication.java b/client-service/src/main/java/cn/edu/zust/se/ClientApplication.java
+rename from customer-service/src/main/java/cn/edu/zust/se/CustomerApplication.java
+rename to client-service/src/main/java/cn/edu/zust/se/ClientApplication.java
+--- a/customer-service/src/main/java/cn/edu/zust/se/CustomerApplication.java	
++++ b/client-service/src/main/java/cn/edu/zust/se/ClientApplication.java	
+@@ -1,5 +1,6 @@
+ package cn.edu.zust.se;
+ 
++import org.mybatis.spring.annotation.MapperScan;
+ import org.springframework.boot.SpringApplication;
+ import org.springframework.boot.autoconfigure.SpringBootApplication;
+ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+@@ -8,9 +9,10 @@
+ @EnableDiscoveryClient
+ @SpringBootApplication
+ @EnableFeignClients
+-public class CustomerApplication {
++@MapperScan("cn.edu.zust.se.mapper")
++public class ClientApplication {
+     public static void main(String[] args) {
+-        SpringApplication.run(CustomerApplication.class, args);
++        SpringApplication.run(ClientApplication.class, args);
+         System.out.println("客户服务启动成功 ヾ(￣ー￣)X(^▽^)ゞ");
+     }
+ }
+Index: customer-service/src/main/resources/mapper/OrdersMapper.xml
+===================================================================
+diff --git a/customer-service/src/main/resources/mapper/OrdersMapper.xml b/client-service/src/main/resources/mapper/ClientMapper.xml
+rename from customer-service/src/main/resources/mapper/OrdersMapper.xml
+rename to client-service/src/main/resources/mapper/ClientMapper.xml
+--- a/customer-service/src/main/resources/mapper/OrdersMapper.xml	
++++ b/client-service/src/main/resources/mapper/ClientMapper.xml	
+@@ -1,5 +1,5 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+-<mapper namespace="cn.edu.zust.se.mapper.OrdersMapper">
++<mapper namespace="cn.edu.zust.se.mapper.ClientMapper">
+ 
+ </mapper>
+Index: user-service/src/main/java/cn/edu/zust/se/config/CustomGsonConfig.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/user-service/src/main/java/cn/edu/zust/se/config/CustomGsonConfig.java b/user-service/src/main/java/cn/edu/zust/se/config/CustomGsonConfig.java
+new file mode 100644
+--- /dev/null	
++++ b/user-service/src/main/java/cn/edu/zust/se/config/CustomGsonConfig.java	
+@@ -0,0 +1,28 @@
++package cn.edu.zust.se.config;
++
++import com.google.gson.Gson;
++import com.google.gson.GsonBuilder;
++import com.google.gson.JsonDeserializer;
++import com.google.gson.JsonSerializer;
++
++import java.time.LocalDateTime;
++import java.time.format.DateTimeFormatter;
++
++public class CustomGsonConfig {
++
++    public static Gson createGson() {
++        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
++
++        JsonSerializer<LocalDateTime> localDateTimeSerializer = (src, typeOfSrc, context) ->
++            new com.google.gson.JsonPrimitive(src.format(formatter));
++
++        JsonDeserializer<LocalDateTime> localDateTimeDeserializer = (json, typeOfT, context) ->
++            LocalDateTime.parse(json.getAsString(), formatter);
++
++        return new GsonBuilder()
++                .registerTypeAdapter(LocalDateTime.class, localDateTimeSerializer)
++                .registerTypeAdapter(LocalDateTime.class, localDateTimeDeserializer)
++                .create();
++    }
++}
++
+Index: user-service/src/main/java/cn/edu/zust/se/domain/query/UserQuery.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/user-service/src/main/java/cn/edu/zust/se/domain/query/UserQuery.java b/user-service/src/main/java/cn/edu/zust/se/domain/query/UserQuery.java
+new file mode 100644
+--- /dev/null	
++++ b/user-service/src/main/java/cn/edu/zust/se/domain/query/UserQuery.java	
+@@ -0,0 +1,17 @@
++package cn.edu.zust.se.domain.query;
++
++import cn.edu.zust.se.entity.query.PageQuery;
++import lombok.Data;
++import lombok.EqualsAndHashCode;
++
++import java.time.LocalDateTime;
++
++@EqualsAndHashCode(callSuper = true)
++@Data
++public class UserQuery extends PageQuery{
++    private String userName;
++
++    private String role;
++
++    private LocalDateTime createTime;
++}
+Index: api-gateway/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\r\n    <modelVersion>4.0.0</modelVersion>\r\n    <parent>\r\n        <groupId>cn.edu.zust.se</groupId>\r\n        <artifactId>mini-erp</artifactId>\r\n        <version>1.0-SNAPSHOT</version>\r\n    </parent>\r\n\r\n    <artifactId>api-gateway</artifactId>\r\n    <packaging>jar</packaging>\r\n\r\n    <name>api-gateway</name>\r\n    <url>http://maven.apache.org</url>\r\n\r\n    <properties>\r\n        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>\r\n    </properties>\r\n\r\n    <dependencies>\r\n        <dependency>\r\n            <groupId>junit</groupId>\r\n            <artifactId>junit</artifactId>\r\n            <version>3.8.1</version>\r\n            <scope>test</scope>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>org.springframework.cloud</groupId>\r\n            <artifactId>spring-cloud-starter-gateway</artifactId>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>org.springframework.cloud</groupId>\r\n            <artifactId>spring-cloud-starter-loadbalancer</artifactId>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>com.alibaba.cloud</groupId>\r\n            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>\r\n        </dependency>\r\n    </dependencies>\r\n</project>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/api-gateway/pom.xml b/api-gateway/pom.xml
+--- a/api-gateway/pom.xml	
++++ b/api-gateway/pom.xml	
+@@ -36,5 +36,24 @@
+             <groupId>com.alibaba.cloud</groupId>
+             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+         </dependency>
++
++        <!-- Sa-Token 权限认证（Reactor响应式集成）, 在线文档：https://sa-token.cc -->
++        <dependency>
++            <groupId>cn.dev33</groupId>
++            <artifactId>sa-token-reactor-spring-boot3-starter</artifactId>
++            <version>1.39.0</version>
++        </dependency>
++
++        <!-- Sa-Token 整合 Redis （使用 jackson 序列化方式） -->
++        <dependency>
++            <groupId>cn.dev33</groupId>
++            <artifactId>sa-token-redis-jackson</artifactId>
++            <version>1.39.0</version>
++        </dependency>
++        <dependency>
++            <groupId>org.apache.commons</groupId>
++            <artifactId>commons-pool2</artifactId>
++        </dependency>
++
+     </dependencies>
+ </project>
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"ExternalStorageConfigurationManager\" enabled=\"true\" />\r\n  <component name=\"MavenProjectsManager\">\r\n    <option name=\"originalFiles\">\r\n      <list>\r\n        <option value=\"$PROJECT_DIR$/pom.xml\" />\r\n      </list>\r\n    </option>\r\n    <option name=\"ignoredFiles\">\r\n      <set>\r\n        <option value=\"$PROJECT_DIR$/api-gateway/common/pom.xml\" />\r\n        <option value=\"$PROJECT_DIR$/gateway/pom.xml\" />\r\n      </set>\r\n    </option>\r\n  </component>\r\n  <component name=\"ProjectRootManager\" version=\"2\" languageLevel=\"JDK_17\" default=\"true\" project-jdk-name=\"17\" project-jdk-type=\"JavaSDK\">\r\n    <output url=\"file://$PROJECT_DIR$/out\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+--- a/.idea/misc.xml	
++++ b/.idea/misc.xml	
+@@ -5,12 +5,17 @@
+     <option name="originalFiles">
+       <list>
+         <option value="$PROJECT_DIR$/pom.xml" />
++        <option value="$PROJECT_DIR$/client-service/pom.xml" />
+       </list>
+     </option>
+     <option name="ignoredFiles">
+       <set>
+         <option value="$PROJECT_DIR$/api-gateway/common/pom.xml" />
++        <option value="$PROJECT_DIR$/customer-service/pom.xml" />
++        <option value="$PROJECT_DIR$/financial-management-service/pom.xml" />
+         <option value="$PROJECT_DIR$/gateway/pom.xml" />
++        <option value="$PROJECT_DIR$/inventory-management-service/pom.xml" />
++        <option value="$PROJECT_DIR$/order-processing-service/pom.xml" />
+       </set>
+     </option>
+   </component>
+Index: .idea/encodings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"Encoding\">\r\n    <file url=\"file://$PROJECT_DIR$/api-gateway/common/src/main/java\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/api-gateway/src/main/java\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/api-gateway/src/main/resources\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/common/src/main/java\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/customer-service/src/main/java\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/financial-management-service/src/main/java\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/gateway/src/main/java\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/gateway/src/main/resources\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/inventory-management-service/src/main/java\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/inventory-management-service/src/main/resources\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/order-processing-service/src/main/java\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/src/main/java\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/src/main/resources\" charset=\"UTF-8\" />\r\n    <file url=\"file://$PROJECT_DIR$/user-service/src/main/java\" charset=\"UTF-8\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/encodings.xml b/.idea/encodings.xml
+--- a/.idea/encodings.xml	
++++ b/.idea/encodings.xml	
+@@ -4,6 +4,7 @@
+     <file url="file://$PROJECT_DIR$/api-gateway/common/src/main/java" charset="UTF-8" />
+     <file url="file://$PROJECT_DIR$/api-gateway/src/main/java" charset="UTF-8" />
+     <file url="file://$PROJECT_DIR$/api-gateway/src/main/resources" charset="UTF-8" />
++    <file url="file://$PROJECT_DIR$/client-service/src/main/java" charset="UTF-8" />
+     <file url="file://$PROJECT_DIR$/common/src/main/java" charset="UTF-8" />
+     <file url="file://$PROJECT_DIR$/customer-service/src/main/java" charset="UTF-8" />
+     <file url="file://$PROJECT_DIR$/financial-management-service/src/main/java" charset="UTF-8" />
+Index: common/src/main/java/cn/edu/zust/se/common/Result.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/src/main/java/cn/edu/zust/se/common/Result.java b/common/src/main/java/cn/edu/zust/se/common/Result.java
+new file mode 100644
+--- /dev/null	
++++ b/common/src/main/java/cn/edu/zust/se/common/Result.java	
+@@ -0,0 +1,29 @@
++package cn.edu.zust.se.common;
++
++import lombok.Data;
++
++/**
++ * 返回前端封装
++ */
++@Data
++public class Result<T> {
++    private int code;
++    private String message;
++    private T data;
++
++    public static <T> Result<T> success(T data) {
++        Result<T> result = new Result<>();
++        result.setCode(200);
++        result.setMessage("操作成功");
++        result.setData(data);
++        return result;
++    }
++
++    public static <T> Result<T> error(int code, String message) {
++        Result<T> result = new Result<>();
++        result.setCode(code);
++        result.setMessage(message);
++        return result;
++    }
++}
++
+Index: common/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\r\n    <modelVersion>4.0.0</modelVersion>\r\n    <parent>\r\n        <groupId>cn.edu.zust.se</groupId>\r\n        <artifactId>mini-erp</artifactId>\r\n        <version>1.0-SNAPSHOT</version>\r\n    </parent>\r\n\r\n    <artifactId>common</artifactId>\r\n    <packaging>jar</packaging>\r\n\r\n    <name>common</name>\r\n    <url>http://maven.apache.org</url>\r\n\r\n    <properties>\r\n        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>\r\n    </properties>\r\n    <dependencies>\r\n        <dependency>\r\n            <groupId>com.baomidou</groupId>\r\n            <artifactId>mybatis-plus-annotation</artifactId>\r\n            <version>3.5.7</version>\r\n            <scope>compile</scope>\r\n        </dependency>\r\n    </dependencies>\r\n</project>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/pom.xml b/common/pom.xml
+--- a/common/pom.xml	
++++ b/common/pom.xml	
+@@ -23,5 +23,18 @@
+             <version>3.5.7</version>
+             <scope>compile</scope>
+         </dependency>
++
++        <dependency>
++            <groupId>org.springdoc</groupId>
++            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
++            <version>2.0.4</version>
++        </dependency>
++
++        <dependency>
++            <groupId>com.baomidou</groupId>
++            <artifactId>mybatis-plus-extension</artifactId>
++            <version>3.5.7</version>
++            <scope>compile</scope>
++        </dependency>
+     </dependencies>
+ </project>
+Index: client-service/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/client-service/pom.xml b/client-service/pom.xml
+new file mode 100644
+--- /dev/null	
++++ b/client-service/pom.xml	
+@@ -0,0 +1,89 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
++         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
++  <modelVersion>4.0.0</modelVersion>
++  <parent>
++    <groupId>cn.edu.zust.se</groupId>
++    <artifactId>mini-erp</artifactId>
++    <version>1.0-SNAPSHOT</version>
++  </parent>
++
++  <artifactId>client-service</artifactId>
++  <packaging>jar</packaging>
++
++  <name>client-service</name>
++  <description>client-service</description>
++
++  <properties>
++    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
++  </properties>
++
++  <dependencies>
++    <dependency>
++      <groupId>org.springframework.boot</groupId>
++      <artifactId>spring-boot-starter</artifactId>
++    </dependency>
++
++    <dependency>
++      <groupId>org.springframework.boot</groupId>
++      <artifactId>spring-boot-starter-test</artifactId>
++      <scope>test</scope>
++    </dependency>
++
++    <dependency>
++      <groupId>com.baomidou</groupId>
++      <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
++      <version>3.5.7</version>
++    </dependency>
++
++    <dependency>
++      <groupId>cn.edu.zust.se</groupId>
++      <artifactId>common</artifactId>
++      <version>1.0-SNAPSHOT</version>
++    </dependency>
++
++    <dependency>
++      <groupId>org.springframework.boot</groupId>
++      <artifactId>spring-boot-starter-web</artifactId>
++    </dependency>
++
++    <dependency>
++      <groupId>com.mysql</groupId>
++      <artifactId>mysql-connector-j</artifactId>
++      <version>8.0.32</version>
++    </dependency>
++
++    <dependency>
++      <groupId>org.springframework.cloud</groupId>
++      <artifactId>spring-cloud-starter-loadbalancer</artifactId>
++    </dependency>
++
++    <dependency>
++      <groupId>org.springframework.cloud</groupId>
++      <artifactId>spring-cloud-starter-openfeign</artifactId>
++    </dependency>
++
++    <dependency>
++      <groupId>com.alibaba.cloud</groupId>
++      <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
++    </dependency>
++
++    <!-- Sa-Token 权限认证, 在线文档：https://sa-token.cc -->
++    <dependency>
++      <groupId>cn.dev33</groupId>
++      <artifactId>sa-token-spring-boot3-starter</artifactId>
++      <version>1.39.0</version>
++    </dependency>
++
++    <!-- Sa-Token 整合 Redis （使用 jackson 序列化方式） -->
++    <dependency>
++      <groupId>cn.dev33</groupId>
++      <artifactId>sa-token-redis-jackson</artifactId>
++      <version>1.39.0</version>
++    </dependency>
++    <dependency>
++      <groupId>org.apache.commons</groupId>
++      <artifactId>commons-pool2</artifactId>
++    </dependency>
++  </dependencies>
++</project>
+Index: user-service/src/test/java/cn/edu/zust/se/service/IUserServiceTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/user-service/src/test/java/cn/edu/zust/se/service/IUserServiceTest.java b/user-service/src/test/java/cn/edu/zust/se/service/IUserServiceTest.java
+new file mode 100644
+--- /dev/null	
++++ b/user-service/src/test/java/cn/edu/zust/se/service/IUserServiceTest.java	
+@@ -0,0 +1,12 @@
++package cn.edu.zust.se.service;
++
++import org.junit.jupiter.api.Test;
++
++import static org.junit.jupiter.api.Assertions.*;
++
++class IUserServiceTest {
++
++    @Test
++    void queryUserPage() {
++    }
++}
+\ No newline at end of file
