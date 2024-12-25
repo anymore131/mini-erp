@@ -11,6 +11,6 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 public class MessageApplication {
     public static void main(String[] args) {
         SpringApplication.run(MessageApplication.class, args);
-        System.out.println("合同模板管理服务启动成功 ヾ(￣ー￣)X(^▽^)ゞ");
+        System.out.println("消息管理服务启动成功 ヾ(￣ー￣)X(^▽^)ゞ");
     }
 }

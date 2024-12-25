@@ -20,7 +20,4 @@ public interface UserFeignServiceI {
 
     @GetMapping("/getDeleteUserById/{id}")
     UserVo getDeleteUserNameById(@PathVariable("id") Integer id);
-
-    @GetMapping("/getUserIdByUserName/{userName}")
-    Integer getUserIdByUserName(@PathVariable("userName")String userName);
 }

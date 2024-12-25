@@ -31,13 +31,8 @@ public interface IContractApprovalService extends IService<ContractApproval> {
     // 根据用户ID查询审批记录
     List<ContractApprovalVo> getByUserId(Integer userId);
 
-    //获取合同审批列表
-    PageDto<ContractApprovalVo> getContract(ContractApprovalQuery contractApprovalQuery);
-//    // 分页查询，按start_time降序排列
-//    PageDto<ContractApprovalVo> getPageByStartTime(int currentPage, int pageSize);
-//
-//    // 合并的分页查询，按start_time降序排列
-//    PageDto<ContractApprovalVo> selectPageByStartTime(Integer contractId, Integer userId, int status, int pageNo, int pageSize);
+//    //获取合同审批列表
+//    PageDto<ContractApprovalVo> getContract(ContractApprovalQuery contractApprovalQuery);
 
     // 根据审批状态查询审批记录
     List<ContractApprovalVo> getByStatus(int status);
@@ -47,6 +42,12 @@ public interface IContractApprovalService extends IService<ContractApproval> {
 
     // 更新合同审批记录
     ContractApprovalVo updateContractApproval(ContractApproval contractApproval);
+
+    //通过审批
+    boolean passContractApproval(Integer id, String approvalOpinion);
+
+    //拒绝通过审批
+    boolean rejectContractApproval(Integer id, String approvalOpinion);
 
     // 删除合同审批记录
     void deleteContractApproval(Integer id);

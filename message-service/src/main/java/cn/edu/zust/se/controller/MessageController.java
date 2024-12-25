@@ -11,6 +11,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -32,7 +34,7 @@ import static com.mysql.cj.conf.PropertyKey.logger;
 @AllArgsConstructor
 public class MessageController {
     private final IMessageService messageService;
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MessageController.class);
+    private static final Logger logger = LoggerFactory.getLogger(MessageController.class);
     /**
      * 分页列表查询
      */

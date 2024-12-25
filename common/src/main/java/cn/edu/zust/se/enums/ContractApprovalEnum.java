@@ -31,6 +31,6 @@ public enum ContractApprovalEnum {
                 return status.code;
             }
         }
-        throw new IllegalArgumentException("ContractStatusEnum unknown message: " + message);
+        throw new IllegalArgumentException("ContractApprovalStatusEnum unknown message: " + message);
     }
 }

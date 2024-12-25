@@ -2,12 +2,8 @@ package cn.edu.zust.se.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
-import cn.edu.zust.se.entity.dto.PageDto;
 import cn.edu.zust.se.entity.po.ContractApproval;
-import cn.edu.zust.se.entity.query.ContractApprovalQuery;
 import cn.edu.zust.se.entity.vo.ContractApprovalVo;
-import cn.edu.zust.se.exception.ForbiddenException;
-import cn.edu.zust.se.exception.InvalidInputException;
 import cn.edu.zust.se.service.IContractApprovalService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -74,51 +70,7 @@ public class ContractApprovalController {
             return ResponseEntity.notFound().build();
         }
     }
-    /**
-     * 获取合同审批列表
-     */
-    @GetMapping(value = "/page/{id}")
-    public SaResult getContractList(@PathVariable Integer id,
-                                    @RequestBody(required = false) ContractApprovalQuery contractApprovalQuery) {
-        if (contractApprovalQuery == null || id == null){
-            throw new InvalidInputException("输入信息为空！");
-        }
-        Integer currentUserId = StpUtil.getLoginIdAsInt();
-        if (!StpUtil.hasRole("admin") && !currentUserId.equals(id)) {
-            throw new ForbiddenException("无权查看其他用户的合同信息！");
-        }
-        if (contractApprovalQuery.getUserId() == null ) {
-            throw new InvalidInputException("输入信息为空！");
-        }
-        if (!id.equals(contractApprovalQuery.getUserId())){
-            throw new InvalidInputException("输入信息不一致！");
-        }
-        PageDto<ContractApprovalVo> contracts = contractService.getContract(contractApprovalQuery);
-        return SaResult.data(contracts);
-    }
 
-//    // 综合查询合同审批记录
-//    @GetMapping("/search")
-//    public ResponseEntity<Page<ContractApprovalVo>> searchContractApprovals(
-//            @RequestParam(required = false) Integer contractId,
-//            @RequestParam(required = false) Integer userId,
-//            @RequestParam(required = false) int status,
-//            @RequestParam int pageNo,
-//            @RequestParam int pageSize) {
-//        logger.info("Searching contract approvals with contractId: {}, userId: {}, status: {}, page: {}, size: {}", contractId, userId, status, pageNo, pageSize);
-//        Page<ContractApprovalVo> page = contractService.selectPageByStartTime(contractId, userId, status, pageNo, pageSize);
-//        return ResponseEntity.ok(page);
-//    }
-//
-//    // 分页获取合同审批记录
-//    @GetMapping("/page")
-//    public ResponseEntity<Page<ContractApprovalVo>> getPageByStartTime(
-//            @RequestParam int currentPage,
-//            @RequestParam int pageSize) {
-//        logger.info("Fetching contract approvals by start time, page: {}, size: {}", currentPage, pageSize);
-//        Page<ContractApprovalVo> page = contractService.getPageByStartTime(currentPage, pageSize);
-//        return ResponseEntity.ok(page);
-//    }
 
     // 根据合同ID获取合同审批记录
     @GetMapping("/by-contract-id/{contractId}")
