@@ -6,7 +6,7 @@
     <el-form :inline="true" class="search-form">
       <el-form-item label="合同编号">
         <el-input
-          v-model="searchForm.contractId"
+          v-model="searchForm.id"
           placeholder="请输入合同编号"
           clearable
           @clear="handleSearch"
@@ -28,9 +28,9 @@
           style="width: 150px"
         >
           <el-option label="创建合同" value="CREATE" />
-          <el-option label="提交审核" value="SUBMIT" />
+          <el-option label="提交审批" value="SUBMIT" />
           <el-option label="审批" value="APPROVE" />
-          <el-option label="更新进度" value="UPDATE_PROGRESS" />
+          <el-option label="添加进度" value="ADD_PROGRESS" />
           <el-option label="添加文件" value="ADD_FILE" />
         </el-select>
       </el-form-item>
@@ -46,14 +46,14 @@
       style="width: 100%; margin-top: 20px"
       @sort-change="handleSortChange"
     >
-      <el-table-column prop="contractId" label="合同编号">
+      <el-table-column prop="id" label="合同编号">
         <template #default="{ row }">
           <el-button 
             link 
             type="primary" 
             @click="handleContractClick(row.contractId)"
           >
-            {{ row.contractId }}
+            {{ row.id }}
           </el-button>
         </template>
       </el-table-column>
@@ -108,9 +108,9 @@ const logList = ref([])
 
 const ACTION_MAP: Record<string, string> = {
   'CREATE': '创建合同',
-  'SUBMIT': '提交审核',
+  'SUBMIT': '提交审批',
   'APPROVE': '审批',
-  'UPDATE_PROGRESS': '更新进度',
+  'ADD_PROGRESS': '添加进度',
   'ADD_FILE': '添加文件'
 }
 
@@ -121,7 +121,7 @@ const pagination = reactive({
 })
 
 const searchForm = reactive({
-  contractId: undefined as string | undefined,
+  id: undefined as string | undefined,
   userName: undefined as string | undefined,
   action: undefined as string | undefined,
   sortBy: undefined as string | undefined,

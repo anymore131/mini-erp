@@ -57,7 +57,6 @@
               end-placeholder="结束时间"
               format="YYYY-MM-DD HH:mm:ss"
               value-format="YYYY-MM-DD HH:mm:ss"
-              time-format="HH:mm:ss"
             />
           </el-form-item>
           <el-form-item>
@@ -107,12 +106,12 @@
       </el-table-column>
       <el-table-column prop="userName" label="负责人" />
       <el-table-column 
-        prop="totalAmount" 
+        prop="amount" 
         label="总金额"
         sortable="custom"
       >
         <template #default="{ row }">
-          {{ row.totalAmount }}
+          {{ (row.amount / 100).toFixed(2) }}
         </template>
       </el-table-column>
       <el-table-column 
@@ -124,24 +123,33 @@
           {{ formatTime(row.createTime) }}
         </template>
       </el-table-column>
+      <el-table-column 
+        prop="updateTime" 
+        label="修改时间"
+        sortable="custom"
+      >
+        <template #default="{ row }">
+          {{ formatTime(row.updateTime) }}
+        </template>
+      </el-table-column>
       <el-table-column prop="status" label="状态">
         <template #default="{ row }">
           <span 
             class="status-tag" 
             :class="{
-              'status-draft': row.status === 'draft',
-              'status-pending': row.status === 'pending',
-              'status-approved': row.status === 'approved',
-              'status-rejected': row.status === 'rejected',
-              'status-completed': row.status === 'completed',
-              'status-cancelled': row.status === 'cancelled'
+              'status-draft': row.status === 'DRAFT',
+              'status-pending': row.status === 'PENDING',
+              'status-approved': row.status === 'APPROVED',
+              'status-rejected': row.status === 'REJECTED',
+              'status-completed': row.status === 'COMPLETED',
+              'status-cancelled': row.status === 'CANCELLED'
             }"
           >
             {{ CONTRACT_STATUS_MAP[row.status] }}
           </span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="250" fixed="right">
+      <el-table-column label="操作" width="200">
         <template #default="{ row }">
           <el-button 
             link 
@@ -149,22 +157,6 @@
             @click="handleContractClick(row.id)"
           >
             查看
-          </el-button>
-          <el-button
-            v-if="row.status === 'draft'"
-            link
-            type="warning"
-            @click="handleSubmit(row.id)"
-          >
-            提交审核
-          </el-button>
-          <el-button
-            v-if="row.status === 'draft'"
-            link
-            type="danger"
-            @click="handleDelete(row.id)"
-          >
-            删除
           </el-button>
         </template>
       </el-table-column>
@@ -222,27 +214,14 @@
 <script lang="ts">
 import { defineComponent, ref, reactive, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { contractApi } from '../../api/contract'
+import { CONTRACT_STATUS_MAP, CLIENT_STATUS_MAP } from '../../types'
 import { clientApi } from '../../api/client'
-import type { ContractInfo } from '../../api/contract'
+import type { ContractInfo } from '../../types'
 import { formatDateTime } from '../../utils/format'
 import { useStore } from '../../hooks/useStore'
-
-const CONTRACT_STATUS_MAP = {
-  draft: '草稿',
-  pending: '待审核',
-  approved: '已通过',
-  rejected: '已驳回',
-  completed: '已完成',
-  cancelled: '已取消'
-}
-
-const CLIENT_STATUS_MAP = {
-  ACTIVE: '正常',
-  INACTIVE: '禁用'
-}
 
 export default defineComponent({
   name: 'ContractManage',
@@ -290,8 +269,19 @@ export default defineComponent({
       try {
         const params = {
           ...pagination,
-          ...searchForm,
-          ...(route.path === '/contract-manage/pending' ? { status: 'pending' } : {})
+          ...(searchForm.id ? { id: searchForm.id } : {}),
+          ...(searchForm.status ? { status: searchForm.status } : {}),
+          ...(route.path === '/contract-manage/pending' ? { status: 'PENDING' } : {}),
+          ...(route.params.userId ? { userId: Number(route.params.userId) } : {}),
+          ...(!store.userInfo.value?.role?.includes('admin') ? { userId: store.userInfo.value?.id } : {}),
+          ...(searchForm.minAmount ? { minAmount: Math.round(searchForm.minAmount * 100) } : {}),
+          ...(searchForm.maxAmount ? { maxAmount: Math.round(searchForm.maxAmount * 100) } : {}),
+          ...(value2.value?.[0] ? { createTime: value2.value[0] } : {}),
+          ...(value2.value?.[1] ? { updateTime: value2.value[1] } : {}),
+          ...(searchForm.sortBy ? { 
+            sortBy: searchForm.sortBy,
+            asc: searchForm.asc 
+          } : {})
         }
         const res = await contractApi.getContracts(params)
         contractList.value = res.data.list
@@ -332,7 +322,7 @@ export default defineComponent({
     }
 
     const handleSortChange = ({ prop, order }: { prop: string, order: string | null }) => {
-      searchForm.sortBy = order ? prop : undefined
+      searchForm.sortBy = order ? prop.replace(/([A-Z])/g, '_$1').toLowerCase() : undefined
       searchForm.asc = order === 'ascending'
       fetchContractList()
     }
@@ -341,7 +331,7 @@ export default defineComponent({
     const fetchClientList = async () => {
       try {
         const res = await clientApi.getAllClients(
-          store.isAdmin.value ? undefined : store.userInfo.value?.id
+          store.isAdmin.value ? store.userInfo.value?.id : store.userInfo.value?.id
         )
         clientList.value = res.data
       } catch (error) {
@@ -359,32 +349,6 @@ export default defineComponent({
     const handleClientSelect = (row: any) => {
       clientDialogVisible.value = false
       router.push(`/contract/create/${row.id}`)
-    }
-
-    // 提交审核
-    const handleSubmit = async (id: number) => {
-      try {
-        await contractApi.updateStatus(id, 'pending')
-        ElMessage.success('提交成功')
-        fetchContractList()
-      } catch (error) {
-        ElMessage.error('提交失败')
-      }
-    }
-
-    // 删除合同
-    const handleDelete = (id: number) => {
-      ElMessageBox.confirm('确认删除该合同?', '提示', {
-        type: 'warning'
-      }).then(async () => {
-        try {
-          await contractApi.deleteContract(id)
-          ElMessage.success('删除成功')
-          fetchContractList()
-        } catch (error) {
-          ElMessage.error('删除失败')
-        }
-      })
     }
 
     onMounted(() => {
@@ -409,9 +373,7 @@ export default defineComponent({
       clientDialogVisible,
       clientList,
       handleCreateContract,
-      handleClientSelect,
-      handleSubmit,
-      handleDelete
+      handleClientSelect
     }
   }
 })
@@ -453,6 +415,7 @@ export default defineComponent({
   text-align: right;
 }
 
+/* 状态标签样式 */
 .status-tag {
   display: inline-block;
   padding: 2px 8px;

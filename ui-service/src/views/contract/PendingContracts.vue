@@ -1,237 +1,246 @@
 <template>
-  <page-container title="待审批合同">
+  <div class="pending-contracts">
+    <page-loading :loading="loading" text="加载合同数据..." />
+
     <!-- 搜索表单 -->
-    <el-form :inline="true" :model="queryForm" class="search-form">
+    <el-form :inline="true" class="search-form">
       <el-form-item label="合同编号">
-        <el-input v-model="queryForm.id" placeholder="请输入合同编号" clearable />
+        <el-input
+            v-model="searchForm.id"
+            placeholder="请输入合同编号"
+            clearable
+            @clear="handleSearch"
+        />
+      </el-form-item>
+      <el-form-item label="金额范围">
+        <el-input-number
+            v-model="searchForm.minAmount"
+            :min="0"
+            :precision="2"
+            :step="100"
+            placeholder="最小金额"
+            style="width: 130px"
+        />
+        <span class="mx-2">-</span>
+        <el-input-number
+            v-model="searchForm.maxAmount"
+            :min="0"
+            :precision="2"
+            :step="100"
+            placeholder="最大金额"
+            style="width: 130px"
+        />
+      </el-form-item>
+      <el-form-item label="创建时间">
+        <el-date-picker
+            v-model="dateRange"
+            type="datetimerange"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+            format="YYYY-MM-DD HH:mm:ss"
+            value-format="YYYY-MM-DD HH:mm:ss"
+        />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="handleSearch">查询</el-button>
-        <el-button @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
 
     <!-- 合同列表 -->
-    <el-table :data="approvals" v-loading="loading">
-      <el-table-column prop="id" label="审批ID" width="80" />
-      <el-table-column prop="contractId" label="合同编号" width="100" />
-      <el-table-column prop="userName" label="提交人" width="120" />
-      <el-table-column prop="createTime" label="提交时间" width="180" />
-      <el-table-column prop="status" label="状态" width="100">
+    <el-table
+        :data="contractList"
+        :loading="loading"
+        style="width: 100%; margin-top: 20px"
+    >
+      <el-table-column prop="id" label="合同编号">
         <template #default="{ row }">
-          <el-tag :type="getStatusType(row.status)">
-            {{ APPROVAL_STATUS_MAP[row.status] }}
-          </el-tag>
+          <el-button
+              link
+              type="primary"
+              @click="handleContractClick(row.id)"
+          >
+            {{ row.id }}
+          </el-button>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="250" fixed="right">
+      <el-table-column prop="clientName" label="客户名称">
         <template #default="{ row }">
-          <el-button 
-            link 
-            type="primary" 
-            @click="handleView(row)"
+          <el-button
+              link
+              type="primary"
+              @click="handleClientClick(row.clientId)"
+          >
+            {{ row.clientName }}
+          </el-button>
+        </template>
+      </el-table-column>
+      <el-table-column prop="userName" label="负责人" />
+      <el-table-column prop="amount" label="总金额">
+        <template #default="{ row }">
+          {{ (row.amount / 100).toFixed(2) }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="createTime" label="创建时间">
+        <template #default="{ row }">
+          {{ formatTime(row.createTime) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="200">
+        <template #default="{ row }">
+          <el-button
+              link
+              type="primary"
+              @click="handleContractClick(row.id)"
           >
             查看
           </el-button>
-          <el-button 
-            v-if="row.status === 0" 
-            link 
-            type="success" 
-            @click="handleApprove(row)"
+          <el-button
+              link
+              type="primary"
+              @click="handleApproval(row.id)"
           >
-            通过
-          </el-button>
-          <el-button 
-            v-if="row.status === 0" 
-            link 
-            type="danger" 
-            @click="handleReject(row)"
-          >
-            驳回
+            审批
           </el-button>
         </template>
       </el-table-column>
     </el-table>
 
     <!-- 分页 -->
-    <div class="pagination">
-      <el-pagination
-        v-model:current-page="queryForm.pageNum"
-        v-model:page-size="queryForm.pageSize"
-        :total="total"
-        :page-sizes="[10, 20, 50]"
+    <el-pagination
+        v-model:current-page="pagination.pageNum"
+        v-model:page-size="pagination.pageSize"
+        :total="pagination.total"
+        :page-sizes="[10, 20, 50, 100]"
         layout="total, sizes, prev, pager, next"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
-      />
-    </div>
-
-    <!-- 审批对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="dialogType === 'approve' ? '审批通过' : '审批驳回'"
-      width="500px"
-    >
-      <el-form :model="approvalForm">
-        <el-form-item label="审批意见" required>
-          <el-input
-            v-model="approvalForm.comment"
-            type="textarea"
-            rows="3"
-            placeholder="请输入审批意见"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitApproval">确定</el-button>
-      </template>
-    </el-dialog>
-  </page-container>
+        class="pagination"
+    />
+  </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
+<script lang="ts">
+import { defineComponent, ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { contractApi } from '../../api/contract'
-import type { ContractApproval } from '../../api/contract'
+import type { ContractInfo } from '../../types'
+import { formatDateTime } from '../../utils/format'
 
-const router = useRouter()
-const loading = ref(false)
-const approvals = ref<ContractApproval[]>([])
-const total = ref(0)
+export default defineComponent({
+  name: 'PendingContracts',
+  setup() {
+    const router = useRouter()
+    const loading = ref(false)
+    const contractList = ref<ContractInfo[]>([])
+    const dateRange = ref()
 
-// 查询表单
-const queryForm = ref({
-  pageNum: 1,
-  pageSize: 10,
-  id: ''
-})
+    const pagination = reactive({
+      pageNum: 1,
+      pageSize: 10,
+      total: 0
+    })
 
-// 审批状态映射
-const APPROVAL_STATUS_MAP: Record<number, string> = {
-  0: '待审批',
-  1: '已通过',
-  2: '已驳回'
-}
+    const searchForm = reactive({
+      id: undefined as string | undefined,
+      minAmount: undefined as number | undefined,
+      maxAmount: undefined as number | undefined
+    })
 
-// 获取状态样式
-const getStatusType = (status: number) => {
-  const map: Record<number, string> = {
-    0: 'warning',
-    1: 'success',
-    2: 'danger'
-  }
-  return map[status] || ''
-}
-
-// 获取待审批列表
-const getApprovals = async () => {
-  loading.value = true
-  try {
-    const res = await contractApi.getApprovals(0) // 0表示待审批状态
-    approvals.value = res.data
-    total.value = res.total || 0
-  } catch (error) {
-    console.error(error)
-  } finally {
-    loading.value = false
-  }
-}
-
-// 查看合同详情
-const handleView = (row: ContractApproval) => {
-  router.push(`/contract/detail/${row.contractId}`)
-}
-
-// 审批对话框
-const dialogVisible = ref(false)
-const dialogType = ref<'approve' | 'reject'>('approve')
-const currentApproval = ref<ContractApproval>()
-const approvalForm = ref({
-  comment: ''
-})
-
-// 打开通过审批对话框
-const handleApprove = (row: ContractApproval) => {
-  dialogType.value = 'approve'
-  currentApproval.value = row
-  approvalForm.value.comment = ''
-  dialogVisible.value = true
-}
-
-// 打开驳回审批对话框
-const handleReject = (row: ContractApproval) => {
-  dialogType.value = 'reject'
-  currentApproval.value = row
-  approvalForm.value.comment = ''
-  dialogVisible.value = true
-}
-
-// 提交审批
-const submitApproval = async () => {
-  if (!approvalForm.value.comment) {
-    return ElMessage.warning('请输入审批意见')
-  }
-
-  try {
-    if (dialogType.value === 'approve') {
-      await contractApi.passApproval(
-        currentApproval.value!.id!, 
-        approvalForm.value.comment
-      )
-    } else {
-      await contractApi.rejectApproval(
-        currentApproval.value!.id!, 
-        approvalForm.value.comment
-      )
+    // 获取合同列表
+    const fetchContractList = async () => {
+      loading.value = true
+      try {
+        const params = {
+          ...pagination,
+          status: 'PENDING',
+          ...(searchForm.id ? { id: searchForm.id } : {}),
+          ...(searchForm.minAmount ? { minAmount: Math.round(searchForm.minAmount * 100) } : {}),
+          ...(searchForm.maxAmount ? { maxAmount: Math.round(searchForm.maxAmount * 100) } : {}),
+          ...(dateRange.value?.[0] ? { createTime: dateRange.value[0] } : {}),
+          ...(dateRange.value?.[1] ? { updateTime: dateRange.value[1] } : {})
+        }
+        const res = await contractApi.getContracts(params)
+        contractList.value = res.data.list
+        pagination.total = res.data.total
+      } catch (error) {
+        console.error('获取合同列表失败:', error)
+        ElMessage.error('获取合同列表失败')
+      } finally {
+        loading.value = false
+      }
     }
-    ElMessage.success('操作成功')
-    dialogVisible.value = false
-    getApprovals()
-  } catch (error) {
-    console.error(error)
+
+    // 处理搜索
+    const handleSearch = () => {
+      pagination.pageNum = 1
+      fetchContractList()
+    }
+
+    // 处理页码变化
+    const handleCurrentChange = (page: number) => {
+      pagination.pageNum = page
+      fetchContractList()
+    }
+
+    // 处理每页条数变化
+    const handleSizeChange = (size: number) => {
+      pagination.pageSize = size
+      fetchContractList()
+    }
+
+    // 点击合同编号跳转到详情页
+    const handleContractClick = (id: number) => {
+      router.push(`/contract/${id}`)
+    }
+
+    // 跳转到审批页面
+    const handleApproval = (id: number) => {
+      router.push(`/contract/approval/${id}`)
+    }
+
+    // 点击客户名称跳转到客户详情
+    const handleClientClick = (clientId: number) => {
+      router.push(`/client/${clientId}`)
+    }
+
+    onMounted(() => {
+      fetchContractList()
+    })
+
+    return {
+      loading,
+      contractList,
+      pagination,
+      searchForm,
+      dateRange,
+      handleSearch,
+      handleCurrentChange,
+      handleSizeChange,
+      handleContractClick,
+      handleApproval,
+      handleClientClick,
+      formatTime: formatDateTime
+    }
   }
-}
-
-// 分页相关方法
-const handleSizeChange = (val: number) => {
-  queryForm.value.pageSize = val
-  getApprovals()
-}
-
-const handleCurrentChange = (val: number) => {
-  queryForm.value.pageNum = val
-  getApprovals()
-}
-
-// 搜索和重置
-const handleSearch = () => {
-  queryForm.value.pageNum = 1
-  getApprovals()
-}
-
-const handleReset = () => {
-  queryForm.value = {
-    pageNum: 1,
-    pageSize: 10,
-    id: ''
-  }
-  getApprovals()
-}
-
-onMounted(() => {
-  getApprovals()
 })
 </script>
 
 <style scoped>
+.pending-contracts {
+  padding: 24px;
+}
+
 .search-form {
   margin-bottom: 20px;
 }
+
 .pagination {
   margin-top: 20px;
   text-align: right;
 }
-</style> 
+
+.mx-2 {
+  margin: 0 8px;
+}
+</style>

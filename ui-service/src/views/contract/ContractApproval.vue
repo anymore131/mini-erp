@@ -14,12 +14,12 @@
         <span 
           class="status-tag"
           :class="{
-            'status-draft': contractInfo.status === 'draft',
-            'status-pending': contractInfo.status === 'pending',
-            'status-approved': contractInfo.status === 'approved',
-            'status-rejected': contractInfo.status === 'rejected',
-            'status-completed': contractInfo.status === 'completed',
-            'status-cancelled': contractInfo.status === 'cancelled'
+            'status-draft': contractInfo.status === 'DRAFT',
+            'status-pending': contractInfo.status === 'PENDING',
+            'status-approved': contractInfo.status === 'APPROVED',
+            'status-rejected': contractInfo.status === 'REJECTED',
+            'status-completed': contractInfo.status === 'COMPLETED',
+            'status-cancelled': contractInfo.status === 'CANCELLED'
           }"
         >
           {{ contractInfo.status ? CONTRACT_STATUS_MAP[contractInfo.status] : '-' }}
@@ -37,14 +37,15 @@
       <el-descriptions-item label="负责人">
         {{ contractInfo.userName }}
       </el-descriptions-item>
-      <el-descriptions-item label="总金额">
-        {{ contractInfo.totalAmount !== undefined ? `¥${contractInfo.totalAmount}` : '-' }}
+      <el-descriptions-item label="合同金额">
+        {{ contractInfo.amount !== undefined && contractInfo.amount !== null ? 
+          `¥${(contractInfo.amount / 100).toFixed(2)}` : '-' }}
       </el-descriptions-item>
       <el-descriptions-item label="创建时间">
         {{ contractInfo.createTime ? formatDateTime(contractInfo.createTime) : '-' }}
       </el-descriptions-item>
-      <el-descriptions-item label="合同内容" :span="2">
-        {{ contractInfo.content || '-' }}
+      <el-descriptions-item label="备注" :span="2">
+        {{ contractInfo.remark || '-' }}
       </el-descriptions-item>
     </el-descriptions>
 
@@ -83,15 +84,15 @@
       </div>
 
       <el-table :data="approvalList" style="width: 100%">
-        <el-table-column prop="userName" label="审批人" />
+        <el-table-column prop="approverName" label="审批人" />
         <el-table-column prop="status" label="审批结果">
           <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'danger'">
-              {{ row.status === 1 ? '通过' : '不通过' }}
+            <el-tag :type="row.status === 'PASS' ? 'success' : 'danger'">
+              {{ row.status === 'PASS' ? '通过' : '不通过' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="approvalOpinion" label="审批意见" />
+        <el-table-column prop="comment" label="审批意见" />
         <el-table-column prop="createTime" label="审批时间">
           <template #default="{ row }">
             {{ formatDateTime(row.createTime) }}
@@ -106,8 +107,8 @@
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="审批结果" prop="status">
           <el-radio-group v-model="form.status">
-            <el-radio :label="1">通过</el-radio>
-            <el-radio :label="2">不通过</el-radio>
+            <el-radio label="PASS">通过</el-radio>
+            <el-radio label="REJECT">不通过</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="审批意见" prop="comment">
@@ -132,18 +133,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance } from 'element-plus'
 import { contractApi } from '../../api/contract'
-import type { ContractInfo, ContractApproval } from '../../api/contract'
+import { CONTRACT_STATUS_MAP } from '../../types'
+import type { ContractInfo } from '../../types'
 import { formatDateTime } from '../../utils/format'
 import { useStore } from '../../hooks/useStore'
-
-const CONTRACT_STATUS_MAP = {
-  draft: '草稿',
-  pending: '待审核',
-  approved: '已通过',
-  rejected: '已驳回',
-  completed: '已完成',
-  cancelled: '已取消'
-}
 
 const route = useRoute()
 const router = useRouter()
@@ -152,10 +145,10 @@ const store = useStore()
 
 const contractInfo = ref<Partial<ContractInfo>>({})
 const fileList = ref([])
-const approvalList = ref<ContractApproval[]>([])
+const approvalList = ref([])
 
 const form = ref({
-  status: 1,
+  status: '',
   comment: ''
 })
 
@@ -167,17 +160,27 @@ const rules = {
 // 获取合同详情
 const getContractInfo = async () => {
   try {
-    const res = await contractApi.getContract(Number(route.params.id))
+    const res = await contractApi.getContractDetail(Number(route.params.id))
     contractInfo.value = res.data
   } catch (error) {
     ElMessage.error('获取合同详情失败')
   }
 }
 
+// 获取合同文件
+const getFileList = async () => {
+  try {
+    const res = await contractApi.getContractFiles(Number(route.params.id))
+    fileList.value = res.data
+  } catch (error) {
+    ElMessage.error('获取文件列表失败')
+  }
+}
+
 // 获取审批记录
 const getApprovalList = async () => {
   try {
-    const res = await contractApi.getApprovals(Number(route.params.id))
+    const res = await contractApi.getContractApprovals(Number(route.params.id))
     approvalList.value = res.data
   } catch (error) {
     ElMessage.error('获取审批记录失败')
@@ -197,16 +200,20 @@ const handleSubmit = async () => {
           return
         }
 
-        if (form.value.status === 1) {
-          await contractApi.passApproval(contractId, form.value.comment)
-        } else {
-          await contractApi.rejectApproval(contractId, form.value.comment)
-        }
-        
+        await contractApi.submitApproval({
+          contractId,
+          approverId: store.userInfo.value?.id as number,
+          status: form.value.status,
+          comment: form.value.comment
+        })
         ElMessage.success('提交成功')
         router.back()
       } catch (error) {
-        ElMessage.error(error.response?.data?.message || '提交失败')
+        if (error.response?.data?.message) {
+          ElMessage.error(error.response.data.message)
+        } else {
+          ElMessage.error('提交失败')
+        }
       }
     }
   })
@@ -233,6 +240,7 @@ const handleDownload = (fileVo: any) => {
 
 onMounted(() => {
   getContractInfo()
+  getFileList()
   getApprovalList()
 })
 </script>
