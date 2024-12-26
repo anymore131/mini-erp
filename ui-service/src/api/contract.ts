@@ -46,6 +46,15 @@ export interface ContractApproval {
   updateTime?: string
 }
 
+export interface ContractProgress {
+  id?: number
+  contractId: number
+  progress: number
+  description: string
+  createTime?: string
+  updateTime?: string
+}
+
 export const contractApi = {
   // 获取合同列表
   getContracts(data: ContractQuery): Promise<PageResponse<ContractInfo>> {
@@ -135,6 +144,53 @@ export const contractApi = {
       url: `/contract-approval/reject/${id}`,
       method: 'post',
       params: { comment }
+    })
+  },
+
+  // 获取合同进度列表
+  getProgressList(contractId: number) {
+    return request({
+      url: '/contract-progress/page',
+      method: 'post',
+      data: {
+        contractId,
+        pageNum: 1,
+        pageSize: 1000
+      }
+    })
+  },
+
+  // 获取最新进度
+  getLatestProgress(contractId: number) {
+    return request({
+      url: `/contract-progress/latest/${contractId}`,
+      method: 'get'
+    })
+  },
+
+  // 添加进度
+  addProgress(data: ContractProgress) {
+    return request({
+      url: '/contract-progress',
+      method: 'post',
+      data
+    })
+  },
+
+  // 更新进度
+  updateProgress(id: number, data: ContractProgress) {
+    return request({
+      url: `/contract-progress/${id}`,
+      method: 'put',
+      data
+    })
+  },
+
+  // 删除进度
+  deleteProgress(id: number) {
+    return request({
+      url: `/contract-progress/${id}`,
+      method: 'delete'
     })
   }
 } 

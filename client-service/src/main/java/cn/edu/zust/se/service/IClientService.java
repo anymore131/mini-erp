@@ -1,5 +1,6 @@
 package cn.edu.zust.se.service;
 
+import cn.edu.zust.se.entity.dto.ClientOrderStatusDto;
 import cn.edu.zust.se.entity.dto.PageDto;
 import cn.edu.zust.se.entity.po.Client;
 import cn.edu.zust.se.entity.query.ClientQuery;
@@ -29,4 +30,5 @@ public interface IClientService extends IService<Client> {
     public String updateClientSum(Integer id,Integer amount);
     public Map<String,Long> getOrderStatusDistribution(Integer userId);
     public List<Client> getAllClientList(Integer userId);
+    ClientOrderStatusDto getClientOrderStatus(Integer clientId) ;
 }

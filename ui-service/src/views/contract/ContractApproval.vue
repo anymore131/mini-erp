@@ -1,142 +1,307 @@
 <template>
-  <div class="contract-approval">
-    <h3>审批记录</h3>
-    
-    <!-- 审批记录列表 -->
-    <el-timeline>
-      <el-timeline-item
-        v-for="item in approvals"
-        :key="item.id"
-        :type="getStatusType(item.status)"
-        :timestamp="item.createTime"
-      >
-        <el-card>
-          <template #header>
-            <div class="approval-header">
-              <span>{{ item.userName }}</span>
-              <el-tag :type="getStatusType(item.status)">
-                {{ APPROVAL_STATUS_MAP[item.status] }}
-              </el-tag>
-            </div>
-          </template>
-          <p>{{ item.approvalOpinion }}</p>
-        </el-card>
-      </el-timeline-item>
-    </el-timeline>
-
-    <!-- 审批操作 -->
-    <div v-if="showApprovalActions" class="approval-actions">
-      <el-input
-        v-model="comment"
-        type="textarea"
-        rows="3"
-        placeholder="请输入审批意见"
-      />
-      <div class="action-buttons">
-        <el-button type="success" @click="handlePass">通过</el-button>
-        <el-button type="danger" @click="handleReject">驳回</el-button>
-      </div>
+  <page-container>
+    <div class="header-actions">
+      <el-button @click="handleBack">返回</el-button>
+      <div class="title">合同审批</div>
     </div>
-  </div>
+
+    <!-- 合同详情 -->
+    <el-descriptions :column="2" border>
+      <el-descriptions-item label="合同编号">
+        {{ contractInfo.id }}
+      </el-descriptions-item>
+      <el-descriptions-item label="合同状态">
+        <span 
+          class="status-tag"
+          :class="{
+            'status-draft': contractInfo.status === 'draft',
+            'status-pending': contractInfo.status === 'pending',
+            'status-approved': contractInfo.status === 'approved',
+            'status-rejected': contractInfo.status === 'rejected',
+            'status-completed': contractInfo.status === 'completed',
+            'status-cancelled': contractInfo.status === 'cancelled'
+          }"
+        >
+          {{ contractInfo.status ? CONTRACT_STATUS_MAP[contractInfo.status] : '-' }}
+        </span>
+      </el-descriptions-item>
+      <el-descriptions-item label="客户名称">
+        <el-button 
+          link 
+          type="primary" 
+          @click="handleClientClick(contractInfo.clientId)"
+        >
+          {{ contractInfo.clientName }}
+        </el-button>
+      </el-descriptions-item>
+      <el-descriptions-item label="负责人">
+        {{ contractInfo.userName }}
+      </el-descriptions-item>
+      <el-descriptions-item label="总金额">
+        {{ contractInfo.totalAmount !== undefined ? `¥${contractInfo.totalAmount}` : '-' }}
+      </el-descriptions-item>
+      <el-descriptions-item label="创建时间">
+        {{ contractInfo.createTime ? formatDateTime(contractInfo.createTime) : '-' }}
+      </el-descriptions-item>
+      <el-descriptions-item label="合同内容" :span="2">
+        {{ contractInfo.content || '-' }}
+      </el-descriptions-item>
+    </el-descriptions>
+
+    <!-- 合同文件 -->
+    <div class="section">
+      <div class="section-header">
+        <h3>合同文件</h3>
+      </div>
+      
+      <el-table :data="fileList" style="width: 100%">
+        <el-table-column label="文件名称">
+          <template #default="{ row }">
+            {{ row.fileVo?.fileName }}
+          </template>
+        </el-table-column>
+        <el-table-column label="上传时间">
+          <template #default="{ row }">
+            {{ formatDateTime(row.createTime) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="remark" label="备注" />
+        <el-table-column label="操作">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="handleDownload(row.fileVo)">
+              下载
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <!-- 历史审批记录 -->
+    <div class="section">
+      <div class="section-header">
+        <h3>审批记录</h3>
+      </div>
+
+      <el-table :data="approvalList" style="width: 100%">
+        <el-table-column prop="userName" label="审批人" />
+        <el-table-column prop="status" label="审批结果">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 1 ? 'success' : 'danger'">
+              {{ row.status === 1 ? '通过' : '不通过' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="approvalOpinion" label="审批意见" />
+        <el-table-column prop="createTime" label="审批时间">
+          <template #default="{ row }">
+            {{ formatDateTime(row.createTime) }}
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <!-- 审批表单 -->
+    <div class="approval-form">
+      <h3>审批意见</h3>
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+        <el-form-item label="审批结果" prop="status">
+          <el-radio-group v-model="form.status">
+            <el-radio :label="1">通过</el-radio>
+            <el-radio :label="2">不通过</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="审批意见" prop="comment">
+          <el-input
+            v-model="form.comment"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入审批意见"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSubmit">提交审批</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+  </page-container>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+<script lang="ts" setup>
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { contractApi } from '../../api/contract.ts'
-import type { ContractApproval } from '../../api/contract.ts'
+import type { FormInstance } from 'element-plus'
+import { contractApi } from '../../api/contract'
+import type { ContractInfo, ContractApproval } from '../../api/contract'
+import { formatDateTime } from '../../utils/format'
+import { useStore } from '../../hooks/useStore'
 
-const props = defineProps<{
-  contractId: number
-  status: string
-}>()
-
-const APPROVAL_STATUS_MAP = {
-  0: '待审核',
-  1: '通过',
-  2: '驳回'
+const CONTRACT_STATUS_MAP = {
+  draft: '草稿',
+  pending: '待审核',
+  approved: '已通过',
+  rejected: '已驳回',
+  completed: '已完成',
+  cancelled: '已取消'
 }
 
-const approvals = ref<ContractApproval[]>([])
-const comment = ref('')
+const route = useRoute()
+const router = useRouter()
+const formRef = ref<FormInstance>()
+const store = useStore()
 
-// 只有管理员且合同状态为pending时显示审批操作
-const showApprovalActions = computed(() => {
-  return props.status === 'pending'
+const contractInfo = ref<Partial<ContractInfo>>({})
+const fileList = ref([])
+const approvalList = ref<ContractApproval[]>([])
+
+const form = ref({
+  status: 1,
+  comment: ''
 })
 
+const rules = {
+  status: [{ required: true, message: '请选择审批结果', trigger: 'change' }],
+  comment: [{ required: true, message: '请输入审批意见', trigger: 'blur' }]
+}
+
+// 获取合同详情
+const getContractInfo = async () => {
+  try {
+    const res = await contractApi.getContract(Number(route.params.id))
+    contractInfo.value = res.data
+  } catch (error) {
+    ElMessage.error('获取合同详情失败')
+  }
+}
+
 // 获取审批记录
-const getApprovals = async () => {
+const getApprovalList = async () => {
   try {
-    const res = await contractApi.getApprovals(props.contractId)
-    approvals.value = res.data
+    const res = await contractApi.getApprovals(Number(route.params.id))
+    approvalList.value = res.data
   } catch (error) {
-    console.error(error)
+    ElMessage.error('获取审批记录失败')
   }
 }
 
-// 获取状态样式
-const getStatusType = (status: number) => {
-  const map: Record<number, string> = {
-    0: 'warning',
-    1: 'success',
-    2: 'danger'
-  }
-  return map[status]
+// 提交审批
+const handleSubmit = async () => {
+  if (!formRef.value) return
+  
+  await formRef.value.validate(async (valid) => {
+    if (valid) {
+      try {
+        const contractId = Number(route.params.id)
+        if (!contractId) {
+          ElMessage.error('合同ID无效')
+          return
+        }
+
+        if (form.value.status === 1) {
+          await contractApi.passApproval(contractId, form.value.comment)
+        } else {
+          await contractApi.rejectApproval(contractId, form.value.comment)
+        }
+        
+        ElMessage.success('提交成功')
+        router.back()
+      } catch (error) {
+        ElMessage.error(error.response?.data?.message || '提交失败')
+      }
+    }
+  })
 }
 
-// 通过审批
-const handlePass = async () => {
-  if (!comment.value) {
-    return ElMessage.warning('请输入审批意见')
-  }
-  try {
-    await contractApi.passApproval(props.contractId, comment.value)
-    ElMessage.success('操作成功')
-    comment.value = ''
-    getApprovals()
-  } catch (error) {
-    console.error(error)
-  }
+const handleBack = () => {
+  router.back()
 }
 
-// 驳回审批
-const handleReject = async () => {
-  if (!comment.value) {
-    return ElMessage.warning('请输入审批意见')
-  }
-  try {
-    await contractApi.rejectApproval(props.contractId, comment.value)
-    ElMessage.success('操作成功')
-    comment.value = ''
-    getApprovals()
-  } catch (error) {
-    console.error(error)
+const handleClientClick = (clientId: number) => {
+  router.push(`/client/${clientId}`)
+}
+
+const handleDownload = (fileVo: any) => {
+  if (fileVo?.url && fileVo?.fileName) {
+    const link = document.createElement('a')
+    link.href = fileVo.url
+    link.download = fileVo.fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 }
 
 onMounted(() => {
-  getApprovals()
+  getContractInfo()
+  getApprovalList()
 })
 </script>
 
 <style scoped>
-.contract-approval {
-  margin-top: 20px;
-}
-
-.approval-header {
+.header-actions {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
+  justify-content: space-between;
 }
 
-.approval-actions {
-  margin-top: 20px;
+.title {
+  font-size: 18px;
+  font-weight: bold;
 }
 
-.action-buttons {
-  margin-top: 10px;
-  text-align: right;
+.section {
+  margin-top: 24px;
+}
+
+.section-header {
+  margin-bottom: 16px;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.approval-form {
+  margin-top: 24px;
+  max-width: 600px;
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+
+.status-draft {
+  border-color: #909399;
+  color: #909399;
+}
+
+.status-pending {
+  border-color: #E6A23C;
+  color: #E6A23C;
+}
+
+.status-approved {
+  border-color: #67C23A;
+  color: #67C23A;
+}
+
+.status-rejected {
+  border-color: #F56C6C;
+  color: #F56C6C;
+}
+
+.status-completed {
+  border-color: #409EFF;
+  color: #409EFF;
+}
+
+.status-cancelled {
+  border-color: #909399;
+  color: #909399;
 }
 </style> 

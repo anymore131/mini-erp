@@ -1,8 +1,10 @@
 package cn.edu.zust.se.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.edu.zust.se.entity.dto.ClientOrderStatusDto;
 import cn.edu.zust.se.entity.dto.PageDto;
 import cn.edu.zust.se.entity.po.Client;
+import cn.edu.zust.se.entity.po.Order;
 import cn.edu.zust.se.entity.query.ClientQuery;
 import cn.edu.zust.se.entity.vo.ClientVo;
 import cn.edu.zust.se.enums.ClientStatusEnum;
@@ -10,10 +12,12 @@ import cn.edu.zust.se.exception.ForbiddenException;
 import cn.edu.zust.se.exception.InvalidInputException;
 import cn.edu.zust.se.feign.UserFeignServiceI;
 import cn.edu.zust.se.mapper.ClientMapper;
+import cn.edu.zust.se.mapper.OrderMapper;
 import cn.edu.zust.se.service.IClientService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -31,7 +35,10 @@ import java.util.*;
 public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> implements IClientService {
     @Autowired
     private UserFeignServiceI userFeignService;
-
+    @Autowired
+    private  ClientMapper clientMapper;
+    @Autowired
+    private OrderMapper orderMapper;
     @Override
     public PageDto<ClientVo> getClientVoPage(ClientQuery clientQuery) {
         Page<Client> page = clientQuery.toMpPage(clientQuery.getSortBy(), clientQuery.isAsc());
@@ -333,5 +340,52 @@ public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> impleme
                 .ne(Client::getStatus, ClientStatusEnum.START.getCode())
                 .eq(userId != null, Client::getUserId, userId)
                 .list();
+    }
+
+    @Override
+    public ClientOrderStatusDto getClientOrderStatus(Integer clientId) {
+        ClientOrderStatusDto dto = new ClientOrderStatusDto();
+        dto.setClientId(clientId);
+
+        // 获取客户信息
+        Client client = clientMapper.selectById(clientId);
+        if (client != null) {
+            dto.setClientName(client.getName());
+        }
+
+        // 查询订单状态
+        LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Order::getClientId, clientId);
+        List<Order> orders = orderMapper.selectList(wrapper);
+
+        // 统计订单信息
+        dto.setTotalOrders(orders.size());
+
+        // 统计进行中订单（已通过审批但未完成的订单）
+        long activeOrders = orders.stream()
+                .filter(order -> "APPROVED".equals(order.getStatus()))
+                .count();
+        dto.setActiveOrders((int) activeOrders);
+        dto.setHasActiveOrders(activeOrders > 0);
+
+        // 统计已完成订单
+        long completedOrders = orders.stream()
+                .filter(order -> "COMPLETED".equals(order.getStatus()))
+                .count();
+        dto.setCompletedOrders((int) completedOrders);
+
+        // 计算总金额
+        double totalAmount = orders.stream()
+                .mapToDouble(order -> order.getTotalAmount().doubleValue())
+                .sum();
+        dto.setTotalAmount(totalAmount);
+
+        // 获取最近订单时间
+        orders.stream()
+                .map(Order::getCreateTime)
+                .max(LocalDateTime::compareTo)
+                .ifPresent(time -> dto.setLatestOrderTime(time.toString()));
+
+        return dto;
     }
 }

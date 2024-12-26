@@ -173,10 +173,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true }
       },
       {
-        path: 'contract/create/:contractId',
+        path: '/contract/create/:clientId',
         name: 'CreateContract',
         component: () => import('../views/contract/CreateContract.vue'),
-        meta: { requiresAuth: true }
+        meta: {
+          requiresAuth: true
+        }
       },
       {
         path: 'contract/:id',
