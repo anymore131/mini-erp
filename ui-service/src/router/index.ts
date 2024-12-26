@@ -168,25 +168,32 @@ router.beforeEach((to, from, next) => {
   const store = useStore()
 
   if (to.meta.requiresAuth && !token) {
-    next('/login')
-    return
+    return next('/login')
   }
 
   // 已登录用户访问登录页时重定向到首页
   if (to.path === '/login' && token) {
-    next('/')
-    return
+    return next('/')
   }
 
   // 确保用户信息已加载
   if (token && !store.userInfo.value) {
     store.getUserInfo().then(() => {
-      next()
+      if (to.path === '/') {
+        next('/dashboard')
+      } else {
+        next()
+      }
     }).catch(() => {
       localStorage.removeItem('token')
-      next('/login')
+      return next('/login')
     })
     return
+  }
+
+  // 根路径重定向到dashboard
+  if (to.path === '/') {
+    return next('/dashboard')
   }
 
   next()

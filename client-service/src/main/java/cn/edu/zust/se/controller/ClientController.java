@@ -50,6 +50,11 @@ public class ClientController {
         return SaResult.data(clientService.getClientVoList(userId));
     }
 
+    @RequestMapping("/count")
+    public SaResult count(@RequestParam(value = "userId",required = false) Integer userId){
+        return SaResult.data(clientService.getCount(userId));
+    }
+
     @RequestMapping("/page/{id}")
     public SaResult pageByUserId(@PathVariable Integer id, @RequestBody(required = false) ClientQuery clientQuery){
         if (clientQuery == null || id == null){
@@ -133,5 +138,10 @@ public class ClientController {
     @PostMapping("/updateClientSum/{id}/{amount}")
     public String updateClientSum(@PathVariable("id") Integer id,@PathVariable("amount") Integer amount){
         return clientService.updateClientSum(id,amount);
+    }
+
+    @RequestMapping("/status-distribution")
+    public SaResult getStatusDistribution(@RequestParam(value = "userId",required = false) Integer userId){
+        return SaResult.data(clientService.getOrderStatusDistribution(userId));
     }
 }

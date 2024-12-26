@@ -3,6 +3,7 @@ package cn.edu.zust.se.service.impl;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
 import cn.edu.zust.se.entity.dto.PageDto;
+import cn.edu.zust.se.entity.dto.TendDto;
 import cn.edu.zust.se.entity.po.Order;
 import cn.edu.zust.se.entity.po.OrderItem;
 import cn.edu.zust.se.entity.query.OrderQuery;
@@ -265,6 +266,48 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             return null;
         }
         return putOrderVo(order);
+    }
+
+    @Override
+    public Map<String,Long> getOrderStatusDistribution(Integer userId) {
+        QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
+        Map<String,Long> map = new HashMap<>();
+        if (userId == null && !StpUtil.hasRole("admin")){
+            throw new InvalidInputException("无权查看！");
+        }
+        List<String> status = List.of(new String[]{"DRAFT", "PENDING", "APPROVED", "REJECTED", "COMPLETED", "CANCELLED"});
+        for (String s: status){
+            queryWrapper.clear();
+            if (userId != null){
+                queryWrapper.eq("user_id",userId);
+            }
+            queryWrapper.ge("create_time",LocalDateTime.now().minusDays(7));
+            Long count = count(queryWrapper.eq("status", s));
+            map.put(s, count);
+        }
+        return map;
+    }
+
+    @Override
+    public List<TendDto> getTend(Integer userId) {
+        if (userId == null && !StpUtil.hasRole("admin")){
+            throw new InvalidInputException("无权查看！");
+        }
+        List<TendDto> tends = new ArrayList<>();
+        for (int i = 0; i <= 7; i++){
+            TendDto tend = new TendDto();
+            tend.setDate(LocalDateTime.now().minusDays(i));
+            tend.setNewCount(count(new QueryWrapper<Order>()
+                    .eq("status", "DRAFT")
+                    .eq(userId!=null,"user_id", userId)
+                    .ge("create_time", tend.getDate().plusDays(1))));
+            tend.setCompletedCount(count(new QueryWrapper<Order>()
+                    .eq("status", "COMPLETED")
+                    .eq(userId!=null,"user_id", userId)
+                    .ge("create_time", tend.getDate().plusDays(1))));
+            tends.add(tend);
+        }
+        return tends;
     }
 
     private OrderVo putOrderVo(Order order) {

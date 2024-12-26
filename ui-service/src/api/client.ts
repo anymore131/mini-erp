@@ -32,6 +32,13 @@ export const clientApi = {
       data
     })
   },
+  getClientCount(userId: number | undefined) {
+    return request({
+      url: `/client/count`,
+      method: 'get',
+      params: { userId }
+    })
+  },
   // 获取客户详情
   getClientDetail(id: number) {
     return request({
@@ -63,6 +70,17 @@ export const clientApi = {
   getAllClients(userId: number | undefined) {
     return request({
       url: `/client/getAll`,
+      method: 'get',
+      params: { userId }
+    })
+  },
+  deleteClient(id: number) {
+    return request.delete(`/client/remove/${id}`)
+  },
+  // 获取客户状态分布
+  getClientStatusDistribution(userId?: number) {
+    return request({
+      url: '/client/status-distribution',
       method: 'get',
       params: { userId }
     })

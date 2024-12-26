@@ -9,11 +9,7 @@ import cn.edu.zust.se.exception.InvalidInputException;
 import cn.edu.zust.se.feign.ClientFeignServiceI;
 import cn.edu.zust.se.service.IOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -136,5 +132,15 @@ public class OrderController {
             return SaResult.ok("订单取消成功！");
         }
         return SaResult.error("订单取消失败！");
+    }
+
+    @RequestMapping("/status-distribution")
+    public SaResult getOrderStatusDistribution(@RequestParam(value = "id",required = false) Integer id){
+        return SaResult.data(orderService.getOrderStatusDistribution(id));
+    }
+
+    @RequestMapping("/trend")
+    public SaResult getTend(@RequestParam(value = "userId",required = false)Integer userId){
+        return SaResult.data(orderService.getTend(userId));
     }
 }

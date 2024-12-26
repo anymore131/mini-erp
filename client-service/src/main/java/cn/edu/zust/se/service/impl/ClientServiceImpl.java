@@ -21,10 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author anymore131
@@ -110,6 +107,16 @@ public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> impleme
             return vos;
         }
         return null;
+    }
+
+    @Override
+    public Long getCount(Integer userId) {
+        if (userId == null && !StpUtil.hasRole("admin")){
+            throw new ForbiddenException("权限不足！");
+        }
+        return lambdaQuery()
+                .eq(userId != null, Client::getUserId, userId)
+                .count();
     }
 
     @Override
@@ -296,5 +303,27 @@ public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> impleme
             return null;
         }
         return "更新失败";
+    }
+
+    @Override
+    public Map<String, Long> getOrderStatusDistribution(Integer userId) {
+        if (userId == null && !StpUtil.hasRole("admin")){
+            throw new InvalidInputException("无权查看！");
+        }
+        Map<String, Long> map = new HashMap<>();
+        QueryWrapper<Client> queryWrapper = new QueryWrapper<>();
+        Map<String,Integer> statusMap = new HashMap<>();
+        statusMap.put("START", ClientStatusEnum.START.getCode());
+        statusMap.put("COOPERATION", ClientStatusEnum.COOPERATION.getCode());
+        statusMap.put("WAITING", ClientStatusEnum.WAITING.getCode());
+        for (String s: statusMap.keySet()){
+            queryWrapper.clear();
+            queryWrapper
+                    .eq("status", statusMap.get(s))
+                    .eq(userId != null, "user_id", userId);
+            Long count = count(queryWrapper);
+            map.put(s, count);
+        }
+        return map;
     }
 }

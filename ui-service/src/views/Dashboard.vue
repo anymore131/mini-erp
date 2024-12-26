@@ -2,7 +2,7 @@
   <div class="dashboard">
     <page-loading :loading="loading" text="加载数据..." />
     <el-row :gutter="20" class="data-cards">
-      <el-col :span="8">
+      <el-col v-if="isAdmin" :span="8">
         <el-card class="box-card">
           <template #header>
             <div class="card-header">
@@ -15,8 +15,22 @@
           <div class="card-value">{{ userCount }}</div>
         </el-card>
       </el-col>
+
+      <el-col v-if="isAdmin" :span="8">
+        <el-card class="box-card">
+          <template #header>
+            <div class="card-header">
+              <span>
+                <el-icon><Briefcase /></el-icon>
+                客户总数
+              </span>
+            </div>
+          </template>
+          <div class="card-value">{{ clientCount }}</div>
+        </el-card>
+      </el-col>
       
-      <el-col :span="8">
+      <el-col v-if="!isAdmin" :span="8">
         <el-card class="box-card">
           <template #header>
             <div class="card-header">
@@ -66,7 +80,7 @@
             <div class="card-header">
               <span>
                 <el-icon><TrendCharts /></el-icon>
-                最近7天新增客户
+                最近7天订单趋势
               </span>
             </div>
           </template>
@@ -74,6 +88,16 @@
         </el-card>
       </el-col>
     </el-row>
+
+    <!-- 订单状态分布图表 -->
+    <el-card class="chart-card">
+      <template #header>
+        <div class="card-header">
+          <span>近七日订单状态分布</span>
+        </div>
+      </template>
+      <div ref="orderStatusChartRef" class="chart"></div>
+    </el-card>
   </div>
 </template>
 
@@ -87,6 +111,8 @@ import PageLoading from '../components/PageLoading.vue'
 import { useStore } from '../hooks/useStore'
 import { CLIENT_STATUS_MAP } from '../types'
 import * as echarts from 'echarts'
+import { orderApi } from '../api/order'
+import { ORDER_STATUS_MAP } from '../types'
 
 export default defineComponent({
   name: 'Dashboard',
@@ -114,6 +140,9 @@ export default defineComponent({
 
     const fetchUserCount = async () => {
       loading.value = true
+      if (!store.isAdmin.value) {
+        return
+      }
       try {
         const response = await userApi.getUsers({ 
           pageNum: 1,
@@ -137,13 +166,11 @@ export default defineComponent({
       if (!store.userInfo.value?.id) return
       
       try {
-        const response = await clientApi.getClients({
-          pageNum: 1,
-          pageSize: 1,
-          userId: store.userInfo.value.id
-        })
+        const response = await clientApi.getClientCount(
+          store.isAdmin.value ? undefined : store.userInfo.value?.id
+        )
         if (response.code === 200 && response.data) {
-          clientCount.value = response.data.total
+          clientCount.value = response.data
         }
       } catch (error: any) {
         console.error('获取客户总数失败:', error)
@@ -157,97 +184,209 @@ export default defineComponent({
     let trendChart: echarts.ECharts | null = null
 
     const fetchStatusDistribution = async () => {
-      if (!store.userInfo.value?.id) return
-      
       try {
-        const response = await clientApi.getClients({
-          pageNum: 1,
-          pageSize: 1000,
-          userId: store.userInfo.value.id
-        })
+        const response = await clientApi.getClientStatusDistribution(
+          store.isAdmin.value ? undefined : store.userInfo.value?.id
+        )
         if (response.code === 200 && response.data) {
-          const statusCount: Record<string, number> = {
-            '已添加': 0,
-            '正在合作': 0,
-            '未开展合作': 0
-          }
-          response.data.list.forEach(client => {
-            const status = CLIENT_STATUS_MAP[client.status]
-            if (status) statusCount[status]++
-          })
-
-          if (statusChart) {
-            statusChart.setOption({
-              series: [{
-                data: Object.entries(statusCount).map(([name, value]) => ({ name, value }))
-              }]
-            })
-          }
+          initStatusChart(response.data)
         }
       } catch (error) {
         console.error('获取客户状态分布失败:', error)
+        ElMessage.error('获取客户状态分布失败')
       }
     }
 
-    const initCharts = () => {
-      if (statusChartRef.value) {
+    // 初始化客户状态分布图表
+    const initStatusChart = (data: Record<string, number>) => {
+      if (!statusChartRef.value) return
+      
+      if (!statusChart) {
         statusChart = echarts.init(statusChartRef.value)
-        statusChart.setOption({
-          tooltip: {
-            trigger: 'item',
-            formatter: '{b}: {c} ({d}%)'
-          },
-          legend: {
-            orient: 'vertical',
-            left: 'left'
-          },
-          series: [{
-            type: 'pie',
-            radius: '50%',
-            data: [],
-            emphasis: {
-              itemStyle: {
-                shadowBlur: 10,
-                shadowOffsetX: 0,
-                shadowColor: 'rgba(0, 0, 0, 0.5)'
-              }
-            }
-          }]
-        })
       }
+      
+      const chartData = Object.entries(data).map(([status, count]) => ({
+        name: CLIENT_STATUS_MAP[status] || status,
+        value: count
+      }))
+      
+      statusChart.setOption({
+        tooltip: {
+          trigger: 'item',
+          formatter: '{b}: {c} ({d}%)'
+        },
+        legend: {
+          orient: 'vertical',
+          right: 10,
+          top: 'center'
+        },
+        series: [
+          {
+            type: 'pie',
+            radius: ['40%', '70%'],
+            avoidLabelOverlap: false,
+            itemStyle: {
+              borderRadius: 10,
+              borderColor: '#fff',
+              borderWidth: 2
+            },
+            label: {
+              show: false
+            },
+            emphasis: {
+              label: {
+                show: true,
+                fontSize: 16,
+                fontWeight: 'bold'
+              }
+            },
+            labelLine: {
+              show: false
+            },
+            data: chartData
+          }
+        ]
+      })
+    }
 
-      if (trendChartRef.value) {
-        trendChart = echarts.init(trendChartRef.value)
-        const dates = Array.from({ length: 7 }, (_, i) => {
-          const date = new Date()
-          date.setDate(date.getDate() - i)
-          return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
-        }).reverse()
+    const orderStatusChartRef = ref<HTMLElement>()
+    let orderStatusChart: echarts.ECharts | null = null
 
-        trendChart.setOption({
-          tooltip: {
-            trigger: 'axis'
-          },
-          xAxis: {
-            type: 'category',
-            data: dates
-          },
-          yAxis: {
-            type: 'value'
-          },
-          series: [{
-            data: [5, 7, 3, 9, 4, 6, 8],
-            type: 'line',
-            smooth: true,
-            areaStyle: {}
-          }]
-        })
+    // 获取订单状态分布数据
+    const fetchOrderStatusDistribution = async () => {
+      try {
+        const res = store.isAdmin.value 
+          ? await orderApi.getAllOrderStatusDistribution()
+          : await orderApi.getOrderStatusDistribution(store.userInfo.value?.id!)
+
+        if (res.code === 200 && res.data) {
+          initOrderStatusChart(res.data)
+        }
+      } catch (error) {
+        ElMessage.error('获取订单状态分布数据失败')
       }
     }
 
+    // 初始化订单状态图表
+    const initOrderStatusChart = (data: Record<string, number>) => {
+      if (!orderStatusChartRef.value) return
+
+      if (!orderStatusChart) {
+        orderStatusChart = echarts.init(orderStatusChartRef.value)
+      }
+
+      const chartData = Object.entries(data).map(([status, count]) => ({
+        name: ORDER_STATUS_MAP[status] || status,
+        value: count
+      }))
+
+      orderStatusChart.setOption({
+        tooltip: {
+          trigger: 'item',
+          formatter: '{b}: {c} ({d}%)'
+        },
+        legend: {
+          orient: 'vertical',
+          right: 10,
+          top: 'center'
+        },
+        series: [
+          {
+            type: 'pie',
+            radius: ['40%', '70%'],
+            avoidLabelOverlap: false,
+            itemStyle: {
+              borderRadius: 10,
+              borderColor: '#fff',
+              borderWidth: 2
+            },
+            label: {
+              show: false
+            },
+            emphasis: {
+              label: {
+                show: true,
+                fontSize: 16,
+                fontWeight: 'bold'
+              }
+            },
+            labelLine: {
+              show: false
+            },
+            data: chartData
+          }
+        ]
+      })
+    }
+
+    // 处理窗口大小变化
     const handleResize = () => {
       statusChart?.resize()
       trendChart?.resize()
+      orderStatusChart?.resize()
+    }
+
+    // 获取订单趋势数据
+    const fetchOrderTrend = async () => {
+      try {
+        const res = await orderApi.getOrderTrend(
+          store.isAdmin.value ? undefined : store.userInfo.value?.id
+        )
+        if (res.code === 200 && res.data) {
+          initTrendChart(res.data)
+        }
+      } catch (error) {
+        ElMessage.error('获取订单趋势数据失败')
+      }
+    }
+
+    // 初始化趋势图表
+    const initTrendChart = (data: { date: string; newCount: number; completedCount: number }[]) => {
+      if (!trendChartRef.value) return
+      
+      if (!trendChart) {
+        trendChart = echarts.init(trendChartRef.value)
+      }
+
+      const dates = data.map(item => item.date)
+      const newOrders = data.map(item => item.newCount)
+      const completedOrders = data.map(item => item.completedCount)
+ 
+      trendChart.setOption({
+        tooltip: {
+          trigger: 'axis'
+        },
+        legend: {
+          data: ['新增订单', '完成订单']
+        },
+        xAxis: {
+          type: 'category',
+          data: dates
+        },
+        yAxis: {
+          type: 'value'
+        },
+        series: [
+          {
+            name: '新增订单',
+            data: newOrders,
+            type: 'line',
+            smooth: true,
+            areaStyle: {
+              opacity: 0.3
+            }
+          },
+          {
+            name: '完成订单',
+            data: completedOrders,
+            type: 'line',
+            smooth: true,
+            areaStyle: {
+              opacity: 0.3
+            }
+          }
+        ]
+      })
     }
 
     onMounted(() => {
@@ -255,10 +394,14 @@ export default defineComponent({
       Promise.all([
         fetchUserCount(),
         fetchClientCount(),
-        fetchStatusDistribution()
+        fetchStatusDistribution(),
+        fetchOrderTrend()
       ]).finally(() => {
         loading.value = false
-        initCharts()
+      })
+
+      fetchOrderStatusDistribution().finally(() => {
+        loading.value = false
       })
 
       window.addEventListener('resize', handleResize)
@@ -268,15 +411,18 @@ export default defineComponent({
       window.removeEventListener('resize', handleResize)
       statusChart?.dispose()
       trendChart?.dispose()
+      orderStatusChart?.dispose()
     })
 
     return {
+      isAdmin : store.isAdmin.value,
       userCount,
       clientCount,
       currentDate,
       loading,
       statusChartRef,
-      trendChartRef
+      trendChartRef,
+      orderStatusChartRef
     }
   }
 })
@@ -320,5 +466,19 @@ export default defineComponent({
 
 .data-cards {
   margin-bottom: 20px;
+}
+
+.chart-card {
+  margin-bottom: 20px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chart {
+  height: 400px;
 }
 </style> 

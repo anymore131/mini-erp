@@ -18,13 +18,16 @@
           <span>控制台</span>
         </el-menu-item>
 
-        <el-menu-item-group>
-          <template #title>系统管理</template>
+        <el-sub-menu v-if="isAdmin" index="user">
+          <template #title>
+            <el-icon><User /></el-icon>
+            <span>用户</span>
+          </template>
           <el-menu-item index="/user-manage">
             <el-icon><User /></el-icon>
             <span>用户管理</span>
           </el-menu-item>
-        </el-menu-item-group>
+        </el-sub-menu>
 
         <el-sub-menu v-if="isAdmin" index="client">
           <template #title>
@@ -91,7 +94,7 @@
         </el-menu-item>
 
         <!-- 开发文档 -->
-        <el-sub-menu index="docs">
+        <el-sub-menu v-if="isAdmin" index="docs">
           <template #title>
             <el-icon><Document /></el-icon>
             <span>开发文档</span>

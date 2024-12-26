@@ -4,26 +4,23 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e4168fe6-e74f-48da-b1aa-1c11cd6c2e68" name="更改" comment="1">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/_2024_12_17_11_25____.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/在进行更新之前于_2024_12_17_下午11_25_取消提交了更改_[更改]/shelved.patch" beforeDir="false" />
+    <list default="true" id="e4168fe6-e74f-48da-b1aa-1c11cd6c2e68" name="更改" comment="修改bug">
+      <change afterPath="$PROJECT_DIR$/common/src/main/java/cn/edu/zust/se/entity/dto/TendDto.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/controller/ClientController.java" beforeDir="false" afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/controller/ClientController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/IClientService.java" beforeDir="false" afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/IClientService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/impl/ClientServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/impl/ClientServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/controller/OrderController.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/controller/OrderController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/feign/ClientFallbackFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/feign/ClientFallbackFactory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/feign/ClientFeignServiceI.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/feign/ClientFeignServiceI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/feign/interceptor/FeignInterceptor.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/feign/interceptor/FeignInterceptor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/service/impl/OrderApprovalServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/service/impl/OrderApprovalServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/service/IOrderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/service/IOrderService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/service/impl/OrderServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/service/impl/OrderServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui-service/components.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/components.d.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ui-service/src/api/client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/api/client.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui-service/src/api/order.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/api/order.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ui-service/src/router/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/router/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui-service/src/types/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/types/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui-service/src/views/Login.vue" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/views/Login.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui-service/src/views/order/OrderDetail.vue" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/views/order/OrderDetail.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui-service/src/views/order/OrderManage.vue" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/views/order/OrderManage.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui-service/src/utils/format.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/utils/format.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui-service/src/views/Dashboard.vue" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/views/Dashboard.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui-service/src/views/Layout.vue" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/views/Layout.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui-service/src/views/file/FileManage.vue" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/views/file/FileManage.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -175,7 +172,7 @@
       </set>
     </option>
   </component>
-  <component name="RunManager" selected="Spring Boot.MessageApplication">
+  <component name="RunManager" selected="Spring Boot.ClientApplication">
     <configuration name="ClientApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
       <module name="client-service" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="cn.edu.zust.se.ClientApplication" />
@@ -323,11 +320,11 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Spring Boot.ClientApplication" />
         <item itemvalue="Spring Boot.OrderApplication" />
         <item itemvalue="Spring Boot.UserApplication" />
         <item itemvalue="Spring Boot.MessageApplication" />
         <item itemvalue="Spring Boot.GatewayApplication" />
-        <item itemvalue="Spring Boot.ClientApplication" />
       </list>
     </recent_temporary>
   </component>
@@ -382,7 +379,7 @@
       <workItem from="1735053185473" duration="56000" />
       <workItem from="1735093103992" duration="2702000" />
       <workItem from="1735132438863" duration="931000" />
-      <workItem from="1735193061787" duration="6015000" />
+      <workItem from="1735193061787" duration="12551000" />
     </task>
     <task id="LOCAL-00001" summary="创建项目">
       <option name="closed" value="true" />
@@ -552,7 +549,15 @@
       <option name="project" value="LOCAL" />
       <updated>1735053224263</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="修改bug">
+      <option name="closed" value="true" />
+      <created>1735202330068</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1735202330069</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -583,6 +588,7 @@
     <MESSAGE value="order" />
     <MESSAGE value="orderLog" />
     <MESSAGE value="1" />
-    <option name="LAST_COMMIT_MESSAGE" value="1" />
+    <MESSAGE value="修改bug" />
+    <option name="LAST_COMMIT_MESSAGE" value="修改bug" />
   </component>
 </project>

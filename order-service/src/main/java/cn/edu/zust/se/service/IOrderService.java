@@ -1,10 +1,14 @@
 package cn.edu.zust.se.service;
 
 import cn.edu.zust.se.entity.dto.PageDto;
+import cn.edu.zust.se.entity.dto.TendDto;
 import cn.edu.zust.se.entity.po.Order;
 import cn.edu.zust.se.entity.query.OrderQuery;
 import cn.edu.zust.se.entity.vo.OrderVo;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author anymore131
@@ -23,4 +27,6 @@ public interface IOrderService extends IService<Order> {
     public Integer CompleteOrder(Integer id);
     public Integer CancelledOrder(Integer id);
     public OrderVo getOrderVoByOrderNo(String orderNo);
+    public Map<String,Long> getOrderStatusDistribution(Integer userId);
+    public List<TendDto> getTend(Integer userId);
 }

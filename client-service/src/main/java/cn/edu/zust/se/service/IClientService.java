@@ -7,6 +7,7 @@ import cn.edu.zust.se.entity.vo.ClientVo;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author anymore131
@@ -16,6 +17,7 @@ public interface IClientService extends IService<Client> {
     public PageDto<ClientVo> getClientVoPage(ClientQuery clientQuery);
     public ClientVo getClientVoById(Integer id);
     public List<ClientVo> getClientVoList(Integer userId);
+    public Long getCount(Integer userId);
     public void userSignOut(Integer userId);
     public ClientVo addClient(Client client);
     public ClientVo updateClient(Client client);
@@ -25,4 +27,5 @@ public interface IClientService extends IService<Client> {
     public String toWaitting(Integer id);
     public String toCooperation(Integer id);
     public String updateClientSum(Integer id,Integer amount);
+    public Map<String,Long> getOrderStatusDistribution(Integer userId);
 }

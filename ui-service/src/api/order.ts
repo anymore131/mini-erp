@@ -122,7 +122,7 @@ export const orderApi = {
     })
   },
 
-  // ���单审批记录
+  // ���取订单审批记录
   getOrderApprovals(orderId: number) {
     return request.get(`/order/order-approval/list/${orderId}`)
   },
@@ -151,6 +151,30 @@ export const orderApi = {
       url: '/order/order-log/pageLogs',
       method: 'post',
       data
+    })
+  },
+  // 获取订单状态分布数据
+  getOrderStatusDistribution(id: number) {
+    return request({
+      url: `/order/order/status-distribution`,
+      method: 'get',
+      params: {
+        id
+      }
+    })
+  },
+  getAllOrderStatusDistribution() {
+    return request({
+      url: '/order/order/status-distribution',
+      method: 'get'
+    })
+  },
+  // 获取订单趋势数据
+  getOrderTrend(userId?: number) {
+    return request({
+      url: '/order/order/trend',
+      method: 'get',
+      params: { userId }
     })
   }
 } 

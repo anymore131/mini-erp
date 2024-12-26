@@ -50,7 +50,7 @@
       <el-table-column prop="fileName" label="文件名" min-width="200" show-overflow-tooltip sortable="custom" />
       <el-table-column prop="contentType" label="文件类型" width="150">
         <template #default="{ row }">
-          {{ row.contentType.split('/')[1].toUpperCase() }}
+          {{ formatFileType(row.contentType) }}
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="上传时间" sortable="custom">
@@ -85,7 +85,7 @@
 import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Download, View } from '@element-plus/icons-vue'
-import { formatDateTime } from '../../utils/format'
+import { formatDateTime, formatFileType } from '../../utils/format'
 import { fileApi } from '../../api/file'
 import type { FileInfo } from '../../types'
 
@@ -97,6 +97,7 @@ const searchForm = reactive({
   sortBy: undefined as string | undefined,
   asc: undefined as boolean | undefined
 })
+
 const pagination = reactive({
   pageNum: 1,
   pageSize: 10,
