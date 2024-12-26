@@ -16,4 +16,19 @@ class ClientFallback implements ClientFeignServiceI {
     public String getClientNameById(Integer id) {
         return null;
     }
+
+    @Override
+    public String toWaitting(Integer id) {
+        return "未知错误";
+    }
+
+    @Override
+    public String toCooperation(Integer id) {
+        return "未知错误";
+    }
+
+    @Override
+    public String updateClientSum(Integer id, Integer amount) {
+        return "未知错误";
+    }
 }

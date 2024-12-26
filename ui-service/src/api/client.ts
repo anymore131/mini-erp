@@ -59,5 +59,12 @@ export const clientApi = {
       method: 'post',
       params: { clientId, userId, password }
     })
+  },
+  getAllClients(userId: number | undefined) {
+    return request({
+      url: `/client/getAll`,
+      method: 'get',
+      params: { userId }
+    })
   }
-} 
+}

@@ -458,6 +458,7 @@ export default defineComponent({
       try {
         await orderApi.updateOrderItem({
           id: editForm.value.id,
+          orderId: Number(route.params.id),
           productName: editForm.value.productName,
           quantity: editForm.value.quantity,
           unitPrice: Math.round(editForm.value.unitPrice * 100),

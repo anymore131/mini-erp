@@ -45,6 +45,11 @@ public class ClientController {
         return SaResult.data(clientVo);
     }
 
+    @RequestMapping("/getAll")
+    public SaResult getAll(@RequestParam(value = "userId",required = false) Integer userId){
+        return SaResult.data(clientService.getClientVoList(userId));
+    }
+
     @RequestMapping("/page/{id}")
     public SaResult pageByUserId(@PathVariable Integer id, @RequestBody(required = false) ClientQuery clientQuery){
         if (clientQuery == null || id == null){
@@ -113,5 +118,20 @@ public class ClientController {
             return null;
         }
         return clientService.getClientNameById(id);
+    }
+
+    @PostMapping("/toWaitting/{id}")
+    public String toWaitting(@PathVariable("id") Integer id){
+        return clientService.toWaitting(id);
+    }
+
+    @PostMapping("/toCooperation/{id}")
+    public String toCooperation(@PathVariable("id") Integer id){
+        return clientService.toCooperation(id);
+    }
+
+    @PostMapping("/updateClientSum/{id}/{amount}")
+    public String updateClientSum(@PathVariable("id") Integer id,@PathVariable("amount") Integer amount){
+        return clientService.updateClientSum(id,amount);
     }
 }

@@ -14,4 +14,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 public interface ClientFeignServiceI {
     @GetMapping("/getClientName/{id}")
     String getClientNameById(@PathVariable("id") Integer id);
+
+    @PostMapping("/toWaitting/{id}")
+    String toWaitting(@PathVariable("id") Integer id);
+
+    @PostMapping("/toCooperation/{id}")
+    String toCooperation(@PathVariable("id") Integer id);
+
+    @PostMapping("/updateClientSum/{id}/{amount}")
+    String updateClientSum(@PathVariable("id") Integer id
+            , @PathVariable("amount") Integer amount);
 }

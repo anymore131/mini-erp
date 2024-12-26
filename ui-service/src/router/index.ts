@@ -30,7 +30,8 @@ const routes: RouteRecordRaw[] = [
     children: [
       {
         path: '',
-        redirect: '/dashboard'
+        name: 'Home',
+        redirect: 'dashboard'
       },
       {
         path: 'dashboard',

@@ -92,6 +92,27 @@ public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> impleme
     }
 
     @Override
+    public List<ClientVo> getClientVoList(Integer userId) {
+        if (userId == null && !StpUtil.hasRole("admin")){
+            throw new ForbiddenException("权限不足！");
+        }
+        List<Client> clients = lambdaQuery()
+                .eq(userId != null, Client::getUserId, userId)
+                .list();
+        if (CollUtil.isNotEmpty(clients)){
+            List<ClientVo> vos = new ArrayList<>();
+            for (Client client : clients){
+                ClientVo clientVo = BeanUtil.copyProperties(client, ClientVo.class);
+                clientVo.setUserName(userFeignService.getUserNameById(client.getUserId()));
+                clientVo.setStatus(ClientStatusEnum.fromCode(client.getStatus()));
+                vos.add(clientVo);
+            }
+            return vos;
+        }
+        return null;
+    }
+
+    @Override
     public void userSignOut(Integer userId) {
         String s = userFeignService.getUserNameById(userId);
         if (s == null){
@@ -171,8 +192,8 @@ public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> impleme
         if (!StpUtil.hasRole("admin") && !currentUserId.equals(client.getUserId())){
             throw new ForbiddenException("无权删除客户信息！");
         }
-        if (Objects.equals(client.getStatus(), ClientStatusEnum.COOPERATION.getCode())){
-            throw new InvalidInputException("客户正在合作中，无法删除！");
+        if (!Objects.equals(client.getStatus(), ClientStatusEnum.START.getCode())){
+            throw new InvalidInputException("客户已有合作记录，无法删除！");
         }
         removeById(id);
     }
@@ -210,5 +231,70 @@ public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> impleme
             return getById(id).getName();
         }
         return null;
+    }
+
+    @Override
+    public String toWaitting(Integer id) {
+        if (id == null){
+            return "客户id为空!";
+        }
+        Client client = getById(id);
+        if (client == null){
+            return "未找到该客户！";
+        }
+        Integer currentUserId = StpUtil.getLoginIdAsInt();
+        if (!StpUtil.hasRole("admin") && !currentUserId.equals(getById(id).getUserId())){
+            return "无权修改客户信息！";
+        }
+        client.setStatus(ClientStatusEnum.WAITING.getCode());
+        client.setLastTime(LocalDateTime.now());
+        if (updateById(client)){
+            return null;
+        }
+        return "修改错误";
+    }
+
+    @Override
+    public String toCooperation(Integer id) {
+        if (id == null){
+            return "客户id为空!";
+        }
+        Client client = getById(id);
+        if (client == null){
+            return "未找到该客户！";
+        }
+        Integer currentUserId = StpUtil.getLoginIdAsInt();
+        if (!StpUtil.hasRole("admin") && !currentUserId.equals(getById(id).getUserId())){
+            return "无权修改客户信息！";
+        }
+        client.setStatus(ClientStatusEnum.COOPERATION.getCode());
+        client.setLastTime(LocalDateTime.now());
+        if (updateById(client)){
+            return null;
+        }
+        return "修改错误";
+    }
+
+    @Override
+    public String updateClientSum(Integer id,Integer amount) {
+        if (id == null){
+            return "客户id为空!";
+        }
+        if (amount == null){
+            return null;
+        }
+        Integer currentUserId = StpUtil.getLoginIdAsInt();
+        if (!StpUtil.hasRole("admin") && !currentUserId.equals(getById(id).getUserId())){
+            return "无权修改客户信息！";
+        }
+        Client client = getById(id);
+        if (client == null){
+            return "未找到该客户！";
+        }
+        client.setSum(client.getSum() + amount);
+        if (updateById(client)){
+            return null;
+        }
+        return "更新失败";
     }
 }

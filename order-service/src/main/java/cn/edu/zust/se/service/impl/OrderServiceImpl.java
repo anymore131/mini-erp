@@ -1,6 +1,7 @@
 package cn.edu.zust.se.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.dev33.satoken.util.SaResult;
 import cn.edu.zust.se.entity.dto.PageDto;
 import cn.edu.zust.se.entity.po.Order;
 import cn.edu.zust.se.entity.po.OrderItem;
@@ -125,6 +126,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         order.setUpdateTime(LocalDateTime.now());
         order.setIsDelete(0);
         save(order);
+        String s = clientFeignService.toCooperation(order.getClientId());
+        if (s!=null){
+            throw new InvalidInputException(s);
+        }
         orderLogService.addLog(order.getId(), order.getUserId(), "CREATE", "创建订单");
         return order.getId();
     }
@@ -225,8 +230,17 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             throw new InvalidInputException("订单状态错误！");
         }
         order.setStatus("COMPLETED");
-
-        return updateById(order)? id : null;
+        clientFeignService.updateClientSum(order.getClientId(), order.getTotalAmount());
+        boolean b = updateById(order);
+        Integer clientId = order.getClientId();
+        List<Order> orders = lambdaQuery()
+                .eq(Order::getClientId, clientId)
+                .ne(Order::getStatus, "COMPLETED")
+                .list();
+        if (CollUtil.isEmpty(orders)){
+            clientFeignService.toWaitting(clientId);
+        }
+        return b? id : null;
     }
 
     @Override
@@ -300,6 +314,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     }
 
     private void checkRole(Order order,String s){
+        if (order == null){
+            throw new InvalidInputException("订单不存在！");
+        }
         Integer currentUserId = StpUtil.getLoginIdAsInt();
         if (!StpUtil.hasRole("admin") && !currentUserId.equals(order.getUserId())){
             throw new InvalidInputException(s);

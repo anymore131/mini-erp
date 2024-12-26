@@ -1,6 +1,7 @@
 package cn.edu.zust.se.feign.interceptor;
 
 import cn.dev33.satoken.same.SaSameUtil;
+import cn.dev33.satoken.stp.StpUtil;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import org.springframework.stereotype.Component;
@@ -18,7 +19,7 @@ public class FeignInterceptor implements RequestInterceptor {
     public void apply(RequestTemplate requestTemplate) {
         requestTemplate.header(SaSameUtil.SAME_TOKEN, SaSameUtil.getToken());
 
-        // 如果希望被调用方有会话状态，此处就还需要将 satoken 添加到请求头中
-        // requestTemplate.header(StpUtil.getTokenName(), StpUtil.getTokenValue());
+//         如果希望被调用方有会话状态，此处就还需要将 satoken 添加到请求头中
+         requestTemplate.header(StpUtil.getTokenName(), StpUtil.getTokenValue());
     }
 }

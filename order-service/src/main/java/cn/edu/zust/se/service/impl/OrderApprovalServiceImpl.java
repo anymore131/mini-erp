@@ -15,6 +15,7 @@ import cn.edu.zust.se.service.IOrderLogService;
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -142,6 +143,6 @@ public class OrderApprovalServiceImpl extends ServiceImpl<OrderApprovalMapper, O
     private void updateOrderTime(Integer orderId){
         Order order = orderService.getById(orderId);
         order.setUpdateTime(LocalDateTime.now());
-        orderService.save(order);
+        orderService.update(order, new UpdateWrapper<Order>().eq("id", orderId));
     }
 }

@@ -59,7 +59,7 @@ export interface UserInfo {
 // 登录响应类型
 export interface LoginResponse {
   code: number
-  msg: string
+  message: string
   data: UserInfo
 }
 

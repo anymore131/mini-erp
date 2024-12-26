@@ -4,63 +4,72 @@
     
     <!-- 搜索表单 -->
     <el-form :inline="true" class="search-form">
-      <el-form-item label="订单编号">
-        <el-input
-          v-model="searchForm.orderNo"
-          placeholder="请输入订单编号"
-          clearable
-          @clear="handleSearch"
-        />
-      </el-form-item>
-      <el-form-item label="状态">
-        <el-select
-          v-model="searchForm.status"
-          placeholder="请选择状态"
-          clearable
-          @clear="handleSearch"
-          style="width: 160px"
-        >
-          <el-option
-            v-for="[key, value] in Object.entries(ORDER_STATUS_MAP)"
-            :key="key"
-            :label="value"
-            :value="key"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="金额范围">
-        <el-input-number
-          v-model="searchForm.minAmount"
-          :min="0"
-          :precision="2"
-          :step="100"
-          placeholder="最小金额"
-          style="width: 130px"
-        />
-        <span class="mx-2">-</span>
-        <el-input-number
-          v-model="searchForm.maxAmount"
-          :min="0"
-          :precision="2"
-          :step="100"
-          placeholder="最大金额"
-          style="width: 130px"
-        />
-      </el-form-item>
-      <el-form-item label="创建时间">
-        <el-date-picker
-        v-model="value2"
-        type="datetimerange"
-        start-placeholder="Start date"
-        end-placeholder="End date"
-        format="YYYY-MM-DD HH:mm:ss"
-        value-format="YYYY-MM-DD HH:mm:ss"
-        time-format="HH:mm:ss"
-      />
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="handleSearch">查询</el-button>
-      </el-form-item>
+      <div class="search-form-content">
+        <div class="search-items">
+          <el-form-item label="订单编号">
+            <el-input
+              v-model="searchForm.orderNo"
+              placeholder="请输入订单编号"
+              clearable
+              @clear="handleSearch"
+            />
+          </el-form-item>
+          <el-form-item label="状态">
+            <el-select
+              v-model="searchForm.status"
+              placeholder="请选择状态"
+              clearable
+              @clear="handleSearch"
+              style="width: 160px"
+            >
+              <el-option
+                v-for="[key, value] in Object.entries(ORDER_STATUS_MAP)"
+                :key="key"
+                :label="value"
+                :value="key"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="金额范围">
+            <el-input-number
+              v-model="searchForm.minAmount"
+              :min="0"
+              :precision="2"
+              :step="100"
+              placeholder="最小金额"
+              style="width: 130px"
+            />
+            <span class="mx-2">-</span>
+            <el-input-number
+              v-model="searchForm.maxAmount"
+              :min="0"
+              :precision="2"
+              :step="100"
+              placeholder="最大金额"
+              style="width: 130px"
+            />
+          </el-form-item>
+          <el-form-item label="创建时间">
+            <el-date-picker
+              v-model="value2"
+              type="datetimerange"
+              start-placeholder="开始时间"
+              end-placeholder="结束时间"
+              format="YYYY-MM-DD HH:mm:ss"
+              value-format="YYYY-MM-DD HH:mm:ss"
+              time-format="HH:mm:ss"
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+          </el-form-item>
+        </div>
+        <div class="action-buttons">
+          <el-button type="primary" @click="handleCreateOrder">
+            <el-icon><Plus /></el-icon>添加订单
+          </el-button>
+        </div>
+      </div>
     </el-form>
 
     <!-- 订单列表 -->
@@ -165,6 +174,41 @@
       @current-change="handleCurrentChange"
       class="pagination"
     />
+
+    <!-- 选择客户对话框 -->
+    <el-dialog
+      v-model="clientDialogVisible"
+      title="选择客户"
+      width="500px"
+    >
+      <el-table
+        :data="clientList"
+        style="width: 100%"
+      >
+        <el-table-column prop="name" label="客户名称" />
+        <el-table-column prop="status" label="状态">
+          <template #default="{ row }">
+            {{ CLIENT_STATUS_MAP[row.status] }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="120" fixed="right">
+          <template #default="{ row }">
+            <el-button 
+              type="primary" 
+              link
+              @click="handleClientSelect(row)"
+            >
+              创建订单
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="clientDialogVisible = false">取消</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -172,8 +216,10 @@
 import { defineComponent, ref, reactive, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 import { orderApi } from '../../api/order'
-import { ORDER_STATUS_MAP } from '../../types'
+import { ORDER_STATUS_MAP, CLIENT_STATUS_MAP } from '../../types'
+import { clientApi } from '../../api/client'
 import type { OrderInfo } from '../../types'
 import { formatDateTime } from '../../utils/format'
 import { useStore } from '../../hooks/useStore'
@@ -186,6 +232,8 @@ export default defineComponent({
     const route = useRoute()
     const loading = ref(false)
     const orderList = ref<OrderInfo[]>([])
+    const clientDialogVisible = ref(false)
+    const clientList = ref([])
 
     const pagination = reactive({
       pageNum: 1,
@@ -306,6 +354,30 @@ export default defineComponent({
       fetchOrderList()
     }
 
+    // 获取客户列表
+    const fetchClientList = async () => {
+      try {
+        const res = await clientApi.getAllClients(
+          store.isAdmin.value ? store.userInfo.value?.id : store.userInfo.value?.id
+        )
+        clientList.value = res.data
+      } catch (error) {
+        ElMessage.error('获取客户列表失败')
+      }
+    }
+
+    // 处理创建订单按钮点击
+    const handleCreateOrder = () => {
+      fetchClientList()
+      clientDialogVisible.value = true
+    }
+
+    // 处理客户选择
+    const handleClientSelect = (row: any) => {
+      clientDialogVisible.value = false
+      router.push(`/order/create/${row.id}`)
+    }
+
     onMounted(() => {
       fetchOrderList()
     })
@@ -316,6 +388,7 @@ export default defineComponent({
       pagination,
       searchForm,
       ORDER_STATUS_MAP,
+      CLIENT_STATUS_MAP,
       handleSearch,
       handleCurrentChange,
       handleSizeChange,
@@ -325,7 +398,11 @@ export default defineComponent({
       handleUpdateTimeRangeChange,
       value2,
       handleClientClick,
-      handleSortChange
+      handleSortChange,
+      clientDialogVisible,
+      clientList,
+      handleCreateOrder,
+      handleClientSelect
     }
   }
 })
@@ -338,6 +415,28 @@ export default defineComponent({
 
 .search-form {
   margin-bottom: 20px;
+}
+
+.search-form-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.search-items {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  margin-top: 4px;
 }
 
 .pagination {
