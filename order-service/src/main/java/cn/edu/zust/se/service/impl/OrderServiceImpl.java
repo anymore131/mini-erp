@@ -310,6 +310,53 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         return tends;
     }
 
+    @Override
+    public LocalDateTime getLastOrderTime(Integer clientId) {
+        if (clientId == null){
+            throw new InvalidInputException("客户id不能为空！");
+        }
+        QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
+        queryWrapper
+                .eq("client_id", clientId)
+                .orderByDesc("update_time")
+                .eq("status", "COMPLETED");
+        Order order = getOne(queryWrapper);
+        if (order != null){
+            return order.getCreateTime();
+        }
+        return null;
+    }
+
+    @Override
+    public long getOrderFrequency(Integer clientId) {
+        if (clientId == null){
+            throw new InvalidInputException("客户id不能为空！");
+        }
+        QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
+        queryWrapper
+                .eq("client_id",clientId)
+                .ge("create_time", LocalDateTime.now().minusYears(1))
+                .eq("status", "COMPLETED");
+        return count(queryWrapper);
+    }
+
+    @Override
+    public Integer getTotalAmount(Integer clientId) {
+        if (clientId == null){
+            throw new InvalidInputException("客户id不能为空！");
+        }
+        QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
+        queryWrapper
+                .eq("client_id", clientId)
+                .ge("create_time", LocalDateTime.now().minusYears(1))
+                .eq("status", "COMPLETED");
+        List<Order> orders = list(queryWrapper);
+        if (CollUtil.isNotEmpty(orders)){
+            return orders.stream().mapToInt(Order::getTotalAmount).sum();
+        }
+        return 0;
+    }
+
     private OrderVo putOrderVo(Order order) {
         OrderVo orderVo = BeanUtil.copyProperties(order, OrderVo.class);
         String userName = userFeignService.getUserNameById(order.getUserId());

@@ -11,6 +11,7 @@ import cn.edu.zust.se.service.IOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -25,8 +26,6 @@ import java.util.List;
 public class OrderController {
     @Autowired
     private IOrderService orderService;
-    @Autowired
-    private ClientFeignServiceI clientFeignService;
 
     @RequestMapping("/add")
     public SaResult addOrder(@RequestBody Order order) {
@@ -142,5 +141,20 @@ public class OrderController {
     @RequestMapping("/trend")
     public SaResult getTend(@RequestParam(value = "userId",required = false)Integer userId){
         return SaResult.data(orderService.getTend(userId));
+    }
+
+    @GetMapping("/getLastOrderTime/{clientId}")
+    public LocalDateTime getLastOrderTime(@PathVariable("clientId") Integer clientId){
+        return orderService.getLastOrderTime(clientId);
+    }
+
+    @GetMapping("/getOrderFrequency/{clientId}")
+    public long getOrderFrequency(@PathVariable("clientId") Integer clientId){
+        return orderService.getOrderFrequency(clientId);
+    }
+
+    @GetMapping("/getTotalAmount/{clientId}")
+    public Integer getTotalAmount(@PathVariable("clientId") Integer clientId){
+        return orderService.getTotalAmount(clientId);
     }
 }

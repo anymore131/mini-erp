@@ -80,7 +80,7 @@
             <div class="card-header">
               <span>
                 <el-icon><TrendCharts /></el-icon>
-                最近7天订单趋势
+                最���7天订单趋势
               </span>
             </div>
           </template>
@@ -90,26 +90,44 @@
     </el-row>
 
     <!-- 订单状态分布图表 -->
-    <el-card class="chart-card">
-      <template #header>
-        <div class="card-header">
-          <span>近七日订单状态分布</span>
-        </div>
-      </template>
-      <div ref="orderStatusChartRef" class="chart"></div>
-    </el-card>
+    <el-row :gutter="20">
+      <el-col :span="12">
+        <el-card class="chart-card">
+          <template #header>
+            <div class="card-header">
+              <span>近七日订单状态分布</span>
+            </div>
+          </template>
+          <div ref="orderStatusChartRef" class="chart"></div>
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card class="chart-card">
+          <template #header>
+            <div class="card-header">
+              <span>客户等级分布</span>
+              <el-button type="primary" link @click="handleRfmRefresh">
+                <el-icon><Refresh /></el-icon>
+                刷新
+              </el-button>
+            </div>
+          </template>
+          <div ref="levelChartRef" class="chart"></div>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, computed, onBeforeUnmount } from 'vue'
-import { User, Calendar, Briefcase, PieChart, TrendCharts } from '@element-plus/icons-vue'
+import { User, Calendar, Briefcase, PieChart, TrendCharts, Refresh } from '@element-plus/icons-vue'
 import { userApi } from '../api/user'
 import { clientApi } from '../api/client'
 import { ElMessage } from 'element-plus'
 import PageLoading from '../components/PageLoading.vue'
 import { useStore } from '../hooks/useStore'
-import { CLIENT_STATUS_MAP } from '../types'
+import { CLIENT_STATUS_MAP, CUSTOMER_LEVEL_MAP } from '../types'
 import * as echarts from 'echarts'
 import { orderApi } from '../api/order'
 import { ORDER_STATUS_MAP } from '../types'
@@ -122,7 +140,8 @@ export default defineComponent({
     Briefcase,
     PageLoading,
     PieChart,
-    TrendCharts
+    TrendCharts,
+    Refresh
   },
   setup() {
     const store = useStore()
@@ -250,7 +269,9 @@ export default defineComponent({
     }
 
     const orderStatusChartRef = ref<HTMLElement>()
+    const levelChartRef = ref<HTMLElement>()
     let orderStatusChart: echarts.ECharts | null = null
+    let levelChart: echarts.ECharts | null = null
 
     // 获取订单状态分布数据
     const fetchOrderStatusDistribution = async () => {
@@ -319,11 +340,85 @@ export default defineComponent({
       })
     }
 
+    // 获取客户等级分布数据
+    const fetchLevelDistribution = async () => {
+      try {
+        const res = await clientApi.getCustomerLevelDistribution(
+          store.isAdmin.value ? undefined : store.userInfo.value?.id
+        )
+        if (res.code === 200 && res.data) {
+          initLevelChart(res.data)
+        }
+      } catch (error) {
+        ElMessage.error('获取客户等级分布失败')
+      }
+    }
+
+    // 初始化等级分布图表
+    const initLevelChart = (data: Record<string, number>) => {
+      if (!levelChartRef.value) return
+      
+      if (!levelChart) {
+        levelChart = echarts.init(levelChartRef.value)
+      }
+
+      const chartData = Object.entries(data).map(([level, count]) => ({
+        name: CUSTOMER_LEVEL_MAP[level],
+        value: count
+      }))
+
+      levelChart.setOption({
+        tooltip: {
+          trigger: 'item',
+          formatter: '{b}: {c} ({d}%)'
+        },
+        legend: {
+          orient: 'vertical',
+          right: 10,
+          top: 'center'
+        },
+        series: [
+          {
+            type: 'pie',
+            radius: ['40%', '70%'],
+            avoidLabelOverlap: false,
+            itemStyle: {
+              borderRadius: 10,
+              borderColor: '#fff',
+              borderWidth: 2
+            },
+            label: {
+              show: false
+            },
+            emphasis: {
+              label: {
+                show: true,
+                fontSize: 16,
+                fontWeight: 'bold'
+              }
+            },
+            data: chartData
+          }
+        ]
+      })
+    }
+
+    const handleRfmRefresh = async () => {
+      try {
+        await clientApi.updateRfm(
+          store.isAdmin.value ? undefined : store.userInfo.value?.id
+        )
+        ElMessage.success('更新成功')
+        fetchLevelDistribution()
+      } catch (error) {
+        ElMessage.error('更新失败')
+      }
+    }
+
     // 处理窗口大小变化
     const handleResize = () => {
-      statusChart?.resize()
-      trendChart?.resize()
       orderStatusChart?.resize()
+      levelChart?.resize()
     }
 
     // 获取订单趋势数据
@@ -395,7 +490,8 @@ export default defineComponent({
         fetchUserCount(),
         fetchClientCount(),
         fetchStatusDistribution(),
-        fetchOrderTrend()
+        fetchOrderTrend(),
+        fetchLevelDistribution()
       ]).finally(() => {
         loading.value = false
       })
@@ -409,9 +505,8 @@ export default defineComponent({
 
     onBeforeUnmount(() => {
       window.removeEventListener('resize', handleResize)
-      statusChart?.dispose()
-      trendChart?.dispose()
       orderStatusChart?.dispose()
+      levelChart?.dispose()
     })
 
     return {
@@ -422,7 +517,8 @@ export default defineComponent({
       loading,
       statusChartRef,
       trendChartRef,
-      orderStatusChartRef
+      orderStatusChartRef,
+      levelChartRef
     }
   }
 })

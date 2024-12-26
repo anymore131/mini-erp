@@ -14,89 +14,116 @@
         router
       >
         <el-menu-item index="/dashboard">
-          <el-icon><Odometer /></el-icon>
+          <el-icon></el-icon>
           <span>控制台</span>
         </el-menu-item>
 
         <el-sub-menu v-if="isAdmin" index="user">
           <template #title>
-            <el-icon><User /></el-icon>
+            <el-icon></el-icon>
             <span>用户</span>
           </template>
           <el-menu-item index="/user-manage">
-            <el-icon><User /></el-icon>
+            <el-icon></el-icon>
             <span>用户管理</span>
           </el-menu-item>
         </el-sub-menu>
 
         <el-sub-menu v-if="isAdmin" index="client">
           <template #title>
-            <el-icon><User /></el-icon>
+            <el-icon></el-icon>
             <span>客户管理</span>
           </template>
           <el-menu-item index="/client-manage">
+            <el-icon></el-icon>
             <span>所有客户</span>
           </el-menu-item>
           <el-menu-item :index="`/client-manage/${userInfo?.id}`">
+            <el-icon></el-icon>
             <span>我的客户</span>
+          </el-menu-item>
+          <el-menu-item index="/client-value">
+            <el-icon></el-icon>
+            <span>客户价值分析</span>
           </el-menu-item>
         </el-sub-menu>
 
-        <el-menu-item v-else index="/client-manage">
-          <el-icon><User /></el-icon>
-          <span>客户管理</span>
-        </el-menu-item>
+        <el-sub-menu v-else index="client">
+          <template #title>
+            <el-icon></el-icon>
+            <span>客户管理</span>
+          </template>
+          <el-menu-item index="/client-manage">
+          <el-icon></el-icon>
+          <span>我的客户</span>
+          </el-menu-item>
+          <el-menu-item index="/client-value">
+            <el-icon></el-icon>
+            <span>客户价值分析</span>
+          </el-menu-item>
+        </el-sub-menu>
 
         <el-sub-menu v-if="isAdmin" index="order">
           <template #title>
-            <el-icon><Document /></el-icon>
+            <el-icon></el-icon>
             <span>订单管理</span>
           </template>
           <el-menu-item index="/order-manage">
+            <el-icon></el-icon>
             <span>所有订单</span>
           </el-menu-item>
           <el-menu-item index="/order-manage/pending">
+            <el-icon></el-icon>
             <span>待检验订单</span>
           </el-menu-item>
           <el-menu-item :index="`/order-manage/${userInfo?.id}`">
+            <el-icon></el-icon>
             <span>我的订单</span>
           </el-menu-item>
         </el-sub-menu>
 
-        <el-menu-item v-else index="/order-manage">
-          <el-icon><Document /></el-icon>
-          <span>订单管理</span>
-        </el-menu-item>
+        <el-sub-menu v-else index="order">
+          <template #title>
+            <el-icon></el-icon>
+            <span>订单管理</span>
+          </template>
+          <el-menu-item index="/order-manage">
+          <el-icon></el-icon>
+            <span>我的订单</span>
+          </el-menu-item>
+        </el-sub-menu>
 
         <el-sub-menu v-if="isAdmin" index="file">
           <template #title>
-            <el-icon><Document /></el-icon>
+            <el-icon></el-icon>
             <span>文件列表</span>
           </template>
           <el-menu-item index="/file-manage">
+            <el-icon></el-icon>
             <span>所有文件</span>
           </el-menu-item>
         </el-sub-menu>
 
         <el-sub-menu v-if="isAdmin" index="log">
           <template #title>
-            <el-icon><Document /></el-icon>
+            <el-icon></el-icon>
             <span>日志管理</span>
           </template>
           <el-menu-item index="/log/order">
+            <el-icon></el-icon>
             <span>订单日志</span>
           </el-menu-item>
         </el-sub-menu>
 
         <el-menu-item index="/profile">
-          <el-icon><User /></el-icon>
+          <el-icon></el-icon>
           <span>个人中心</span>
         </el-menu-item>
 
         <!-- 开发文档 -->
         <el-sub-menu v-if="isAdmin" index="docs">
           <template #title>
-            <el-icon><Document /></el-icon>
+            <el-icon></el-icon>
             <span>开发文档</span>
           </template>
           <el-menu-item @click="openDoc('satoken')">

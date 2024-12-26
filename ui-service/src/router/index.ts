@@ -140,6 +140,14 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true
         }
+      },
+      {
+        path: '/client-value',
+        component: () => import('../views/client/ClientValue.vue'),
+        meta: {
+          title: '客户价值分析',
+          requiresAuth: true
+        }
       }
     ]
   },

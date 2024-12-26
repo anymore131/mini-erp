@@ -171,4 +171,23 @@ export interface FileInfo {
   url: string
   uuidFileName: string
 }
+
+export interface ClientRfm {
+  clientId: number
+  clientName: string
+  userId: number
+  userName: string
+  lastOrderTime: string
+  orderFrequency: number
+  totalAmount: number
+  rfmScore: number
+  customerLevel: string
+}
+
+export const CUSTOMER_LEVEL_MAP: Record<string, string> = {
+  'A': '高价值客户',
+  'B': '重要发展客户',
+  'C': '一般价值客户',
+  'D': '低价值客户'
+}
  
