@@ -23,6 +23,7 @@ public class ContractApprovalVo{
     private Integer id;
     private Integer contractId;
     private Integer userId;
+    private Integer orderId;
     private String userName;
     private LocalDateTime startTime;
     private LocalDateTime endTime;

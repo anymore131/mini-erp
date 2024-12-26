@@ -15,4 +15,56 @@
         <result column="is_delete" property="isDelete" />
     </resultMap>
 
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, contract_id, progress_time, type, detail, version, user_id, risk_issues, is_delete
+    </sql>
+
+    <!-- 根据合同ID获取最新进度 -->
+    <select id="selectLatestByContractId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM contract_progress
+        WHERE contract_id = #{contractId}
+        AND is_delete = 0
+        ORDER BY version DESC
+        LIMIT 1
+    </select>
+
+    <!-- 分页查询合同进度 -->
+    <select id="selectPageVo" resultType="cn.edu.zust.se.entity.vo.ContractProgressVo">
+        SELECT
+        cp.*,
+        u.user_name as userName
+        FROM contract_progress cp
+        LEFT JOIN user u ON cp.user_id = u.id
+        <where>
+            AND cp.is_delete = 0
+            <if test="query.contractId != null">
+                AND cp.contract_id = #{query.contractId}
+            </if>
+            <if test="query.userId != null">
+                AND cp.user_id = #{query.userId}
+            </if>
+            <if test="query.type != null and query.type != ''">
+                AND cp.type = #{query.type}
+            </if>
+            <if test="query.startTime != null">
+                AND cp.progress_time >= #{query.startTime}
+            </if>
+            <if test="query.endTime != null">
+                AND cp.progress_time &lt;= #{query.endTime}
+            </if>
+        </where>
+        ORDER BY 
+        <choose>
+            <when test="query.sortBy != null and query.sortBy != ''">
+                ${query.sortBy} <if test="query.asc">ASC</if><if test="!query.asc">DESC</if>
+            </when>
+            <otherwise>
+                cp.progress_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
 </mapper>

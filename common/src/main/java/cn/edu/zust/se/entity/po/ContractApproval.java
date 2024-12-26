@@ -41,6 +41,10 @@ public class ContractApproval implements Serializable {
 
 
     /**
+     * 订单id
+     */
+    private Integer orderId;
+    /**
      * 审批开始时间
      */
     private LocalDateTime startTime;
@@ -58,7 +62,7 @@ public class ContractApproval implements Serializable {
     /**
      * 审批结果，0 表示未批准，1 表示批准，2表示需修改，方便后续判断合同审批是否通过
      */
-    private int status;
+    private String status;
 
 
     private Integer isDelete;

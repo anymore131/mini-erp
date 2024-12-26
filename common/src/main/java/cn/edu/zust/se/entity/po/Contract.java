@@ -94,9 +94,9 @@ public class Contract implements Serializable {
     private Integer version;
 
     /**
-     * 合同当前状态，新建为0，审批通过为1，执行中为2，结束为3，用于跟踪合同流程
+     * 合同当前状态
      */
-    private int status;
+    private String status;
 
     @TableLogic
     private Integer isDelete;

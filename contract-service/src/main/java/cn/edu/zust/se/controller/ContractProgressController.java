@@ -1,62 +1,64 @@
 package cn.edu.zust.se.controller;
 
+import cn.dev33.satoken.stp.StpUtil;
+import cn.dev33.satoken.util.SaResult;
 import cn.edu.zust.se.entity.po.ContractProgress;
+import cn.edu.zust.se.entity.query.ContractProgressQuery;
 import cn.edu.zust.se.service.IContractProgressService;
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
- * <p>
- *  前端控制器
- * </p>
- *
- * @author author
- * @since 2024-12-21
+ * 合同进度控制器
  */
 @RestController
 @RequestMapping("/contract-progress")
-@AllArgsConstructor
 public class ContractProgressController {
-    private static final Logger logger = LoggerFactory.getLogger(ContractProgressController.class);
-    private final IContractProgressService contractProgressService;
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ContractProgressController.class);
 
-    // 获取所有合同进度记录
-    @GetMapping
-    public List<ContractProgress> getAllContractProgresses() {
-        logger.info("Fetching all contract progresses");
-        return contractProgressService.getAllContractProgresses();
+    @Autowired
+    private IContractProgressService contractProgressService;
+
+    @PostMapping("/page")
+    public SaResult page(@RequestBody ContractProgressQuery query) {
+        logger.info("分页查询合同进度, 参数: {}", query);
+        return SaResult.data(contractProgressService.pageContractProgresses(query))
+                .setMsg("查询成功");
     }
 
-    // 根据 ID 获取单个合同进度记录
     @GetMapping("/{id}")
-    public ContractProgress getContractProgressById(@PathVariable Integer id) {
-        logger.info("Fetching contract progress with ID: {}", id);
-        return contractProgressService.getContractProgressById(id);
+    public SaResult get(@PathVariable Integer id) {
+        logger.info("获取合同进度详情, ID: {}", id);
+        return SaResult.data(contractProgressService.getContractProgressVoById(id))
+                .setMsg("查询成功");
     }
 
-    // 创建新的合同进度记录
     @PostMapping
-    public ContractProgress createContractProgress(@RequestBody ContractProgress contractProgress) {
-        logger.info("Creating new contract progress: {}", contractProgress);
-        return contractProgressService.createContractProgress(contractProgress);
+    public SaResult add(@RequestBody ContractProgress contractProgress) {
+        logger.info("创建合同进度: {}", contractProgress);
+        return SaResult.data(contractProgressService.addContractProgress(contractProgress))
+                .setMsg("创建成功");
     }
 
-    // 更新合同进度记录
     @PutMapping("/{id}")
-    public ContractProgress updateContractProgress(@PathVariable Integer id, @RequestBody ContractProgress contractProgress) {
-        contractProgress.setId(id); // 确保更新的记录 ID 是正确的
-        logger.info("Updating contract progress with ID: {}, new data: {}", id, contractProgress);
-        return contractProgressService.updateContractProgress(contractProgress);
+    public SaResult update(@PathVariable Integer id, @RequestBody ContractProgress contractProgress) {
+        logger.info("更新合同进度, ID: {}, 内容: {}", id, contractProgress);
+        contractProgress.setId(id);
+        return SaResult.data(contractProgressService.updateContractProgress(contractProgress))
+                .setMsg("更新成功");
     }
 
-    // 删除合同进度记录
     @DeleteMapping("/{id}")
-    public void deleteContractProgress(@PathVariable Integer id) {
-        logger.info("Deleting contract progress with ID: {}", id);
-        contractProgressService.deleteContractProgress(id);
+    public SaResult delete(@PathVariable Integer id) {
+        logger.info("删除合同进度, ID: {}", id);
+        return SaResult.data(contractProgressService.deleteContractProgress(id))
+                .setMsg("删除成功");
+    }
+
+    @GetMapping("/latest/{contractId}")
+    public SaResult getLatest(@PathVariable Integer contractId) {
+        logger.info("获取最新合同进度, 合同ID: {}", contractId);
+        return SaResult.data(contractProgressService.getLatestProgressByContractId(contractId))
+                .setMsg("查询成功");
     }
 }
