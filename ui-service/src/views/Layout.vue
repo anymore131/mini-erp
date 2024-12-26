@@ -18,6 +18,11 @@
           <span>控制台</span>
         </el-menu-item>
 
+        <el-menu-item index="/message">
+          <el-icon><Message /></el-icon>
+          <span>消息</span>
+        </el-menu-item>
+
         <el-sub-menu v-if="isAdmin" index="user">
           <template #title>
             <el-icon></el-icon>
@@ -27,13 +32,16 @@
             <el-icon></el-icon>
             <span>用户管理</span>
           </el-menu-item>
+      
         </el-sub-menu>
+
 
         <el-sub-menu v-if="isAdmin" index="client">
           <template #title>
             <el-icon></el-icon>
             <span>客户管理</span>
           </template>
+
           <el-menu-item index="/client-manage">
             <el-icon></el-icon>
             <span>所有客户</span>
@@ -257,7 +265,7 @@ import { useStore } from '../hooks/useStore'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { userApi } from '../api/user'
-import { User, Document } from '@element-plus/icons-vue'
+import { User, Document, Message } from '@element-plus/icons-vue'
 
 export default defineComponent({
   name: 'Layout',

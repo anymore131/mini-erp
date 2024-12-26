@@ -90,14 +90,14 @@ export default defineComponent({
           if (res.code === 200 && res.data) {
             localStorage.setItem('token', `Bearer ${res.data.userName}`)
             await store.setUserInfo(res.data)
-            ElMessage.success(res.message)
+            ElMessage.success(res.msg || '登录成功')
             router.push('/dashboard')
           } else {
-            throw new Error(res.message || '登录失败')
+            throw new Error(res.msg || '登录失败')
           }
         } catch (error: any) {
           console.log(error)
-          const errorMsg = error.response?.data?.message || error.message || '登录失败'
+          const errorMsg = error.response?.data?.msg || error.message || '登录失败'
           ElMessage.error(errorMsg)
         } finally {
           loading.value = false
