@@ -1,5 +1,6 @@
 package cn.edu.zust.se.controller;
 
+import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
 import cn.edu.zust.se.entity.dto.PageDto;
 import cn.edu.zust.se.entity.po.Message;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -35,18 +37,17 @@ public class MessageController {
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize,
             @RequestParam(defaultValue = "send_time") String sortBy,
-            @RequestParam(defaultValue = "false") Boolean asc,
-            @RequestParam(required = false) Integer userId
+            @RequestParam(defaultValue = "false") Boolean asc
     ) {
-        logger.info("接收到消息列表查询请求，参数: pageNum={}, pageSize={}, sortBy={}, asc={}, userId={}", 
-                pageNum, pageSize, sortBy, asc, userId);
+        logger.info("接收到消息列表查询请求，参数: pageNum={}, pageSize={}, sortBy={}, asc={}", 
+                pageNum, pageSize, sortBy, asc);
         try {
             MessageQuery messageQuery = new MessageQuery();
             messageQuery.setPageNum(pageNum);
             messageQuery.setPageSize(pageSize);
             messageQuery.setSortBy(sortBy);
             messageQuery.setAsc(asc);
-            if (userId != null) messageQuery.setUserId(userId);
+            messageQuery.setUserId(StpUtil.getLoginIdAsInt());
 
             PageDto<MessageVo> result = messageService.pageMessage(messageQuery);
             logger.info("消息列表查询成功，返回数据: result={}, list={}, total={}", 
@@ -69,8 +70,43 @@ public class MessageController {
      */
     @PostMapping(value = "/add")
     public SaResult add(@RequestBody Message message) {
-        messageService.save(message);
-        return SaResult.data(message);
+        logger.info("接收到添加消息请求，消息内容: {}", message);
+        try {
+            if (message == null) {
+                logger.error("消息对象为空");
+                return SaResult.error("消息对象不能为空");
+            }
+            
+            if (message.getUserId() == null) {
+                logger.error("用户ID为空");
+                return SaResult.error("用户ID不能为空");
+            }
+            
+            if (message.getContent() == null || message.getContent().trim().isEmpty()) {
+                logger.error("消息内容为空");
+                return SaResult.error("消息内容不能为空");
+            }
+            
+            // 确保必要字段已设置
+            if (message.getIsDelete() == null) {
+                message.setIsDelete(0);
+            }
+            if (message.getSendTime() == null) {
+                message.setSendTime(LocalDateTime.now());
+            }
+            if (message.getType() == null) {
+                message.setType(0);
+            }
+            
+            logger.info("开始保存消息，处理后的消息对象: {}", message);
+            messageService.save(message);
+            logger.info("消息保存成功，消息ID: {}", message.getId());
+            
+            return SaResult.data(message).setMsg("添加成功");
+        } catch (Exception e) {
+            logger.error("添加消息失败", e);
+            return SaResult.error("添加失败：" + e.getMessage());
+        }
     }
 
   

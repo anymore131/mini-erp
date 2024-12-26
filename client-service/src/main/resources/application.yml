@@ -1,5 +1,5 @@
 server:
-  port: 18081
+  port: 18089
 spring:
   application:
     name: client-service
@@ -7,7 +7,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/erp?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8
     username: root
-    password: 0408
+    password: zhw6405098
     hikari:
       connection-timeout: 30000
       idle-timeout: 600000

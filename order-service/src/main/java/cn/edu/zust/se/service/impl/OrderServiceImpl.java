@@ -5,12 +5,14 @@ import cn.dev33.satoken.util.SaResult;
 import cn.edu.zust.se.entity.dto.PageDto;
 import cn.edu.zust.se.entity.dto.TendDto;
 import cn.edu.zust.se.entity.po.Order;
+import cn.edu.zust.se.entity.po.Message;
 import cn.edu.zust.se.entity.po.OrderItem;
 import cn.edu.zust.se.entity.query.OrderQuery;
 import cn.edu.zust.se.entity.vo.OrderVo;
 import cn.edu.zust.se.exception.InvalidInputException;
 import cn.edu.zust.se.feign.ClientFeignServiceI;
 import cn.edu.zust.se.feign.UserFeignServiceI;
+import cn.edu.zust.se.feign.MessageFeignServiceI;
 import cn.edu.zust.se.mapper.OrderItemMapper;
 import cn.edu.zust.se.mapper.OrderMapper;
 import cn.edu.zust.se.service.IOrderLogService;
@@ -44,6 +46,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     private OrderItemMapper orderItemMapper;
     @Autowired
     private IOrderLogService orderLogService;
+    @Autowired
+    private MessageFeignServiceI messageFeignService;
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS");
     private static final Random random = new Random();
@@ -195,30 +199,107 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     // 检验通过
     @Override
     public Integer ApproveOrder(Integer id) {
+        System.out.println("\n========== 订单审批通过处理开始 ==========");
+        System.out.println("接收到订单审批通过请求，订单ID: " + id);
+        
         checkOrderId(id);
         Order order = getAndCheckOrderLive(id);
+        System.out.println("获取到订单信息: " + order);
+        
         if (!Objects.equals(order.getStatus(), "PENDING")){
+            System.out.println("错误：订单状态错误，当前状态: " + order.getStatus());
             throw new InvalidInputException("订单状态错误！");
         }
         order.setStatus("APPROVED");
+        System.out.println("订单状态已更新为: APPROVED");
 
+        // 创建消息
+        Message message = new Message();
+        message.setContent("你的订单" + order.getOrderNo() + "检验通过");
+        message.setSendTime(LocalDateTime.now());
+        message.setUserId(order.getUserId());
+        message.setType(0);
+        
+        System.out.println("准备创建消息:");
+        System.out.println("- content: " + message.getContent());
+        System.out.println("- userId: " + message.getUserId());
+        System.out.println("- sendTime: " + message.getSendTime());
+        System.out.println("- type: " + message.getType());
+        
+        try {
+            System.out.println("开始调用消息服务...");
+            SaResult result = messageFeignService.add(message);
+            System.out.println("消息服务返回结果:");
+            System.out.println("- code: " + result.getCode());
+            System.out.println("- msg: " + result.getMsg());
+            System.out.println("- data: " + result.getData());
+        } catch (Exception e) {
+            System.out.println("错误：创建消息失败");
+            System.out.println("异常类型: " + e.getClass().getName());
+            System.out.println("异常消息: " + e.getMessage());
+            if (e.getCause() != null) {
+                System.out.println("根本原因: " + e.getCause().getMessage());
+            }
+            e.printStackTrace();
+        }
 
-        return updateById(order)? id : null;
+        boolean updated = updateById(order);
+        System.out.println("订单更新结果: " + (updated ? "成功" : "失败"));
+        System.out.println("========== 订单审批通过处理结束 ==========\n");
+        return updated ? id : null;
     }
 
     // 未通过
     @Override
     public Integer RejectOrder(Integer id) {
+        System.out.println("\n========== 订单驳回处理开始 ==========");
+        System.out.println("接收到订单驳回请求，订单ID: " + id);
+        
         checkOrderId(id);
         Order order = getAndCheckOrderLive(id);
+        System.out.println("获取到订单信息: " + order);
+        
         if (!Objects.equals(order.getStatus(), "PENDING")){
+            System.out.println("错误：订单状态错误，当前状态: " + order.getStatus());
             throw new InvalidInputException("订单状态错误！");
         }
         order.setStatus("REJECTED");
+        System.out.println("订单状态已更新为: REJECTED");
 
+        // 创建消息
+        Message message = new Message();
+        message.setContent("你的订单" + order.getOrderNo() + "检验不通过");
+        message.setSendTime(LocalDateTime.now());
+        message.setUserId(order.getUserId());
+        message.setType(0);
+        
+        System.out.println("准备创建消息:");
+        System.out.println("- content: " + message.getContent());
+        System.out.println("- userId: " + message.getUserId());
+        System.out.println("- sendTime: " + message.getSendTime());
+        System.out.println("- type: " + message.getType());
+        
+        try {
+            System.out.println("开始调用消息服务...");
+            SaResult result = messageFeignService.add(message);
+            System.out.println("消息服务返回结果:");
+            System.out.println("- code: " + result.getCode());
+            System.out.println("- msg: " + result.getMsg());
+            System.out.println("- data: " + result.getData());
+        } catch (Exception e) {
+            System.out.println("错误：创建消息失败");
+            System.out.println("异常类型: " + e.getClass().getName());
+            System.out.println("异常消息: " + e.getMessage());
+            if (e.getCause() != null) {
+                System.out.println("根本原因: " + e.getCause().getMessage());
+            }
+            e.printStackTrace();
+        }
 
-
-        return updateById(order)? id : null;
+        boolean updated = updateById(order);
+        System.out.println("订单更新结果: " + (updated ? "成功" : "失败"));
+        System.out.println("========== 订单驳回处理结束 ==========\n");
+        return updated ? id : null;
     }
 
     // 完成

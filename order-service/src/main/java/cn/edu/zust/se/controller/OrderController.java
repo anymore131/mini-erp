@@ -1,18 +1,22 @@
 package cn.edu.zust.se.controller;
 
-
 import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
 import cn.edu.zust.se.entity.po.Order;
+import cn.edu.zust.se.entity.po.Message;
 import cn.edu.zust.se.entity.query.OrderQuery;
 import cn.edu.zust.se.exception.InvalidInputException;
 import cn.edu.zust.se.feign.ClientFeignServiceI;
+import cn.edu.zust.se.feign.MessageFeignServiceI;
 import cn.edu.zust.se.service.IOrderService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * <p>
@@ -24,8 +28,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/order")
 public class OrderController {
+    private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
+
     @Autowired
     private IOrderService orderService;
+
+    @Autowired
+    private MessageFeignServiceI messageFeignService;
 
     @RequestMapping("/add")
     public SaResult addOrder(@RequestBody Order order) {
