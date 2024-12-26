@@ -18,6 +18,8 @@ public class ContractVo{
     private Integer clientId;
     private Integer userId;
     private String name;
+    private String userName;
+    private String clientName;
     private String number;
     private Integer orderId;
     private String content;

@@ -28,6 +28,9 @@ public interface IContractApprovalService extends IService<ContractApproval> {
     // 根据合同ID查询审批记录
     List<ContractApprovalVo> getByContractId(Integer contractId);
 
+    // 根据合同ID查询审批记录
+    ContractApprovalVo getByOrderId(Integer orderId);
+
     // 根据用户ID查询审批记录
     List<ContractApprovalVo> getByUserId(Integer userId);
 
@@ -38,7 +41,7 @@ public interface IContractApprovalService extends IService<ContractApproval> {
     List<ContractApprovalVo> getByStatus(int status);
 
     // 创建新的合同审批记录
-    ContractApprovalVo createContractApproval(ContractApproval contractApproval);
+    boolean createContractApproval(ContractApproval contractApproval);
 
     // 更新合同审批记录
     ContractApprovalVo updateContractApproval(ContractApproval contractApproval);

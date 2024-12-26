@@ -1,12 +1,15 @@
 package cn.edu.zust.se.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.edu.zust.se.entity.po.Contract;
 import cn.edu.zust.se.entity.po.ContractApproval;
+import cn.edu.zust.se.entity.po.Order;
 import cn.edu.zust.se.entity.vo.ContractApprovalVo;
 import cn.edu.zust.se.exception.InvalidInputException;
 import cn.edu.zust.se.feign.UserFeignServiceI;
 import cn.edu.zust.se.mapper.ContractApprovalMapper;
 import cn.edu.zust.se.service.IContractApprovalService;
+import cn.edu.zust.se.service.IContractLogService;
 import cn.edu.zust.se.service.IContractService;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -16,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -30,10 +34,11 @@ import java.util.Objects;
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
+@Transactional
 public class ContractApprovalServiceImpl extends ServiceImpl<ContractApprovalMapper, ContractApproval> implements IContractApprovalService {
     private final ContractApprovalMapper contractApprovalMapper;
     private final IContractService contractService;
+    private final IContractLogService contractLogService;
     private final UserFeignServiceI userFeignService;
 
     @Override
@@ -78,6 +83,14 @@ public class ContractApprovalServiceImpl extends ServiceImpl<ContractApprovalMap
     }
 
     @Override
+    public ContractApprovalVo getByOrderId(Integer orderId) {
+        checkInput(orderId,"参数为空");
+        ContractApproval contractApproval = contractApprovalMapper.selectByOrderId(orderId);
+        ContractApprovalVo contractApprovalVo = BeanUtil.copyProperties(contractApproval, ContractApprovalVo.class);
+        return contractApprovalVo;
+    }
+
+    @Override
     public List<ContractApprovalVo> getByUserId(Integer userId) {
         checkInput(userId,"参数为空");
         checkAdmin();
@@ -86,42 +99,6 @@ public class ContractApprovalServiceImpl extends ServiceImpl<ContractApprovalMap
         return contractApprovalVos;
     }
 
-//    @Override
-//    public PageDto<ContractApprovalVo> getContract(ContractApprovalQuery contractApprovalQuery) {
-//        Page<ContractApproval> page = contractApprovalQuery.toMpPage(contractApprovalQuery.getSortBy(), contractApprovalQuery.isAsc());
-//        if (contractApprovalQuery.getStatus() != null){
-//            lambdaQuery()
-//                    .eq(contractApprovalQuery.getUserId() != null,ContractApproval::getUserId, contractApprovalQuery.getUserId())
-//                    .eq(contractApprovalQuery.getStatus() != null,ContractApproval::getStatus, ContractApprovalEnum.fromMessage(contractApprovalQuery.getStatus()))
-//                    .like(contractApprovalQuery.getApprovalOpinion() != null,ContractApproval::getApprovalOpinion, contractApprovalQuery.getApprovalOpinion())
-//                    .ge(contractApprovalQuery.getContractId() != null,ContractApproval::getContractId, contractApprovalQuery.getContractId())
-//                    .page(page);
-//        }else{
-//            lambdaQuery()
-//                    .eq(contractApprovalQuery.getUserId() != null,ContractApproval::getUserId, contractApprovalQuery.getUserId())
-//                    .like(contractApprovalQuery.getApprovalOpinion() != null,ContractApproval::getApprovalOpinion, contractApprovalQuery.getApprovalOpinion())
-//                    .ge(contractApprovalQuery.getContractId() != null,ContractApproval::getContractId, contractApprovalQuery.getContractId())
-//                    .page(page);
-//        }
-//        PageDto<ContractApprovalVo> voPageDto = new PageDto<>();
-//        voPageDto.setTotal(page.getTotal());
-//        voPageDto.setPages(page.getPages());
-//        List<ContractApproval> records = page.getRecords();
-//        if (CollUtil.isEmpty(records)){
-//            voPageDto.setList(Collections.emptyList());
-//            return voPageDto;
-//        }
-//        List<ContractApprovalVo> vos = new ArrayList<>();
-//        for (ContractApproval record : records){
-//            int status = record.getStatus();
-//            ContractApprovalVo contractApprovalVo = BeanUtil.copyProperties(record, ContractApprovalVo.class);
-//            contractApprovalVo.setStatus(ContractApprovalEnum.fromCode(status).toString());
-//            vos.add(contractApprovalVo);
-//        }
-//        voPageDto.setList(vos);
-//        return voPageDto;
-//    }
-//
 
     @Override
     public List<ContractApprovalVo> getByStatus(int status) {
@@ -131,23 +108,36 @@ public class ContractApprovalServiceImpl extends ServiceImpl<ContractApprovalMap
     }
 
     @Override
-    @Transactional
-    public ContractApprovalVo createContractApproval(ContractApproval contractApproval) {
-        ContractApprovalVo contractApprovalVo = BeanUtil.copyProperties(contractApproval, ContractApprovalVo.class);
-        return executeWithLogging(() -> {
-            int result = contractApprovalMapper.insert(contractApproval);
-            return result > 0 ? contractApprovalVo : null;
-        }, "create", contractApprovalVo);
+    public boolean createContractApproval(ContractApproval contractApproval) {
+        checkInput(contractApproval, "参数为空");
+        checkAdmin();
+        checkInput(contractApproval.getContractId(),"合同id不能为空！");
+        checkInput(contractApproval.getOrderId(), "订单id不能为空！");
+        checkInput(contractApproval.getUserId(), "审批人不能为空！");
+        checkInput(contractApprovalMapper.selectById(contractApproval.getContractId()),"订单不存在！");
+        contractApproval.setStartTime(LocalDateTime.now()).setIsDelete(0);
+        boolean b = save(contractApproval);
+        String result = "PASS".equals(contractApproval.getStatus()) ? "通过" : "不通过";
+        contractLogService.addLog(contractApproval.getContractId(), contractApproval.getUserId(), "APPROVE",
+                String.format("审批%s，意见：%s", result, contractApproval.getApprovalOpinion()));
+        if (b && "PASS".equals(contractApproval.getStatus())){
+            contractService.ApproveContract(contractApproval.getId());
+        }else if (b && "REJECT".equals(contractApproval.getStatus())) {
+            contractService.RejectContract(contractApproval.getId());
+        }
+        updateContractTime(contractApproval.getOrderId());
+        return b;
     }
 
     @Override
-    @Transactional
     public ContractApprovalVo updateContractApproval(ContractApproval contractApproval) {
-        ContractApprovalVo contractApprovalVo = BeanUtil.copyProperties(contractApproval, ContractApprovalVo.class);
-        return executeWithLogging(() -> {
-            int result = contractApprovalMapper.updateById(contractApproval);
-            return result > 0 ? contractApprovalVo : null;
-        }, "update", contractApprovalVo);
+        checkInput(contractApproval.getId(), "参数为空");
+        int result = contractApprovalMapper.updateById(contractApproval);
+        if (result > 0){
+            ContractApprovalVo contractApprovalVo = BeanUtil.copyProperties(contractApproval, ContractApprovalVo.class);
+            return contractApprovalVo;
+        }
+        return null;
     }
 
     @Override
@@ -160,7 +150,7 @@ public class ContractApprovalServiceImpl extends ServiceImpl<ContractApprovalMap
             throw new InvalidInputException("审批记录已结束！");
         }
         contractApproval.setApprovalOpinion(approvalOpinion);
-        contractApproval.setStatus(1);
+        contractApproval.setStatus("PASS");
         return updateById(contractApproval);
     }
 
@@ -174,26 +164,19 @@ public class ContractApprovalServiceImpl extends ServiceImpl<ContractApprovalMap
             throw new InvalidInputException("审批记录已结束！");
         }
         contractApproval.setApprovalOpinion(approvalOpinion);
-        contractApproval.setStatus(2);
+        contractApproval.setStatus("REJECT");
         return updateById(contractApproval);
     }
 
     @Override
-    @Transactional
     public void deleteContractApproval(Integer id) {
-        executeWithLogging(() -> {
-            contractApprovalMapper.deleteById(id);
-            return null;
-        }, "delete", id);
+        checkInput(id, "参数为空");
+        contractApprovalMapper.deleteById(id);
     }
 
     @Override
-    @Transactional
     public void softDelete(Integer id) {
-        executeWithLogging(() -> {
-            contractApprovalMapper.softDeleteById(id);
-            return null;
-        }, "soft delete", id);
+        contractApprovalMapper.softDeleteById(id);
     }
 
     private <T> void checkInput(T t,String s){
@@ -207,24 +190,10 @@ public class ContractApprovalServiceImpl extends ServiceImpl<ContractApprovalMap
             throw new InvalidInputException("权限不足！");
         }
     }
-
-    private <T> T executeWithLogging(SupplierWithException<T> action, String actionName, Object... params) {
-        try {
-            T result = action.get();
-            if (result != null) {
-                log.info("ContractApproval {} successfully: {}", actionName, params[0]);
-            } else {
-                log.error("Failed to {} ContractApproval: {}", actionName, params[0]);
-            }
-            return result;
-        } catch (Exception e) {
-            log.error("Error {} ContractApproval: {}", actionName, params[0], e);
-            throw new RuntimeException("Failed to " + actionName + " ContractApproval", e);
-        }
-    }
-
-    @FunctionalInterface
-    private interface SupplierWithException<T> {
-        T get() throws Exception;
+    private void updateContractTime(Integer orderId){
+        Contract contract = contractService.getById(orderId);
+        contract.setLastUpdate(LocalDateTime.now());
+        contractService.save(contract);
+        contractLogService.addLog(contract.getId(), contract.getUserId(), "UPDATE", "更新合同时间");
     }
 }

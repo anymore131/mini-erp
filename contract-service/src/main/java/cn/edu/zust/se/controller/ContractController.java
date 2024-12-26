@@ -1,18 +1,13 @@
 package cn.edu.zust.se.controller;
 
-import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
-import cn.edu.zust.se.entity.dto.PageDto;
 import cn.edu.zust.se.entity.po.Contract;
 import cn.edu.zust.se.entity.query.ContractQuery;
 import cn.edu.zust.se.entity.vo.ContractVo;
-import cn.edu.zust.se.exception.ForbiddenException;
 import cn.edu.zust.se.exception.InvalidInputException;
 import cn.edu.zust.se.service.IContractService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/contract")
@@ -25,66 +20,72 @@ public class ContractController {
      */
     @PostMapping(value = "/create")
     public SaResult createContract(@RequestBody Contract contract) {
-        ContractVo createdContract = contractService.createContract(contract);
-        return SaResult.data(createdContract).setMsg("添加成功！");
+        Integer i = contractService.createContract(contract);
+        if (i == null){
+            return SaResult.error("合同添加失败！");
+        }
+        return SaResult.ok("合同添加成功！").setData(i);
     }
 
     /**
      * 根据id获取合同信息
      */
-    @GetMapping(value = "/{id}")
+    @GetMapping(value = "/get/{id}")
     public SaResult getContractById(@PathVariable Integer id) {
         ContractVo contract = contractService.getTContractById(id);
         if (contract == null) {
-            throw new InvalidInputException("输入信息为空！");
+            throw new InvalidInputException("合同信息为空！");
         }
-        return SaResult.data(contract);
+        return SaResult.data(contract).setMsg("查询成功！");
     }
 
     /**
      * 根据用户id获取用户创建合同信息
      */
-    @GetMapping(value = "/user/{userId}")
-    public SaResult getContractByUserId(@PathVariable Integer userId) {
-        List<ContractVo> contracts = contractService.getContractByUserId(userId);
-        return SaResult.data(contracts);
+    @RequestMapping("/page")
+    public SaResult pageContract(@RequestBody ContractQuery contractQuery) {
+        return SaResult.data(contractService.getContract(contractQuery)).setMsg("查询成功！");
     }
 
-    /**
-     * 更新合同
-     */
-    @PutMapping(value = "/update/{id}")
-    public SaResult updateContract(@PathVariable Integer id, @RequestBody Contract updatedContract) {
-        ContractVo updated = contractService.updateContract(id, updatedContract);
-        if (updated == null) {
-            throw new InvalidInputException("输入信息为空！");
+    @RequestMapping("/pending/{id}")
+    public SaResult pendingOrder(@PathVariable("id") Integer id) {
+        if (contractService.PendingContract(id) != null){
+            return SaResult.ok("合同状态修改待检验成功！");
         }
-        return SaResult.data(updated).setMsg("更新成功！");
+        return SaResult.error("合同状态修改待检验失败！");
     }
 
-    /**
-     * 获取合同列表
-     */
-    @GetMapping(value = "/page/{id}")
-    public SaResult getContractList(@PathVariable Integer id,
-                                     @RequestBody(required = false) ContractQuery contractQuery) {
-        if (contractQuery == null || id == null){
-            throw new InvalidInputException("输入信息为空！");
+    @RequestMapping("/approve/{id}")
+    public SaResult approveOrder(@PathVariable("id") Integer id) {
+        if (contractService.ApproveContract(id) != null){
+            return SaResult.ok("合同状态检验通过成功！");
         }
-        Integer currentUserId = StpUtil.getLoginIdAsInt();
-        if (!StpUtil.hasRole("admin") && !currentUserId.equals(id)) {
-            throw new ForbiddenException("无权查看其他用户的合同信息！");
-        }
-        if (contractQuery.getUserId() == null ) {
-            throw new InvalidInputException("输入信息为空！");
-        }
-        if (!id.equals(contractQuery.getUserId())){
-            throw new InvalidInputException("输入信息不一致！");
-        }
-        PageDto<ContractVo> contracts = contractService.getContract(contractQuery);
-        return SaResult.data(contracts);
+        return SaResult.error("合同状态检验通过失败！");
     }
 
+    @RequestMapping("/reject/{id}")
+    public SaResult rejectOrder(@PathVariable("id") Integer id) {
+        if (contractService.RejectContract(id) != null){
+            return SaResult.ok("合同状态检验不通过成功！");
+        }
+        return SaResult.error("合同状态检验不通过失败！");
+    }
+
+    @RequestMapping("/complete/{id}")
+    public SaResult completeOrder(@PathVariable("id") Integer id) {
+        if (contractService.CompleteContract(id) != null){
+            return SaResult.ok("合同完成成功！");
+        }
+        return SaResult.error("合同完成失败！");
+    }
+
+    @RequestMapping("/cancel/{id}")
+    public SaResult cancelOrder(@PathVariable("id") Integer id) {
+        if (contractService.CancelledContract(id) != null){
+            return SaResult.ok("合同取消成功！");
+        }
+        return SaResult.error("合同取消失败！");
+    }
     /**
      * 删除合同
      */
@@ -94,22 +95,4 @@ public class ContractController {
         return SaResult.ok("删除成功！");
     }
 
-    /**
-     * 改变合同状态
-     */
-    @PutMapping(value = "/status/{id}")
-    public SaResult changeContractStatus(@PathVariable Integer id, @RequestParam int status) {
-        contractService.updateContractStatus(id,status);
-        ContractVo contractVo = contractService.getTContractById(id);
-        return SaResult.data(contractVo).setMsg("更新成功！");
-    }
-//
-//    /**
-//     * 设置创建者
-//     */
-//    @PutMapping(value = "/creator/{userId}")
-//    public Result<?> setCreator(@PathVariable Integer userId) {
-//        contractService.setCreator(userId);
-//        return Result.success("Creator set successfully");
-//    }
 }
