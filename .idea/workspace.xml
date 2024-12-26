@@ -4,26 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e4168fe6-e74f-48da-b1aa-1c11cd6c2e68" name="更改" comment="修改首页">
-      <change afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/controller/ClientRfmController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/feign/OrderFeignServiceI.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/mapper/ClientRfmMapper.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/IClientRfmService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/impl/ClientRfmServiceImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client-service/src/main/resources/mapper/ClientRfmMapper.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/common/src/main/java/cn/edu/zust/se/entity/query/ClientRfmQuery.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/common/src/main/java/cn/edu/zust/se/entity/vo/ClientRfmVo.java" afterDir="false" />
+    <list default="true" id="e4168fe6-e74f-48da-b1aa-1c11cd6c2e68" name="更改" comment="添加client功能">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/mapper/ClientMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/mapper/ClientMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/IClientService.java" beforeDir="false" afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/IClientService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/impl/ClientServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/impl/ClientServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/controller/OrderController.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/controller/OrderController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/service/IOrderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/service/IOrderService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/service/impl/OrderServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/service/impl/OrderServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui-service/src/api/client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/api/client.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui-service/src/router/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/router/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui-service/src/types/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/types/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui-service/src/views/Layout.vue" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/views/Layout.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sql/erp.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/erp.sql" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -383,7 +366,7 @@
       <workItem from="1735093103992" duration="2702000" />
       <workItem from="1735132438863" duration="931000" />
       <workItem from="1735193061787" duration="12900000" />
-      <workItem from="1735209518461" duration="11108000" />
+      <workItem from="1735209518461" duration="12104000" />
     </task>
     <task id="LOCAL-00001" summary="创建项目">
       <option name="closed" value="true" />
@@ -569,7 +552,15 @@
       <option name="project" value="LOCAL" />
       <updated>1735208996325</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="添加client功能">
+      <option name="closed" value="true" />
+      <created>1735221545760</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1735221545760</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -602,6 +593,7 @@
     <MESSAGE value="1" />
     <MESSAGE value="修改bug" />
     <MESSAGE value="修改首页" />
-    <option name="LAST_COMMIT_MESSAGE" value="修改首页" />
+    <MESSAGE value="添加client功能" />
+    <option name="LAST_COMMIT_MESSAGE" value="添加client功能" />
   </component>
 </project>
