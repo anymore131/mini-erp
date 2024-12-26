@@ -26,7 +26,7 @@ public interface IMessageService extends IService<Message> {
     /**
      * 查询消息列表
      */
-    PageDto<MessageVo> queryPageList(MessageQuery messageQuery);
+    PageDto<MessageVo> pageMessage(MessageQuery messageQuery);
 
     /**
      * 查询消息列表
@@ -36,12 +36,12 @@ public interface IMessageService extends IService<Message> {
     /**
      * 新增消息
      */
-    void insertByBo(Message message);
+    void insertMessage(Message message);
 
     /**
      * 修改消息
      */
-    MessageVo updateByBo(Message message);
+    MessageVo updateMessage(Message message);
 
     /**
      * 校验并批量删除消息信息

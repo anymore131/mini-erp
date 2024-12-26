@@ -3,6 +3,7 @@ package cn.edu.zust.se.controller;
 
 import cn.dev33.satoken.util.SaResult;
 import cn.edu.zust.se.entity.po.Message;
+import cn.edu.zust.se.entity.query.MessageQuery;
 import cn.edu.zust.se.service.IMessageService;
 import com.alibaba.nacos.api.model.v2.Result;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -39,29 +40,8 @@ public class MessageController {
      * 分页列表查询
      */
     @GetMapping(value = "/list")
-    public Result<?> queryPageList(@Validated Message message,
-                                   @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                   @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                   HttpServletRequest req) {
-        // 参数验证
-        if (pageNo <= 0 || pageSize <= 0 || pageSize > 100) {
-            return Result.failure("Invalid page parameters");
-        }
-
-        try {
-            // 初始化查询条件
-            QueryWrapper<Message> queryWrapper =new QueryWrapper<>(message);
-
-            // 分页查询
-            Page<Message> page = new Page<>(pageNo, pageSize);
-            IPage<Message> pageList = messageService.page(page, queryWrapper);
-
-            return Result.success(pageList);
-        } catch (Exception e) {
-            // 异常处理
-            logger.error("Error occurred while querying page list", e);
-            return Result.failure("Internal server error");
-        }
+    public SaResult queryPageList(@RequestBody MessageQuery messageQuery) {
+        return SaResult.data(messageService.pageMessage(messageQuery)).setMsg("查询成功！");
     }
 
 
