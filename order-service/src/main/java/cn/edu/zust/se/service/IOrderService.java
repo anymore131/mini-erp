@@ -7,6 +7,7 @@ import cn.edu.zust.se.entity.query.OrderQuery;
 import cn.edu.zust.se.entity.vo.OrderVo;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -29,4 +30,7 @@ public interface IOrderService extends IService<Order> {
     public OrderVo getOrderVoByOrderNo(String orderNo);
     public Map<String,Long> getOrderStatusDistribution(Integer userId);
     public List<TendDto> getTend(Integer userId);
+    public LocalDateTime getLastOrderTime(Integer clientId);
+    public long getOrderFrequency(Integer clientId);
+    public Integer getTotalAmount(Integer clientId);
 }

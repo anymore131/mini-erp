@@ -84,5 +84,34 @@ export const clientApi = {
       method: 'get',
       params: { userId }
     })
+  },
+  // 获取客户等级分布
+  getCustomerLevelDistribution(userId?: number) {
+    return request({
+      url: '/client/client-rfm/customer-level',
+      method: 'get',
+      params: { userId }
+    })
+  },
+  // 更新RFM数据
+  updateRfm(userId?: number) {
+    return request({
+      url: '/client/client-rfm/update',
+      method: 'post',
+      params: { userId }
+    })
+  },
+  // 获取高价值客户
+  getValueCustomers(data: {
+    pageNum: number
+    pageSize: number
+    userId?: number
+    customerLevel?: string
+  }) {
+    return request({
+      url: '/client/client-rfm/pageValue',
+      method: 'post',
+      data
+    })
   }
 }

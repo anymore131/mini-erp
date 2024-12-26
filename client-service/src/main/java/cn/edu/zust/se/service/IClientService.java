@@ -28,4 +28,5 @@ public interface IClientService extends IService<Client> {
     public String toCooperation(Integer id);
     public String updateClientSum(Integer id,Integer amount);
     public Map<String,Long> getOrderStatusDistribution(Integer userId);
+    public List<Client> getAllClientList(Integer userId);
 }

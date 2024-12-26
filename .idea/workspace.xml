@@ -4,23 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e4168fe6-e74f-48da-b1aa-1c11cd6c2e68" name="更改" comment="修改bug">
-      <change afterPath="$PROJECT_DIR$/common/src/main/java/cn/edu/zust/se/entity/dto/TendDto.java" afterDir="false" />
+    <list default="true" id="e4168fe6-e74f-48da-b1aa-1c11cd6c2e68" name="更改" comment="添加client功能">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/controller/ClientController.java" beforeDir="false" afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/controller/ClientController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/IClientService.java" beforeDir="false" afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/IClientService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/impl/ClientServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/impl/ClientServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/controller/OrderController.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/controller/OrderController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/service/IOrderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/service/IOrderService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/service/impl/OrderServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/service/impl/OrderServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui-service/components.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/components.d.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui-service/src/api/client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/api/client.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui-service/src/api/order.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/api/order.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui-service/src/router/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/router/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui-service/src/utils/format.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/utils/format.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui-service/src/views/Dashboard.vue" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/views/Dashboard.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui-service/src/views/Layout.vue" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/views/Layout.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui-service/src/views/file/FileManage.vue" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/views/file/FileManage.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sql/erp.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/erp.sql" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -323,8 +309,8 @@
         <item itemvalue="Spring Boot.ClientApplication" />
         <item itemvalue="Spring Boot.OrderApplication" />
         <item itemvalue="Spring Boot.UserApplication" />
-        <item itemvalue="Spring Boot.MessageApplication" />
         <item itemvalue="Spring Boot.GatewayApplication" />
+        <item itemvalue="Spring Boot.MessageApplication" />
       </list>
     </recent_temporary>
   </component>
@@ -379,7 +365,8 @@
       <workItem from="1735053185473" duration="56000" />
       <workItem from="1735093103992" duration="2702000" />
       <workItem from="1735132438863" duration="931000" />
-      <workItem from="1735193061787" duration="12551000" />
+      <workItem from="1735193061787" duration="12900000" />
+      <workItem from="1735209518461" duration="12104000" />
     </task>
     <task id="LOCAL-00001" summary="创建项目">
       <option name="closed" value="true" />
@@ -557,7 +544,23 @@
       <option name="project" value="LOCAL" />
       <updated>1735202330069</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="修改首页">
+      <option name="closed" value="true" />
+      <created>1735208996325</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1735208996325</updated>
+    </task>
+    <task id="LOCAL-00024" summary="添加client功能">
+      <option name="closed" value="true" />
+      <created>1735221545760</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1735221545760</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -589,6 +592,8 @@
     <MESSAGE value="orderLog" />
     <MESSAGE value="1" />
     <MESSAGE value="修改bug" />
-    <option name="LAST_COMMIT_MESSAGE" value="修改bug" />
+    <MESSAGE value="修改首页" />
+    <MESSAGE value="添加client功能" />
+    <option name="LAST_COMMIT_MESSAGE" value="添加client功能" />
   </component>
 </project>

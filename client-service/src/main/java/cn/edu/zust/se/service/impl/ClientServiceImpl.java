@@ -326,4 +326,12 @@ public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> impleme
         }
         return map;
     }
+
+    @Override
+    public List<Client> getAllClientList(Integer userId) {
+        return lambdaQuery()
+                .ne(Client::getStatus, ClientStatusEnum.START.getCode())
+                .eq(userId != null, Client::getUserId, userId)
+                .list();
+    }
 }

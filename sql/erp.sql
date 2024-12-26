@@ -38,6 +38,23 @@ CREATE TABLE `client`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
+-- Table structure for client_rfm
+-- ----------------------------
+DROP TABLE IF EXISTS `client_rfm`;
+CREATE TABLE `client_rfm`  (
+                               `client_id` int(11) NOT NULL,
+                               `last_order_time` datetime NULL DEFAULT NULL COMMENT '最近一次消费时间',
+                               `order_frequency` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '消费频率(订单数)',
+                               `total_amount` int(11) NULL DEFAULT NULL COMMENT '消费总额(分)',
+                               `rfm_score` int(11) NULL DEFAULT NULL COMMENT 'RFM得分',
+                               `customer_level` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '客户等级 (ABCD)',
+                               `user_id` int(11) NULL DEFAULT NULL,
+                               PRIMARY KEY (`client_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- ----------------------------
 -- Records of client
 -- ----------------------------
 INSERT INTO `client` VALUES (-2147360766, 'avababananha', '15867404571', '1628512812@qq.com', 0, 3, '2024-12-21 16:24:02', '2024-12-21 16:24:02', 0, 0);

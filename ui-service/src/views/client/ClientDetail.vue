@@ -45,7 +45,7 @@
         </el-button>
       </el-descriptions-item>
       <el-descriptions-item label="累计金额">
-        {{ clientInfo.sum }}
+        ¥{{ (clientInfo.sum / 100).toFixed(2) }}
       </el-descriptions-item>
       <el-descriptions-item label="最后更新">
         {{ clientInfo.lastTime }}
