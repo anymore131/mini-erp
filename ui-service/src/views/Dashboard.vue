@@ -80,7 +80,7 @@
             <div class="card-header">
               <span>
                 <el-icon><TrendCharts /></el-icon>
-                最���7天订单趋势
+                最近7天订单趋势
               </span>
             </div>
           </template>
