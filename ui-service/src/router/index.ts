@@ -7,6 +7,11 @@ import OrderApproval from '../views/order/OrderApproval.vue'
 import UserManage from '../views/user/UserManage.vue'
 import UserDetail from '../views/user/UserDetail.vue'
 import OrderLog from '../views/log/OrderLog.vue'
+import ContractManage from "@/views/contract/ContractManage.vue";
+import ContractDetail from "@/views/contract/ContractDetail.vue";
+import CreateContract from "@/views/contract/CreateContract.vue";
+import ContractApproval from "@/views/contract/ContractApproval.vue";
+import ContractLog from "@/views/contract/ContractLog.vue";
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -150,16 +155,70 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
-        path: '/message',
-        name: 'UserMessage',
-        component: () => import('@/views/message/UserMessage.vue'),
+        path: 'contract-manage',
+        name: 'ContractManage',
+        component: () => import('../views/contract/ContractManage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'contract-manage/:userId',
+        name: 'MyContractManage',
+        component: () => import('../views/contract/ContractManage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'contract-manage/pending',
+        name: 'PendingContracts',
+        component: () => import('../views/contract/PendingContracts.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/contract/create/:clientId',
+        name: 'CreateContract',
+        component: () => import('../views/contract/CreateContract.vue'),
+        meta: {
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'contract/:id',
+        name: 'ContractDetail',
+        component: () => import('../views/contract/ContractDetail.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'contract',
+        children: [
+          {
+            path: '',
+            component: ContractManage
+          },
+          {
+            path: ':id',
+            component: ContractDetail
+          },
+          {
+            path: 'create/:contractId?',
+            component: CreateContract
+          },
+          {
+            path: 'approval/:id',
+            component: ContractApproval
+          }
+        ]
+      },
+      {
+        path: '/log/contract',
+        name: 'ContractLog',
+        component: ContractLog,
         meta: {
           requiresAuth: true,
-          title: '我的消息'
+          requiresAdmin: true
         }
-      }
+      },
     ]
   },
+
   {
     path: '/403',
     name: '403',

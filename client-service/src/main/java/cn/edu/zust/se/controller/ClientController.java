@@ -3,10 +3,12 @@ package cn.edu.zust.se.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
+import cn.edu.zust.se.entity.dto.ClientOrderStatusDto;
 import cn.edu.zust.se.entity.dto.PageDto;
 import cn.edu.zust.se.entity.po.Client;
 import cn.edu.zust.se.entity.query.ClientQuery;
 import cn.edu.zust.se.entity.vo.ClientVo;
+import cn.edu.zust.se.enums.ClientStatusEnum;
 import cn.edu.zust.se.exception.ForbiddenException;
 import cn.edu.zust.se.exception.InvalidInputException;
 import cn.edu.zust.se.service.IClientService;
@@ -56,7 +58,7 @@ public class ClientController {
     }
 
     @RequestMapping("/page/{id}")
-    public SaResult pageByUserId(@PathVariable Integer id, @RequestBody(required = false) ClientQuery clientQuery){
+    public SaResult pageByUserId(@PathVariable("id") Integer id, @RequestBody(required = false) ClientQuery clientQuery){
         if (clientQuery == null || id == null){
             throw new InvalidInputException("输入信息为空！");
         }
@@ -93,7 +95,7 @@ public class ClientController {
     }
 
     @RequestMapping("/delete/{id}")
-    public SaResult delete(@PathVariable Integer id){
+    public SaResult delete(@PathVariable("id") Integer id){
         if (id == null){
             throw new InvalidInputException("输入信息为空！");
         }
@@ -144,4 +146,13 @@ public class ClientController {
     public SaResult getStatusDistribution(@RequestParam(value = "userId",required = false) Integer userId){
         return SaResult.data(clientService.getOrderStatusDistribution(userId));
     }
+
+//    @GetMapping("/order-status/{clientId}")
+//    public SaResult getClientOrderStatus(@PathVariable Integer clientId) {
+//
+//        // 从订单表中查询该客户的订单状态
+//        ClientOrderStatusDto status = clientService.getClientOrderStatus(clientId);
+//
+//        return SaResult.data(status);
+//    }
 }
