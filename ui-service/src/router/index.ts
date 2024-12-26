@@ -140,6 +140,15 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true
         }
+      },
+      {
+        path: '/message',
+        name: 'UserMessage',
+        component: () => import('@/views/message/UserMessage.vue'),
+        meta: {
+          requiresAuth: true,
+          title: '我的消息'
+        }
       }
     ]
   },

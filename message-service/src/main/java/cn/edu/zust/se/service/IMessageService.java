@@ -47,4 +47,11 @@ public interface IMessageService extends IService<Message> {
      * 校验并批量删除消息信息
      */
     Boolean deleteWithValidByIds(Collection<Long> ids, Boolean isValid);
+
+    /**
+     * 标记消息为已读
+     * @param id 消息ID
+     * @return 更新后的消息
+     */
+    MessageVo markAsRead(Integer id);
 }

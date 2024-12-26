@@ -101,4 +101,19 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     public Boolean deleteWithValidByIds(Collection<Long> ids, Boolean isValid) {
         return null;
     }
+
+    /**
+     * 标记消息为已读
+     * @param id 消息ID
+     * @return 更新后的消息
+     */
+    public MessageVo markAsRead(Integer id) {
+        Message message = this.getById(id);
+        if (message != null) {
+            message.setType(1); // 设置为已读状态
+            this.updateById(message);
+            return BeanUtil.copyProperties(message, MessageVo.class);
+        }
+        return null;
+    }
 }
