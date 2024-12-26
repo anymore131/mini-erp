@@ -45,6 +45,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true }
       },
       {
+        path: 'message',
+        name: 'UserMessage',
+        component: () => import('../views/message/UserMessage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
         path: 'user-manage',
         name: 'UserManage',
         component: () => import('../views/user/UserManage.vue'),
@@ -216,6 +222,12 @@ const routes: RouteRecordRaw[] = [
           requiresAdmin: true
         }
       },
+      {
+        path: 'message',
+        name: 'UserMessage',
+        component: () => import('../views/message/UserMessage.vue'),
+        meta: { requiresAuth: true }
+      }
     ]
   },
 
