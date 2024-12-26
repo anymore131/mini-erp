@@ -43,7 +43,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     }
 
     @Override
-    public PageDto<MessageVo> queryPageList(MessageQuery messageQuery) {
+    public PageDto<MessageVo> pageMessage(MessageQuery messageQuery) {
         Page<Message> page = messageQuery.toMpPage(messageQuery.getSortBy(), messageQuery.isAsc());
         if (messageQuery.getId() != null){
             lambdaQuery()
@@ -83,12 +83,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     }
 
     @Override
-    public void insertByBo(Message message) {
+    public void insertMessage(Message message) {
         save(message);
     }
 
     @Override
-    public MessageVo updateByBo(Message message) {
+    public MessageVo updateMessage(Message message) {
         if (updateById(message)){
             return selectById(message.getId());
         }
