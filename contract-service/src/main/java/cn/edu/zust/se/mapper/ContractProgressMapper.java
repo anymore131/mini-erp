@@ -1,28 +1,30 @@
 package cn.edu.zust.se.mapper;
 
 import cn.edu.zust.se.entity.po.ContractProgress;
+import cn.edu.zust.se.entity.query.ContractProgressQuery;
+import cn.edu.zust.se.entity.vo.ContractProgressVo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.Select;
-
-import java.util.List;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
- * <p>
- *  Mapper 接口
- * </p>
- *
- * @author author
- * @since 2024-12-21
+ * 合同进度Mapper接口
  */
+@Mapper
 public interface ContractProgressMapper extends BaseMapper<ContractProgress> {
-    @Select("SELECT * FROM contract_progress")
-    List<ContractProgress> selectAll();
+    /**
+     * 分页查询合同进度
+     * @param page 分页参数
+     * @param query 查询条件
+     * @return 分页结果
+     */
+    IPage<ContractProgressVo> selectPageVo(IPage<ContractProgressVo> page, @Param("query") ContractProgressQuery query);
 
-    @Select("SELECT * FROM contract_progress WHERE id = #{id}")
-    ContractProgress selectById(Integer id);
-
-
-    @Delete("DELETE FROM contract_progress WHERE id = #{id}")
-    void deleteById(Integer id);
+    /**
+     * 根据合同ID获取最新进度
+     * @param contractId 合同ID
+     * @return 最新进度
+     */
+    ContractProgress selectLatestByContractId(@Param("contractId") Integer contractId);
 }
