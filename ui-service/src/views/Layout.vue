@@ -93,6 +93,35 @@
           </el-menu-item>
         </el-sub-menu>
 
+        <el-sub-menu v-if="isAdmin" index="contract">
+          <template #title>
+            <el-icon></el-icon>
+            <span>合同管理</span>
+          </template>
+          <el-menu-item index="/contract-manage">
+            <el-icon></el-icon>
+            <span>所有合同</span>
+          </el-menu-item>
+          <el-menu-item index="/contract-manage/pending">
+            <el-icon></el-icon>
+            <span>待检验合同</span>
+          </el-menu-item>
+          <el-menu-item :index="`/contract-manage/${userInfo?.id}`">
+            <el-icon></el-icon>
+            <span>我的合同</span>
+          </el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu v-else index="contract">
+          <template #title>
+            <el-icon></el-icon>
+            <span>合同管理</span>
+          </template>
+          <el-menu-item index="/contrcat-manage">
+            <el-icon></el-icon>
+            <span>我的合同</span>
+          </el-menu-item>
+        </el-sub-menu>
         <el-sub-menu v-if="isAdmin" index="file">
           <template #title>
             <el-icon></el-icon>
