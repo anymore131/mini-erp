@@ -30,5 +30,5 @@ public interface IClientService extends IService<Client> {
     public String updateClientSum(Integer id,Integer amount);
     public Map<String,Long> getOrderStatusDistribution(Integer userId);
     public List<Client> getAllClientList(Integer userId);
-    ClientOrderStatusDto getClientOrderStatus(Integer clientId) ;
+//    ClientOrderStatusDto getClientOrderStatus(Integer clientId) ;
 }

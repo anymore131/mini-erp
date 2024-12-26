@@ -147,12 +147,12 @@ public class ClientController {
         return SaResult.data(clientService.getOrderStatusDistribution(userId));
     }
 
-    @GetMapping("/order-status/{clientId}")
-    public SaResult getClientOrderStatus(@PathVariable Integer clientId) {
-
-        // 从订单表中查询该客户的订单状态
-        ClientOrderStatusDto status = clientService.getClientOrderStatus(clientId);
-
-        return SaResult.data(status);
-    }
+//    @GetMapping("/order-status/{clientId}")
+//    public SaResult getClientOrderStatus(@PathVariable Integer clientId) {
+//
+//        // 从订单表中查询该客户的订单状态
+//        ClientOrderStatusDto status = clientService.getClientOrderStatus(clientId);
+//
+//        return SaResult.data(status);
+//    }
 }
