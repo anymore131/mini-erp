@@ -18,6 +18,13 @@
         >
           提交检验
         </el-button>
+        <el-button 
+          v-if="orderInfo.status === 'APPROVED'"
+          type="success" 
+          @click="handleComplete"
+        >
+          完成订单
+        </el-button>
       </div>
     </div>
 
@@ -512,6 +519,16 @@ export default defineComponent({
       }
     }
 
+    const handleComplete = async () => {
+      try {
+        await orderApi.completeOrder(Number(route.params.id))
+        ElMessage.success('订单已完成')
+        getOrderInfo()
+      } catch (error) {
+        ElMessage.error('操作失败')
+      }
+    }
+
     onMounted(() => {
       getOrderInfo()
       getFileList()
@@ -549,7 +566,8 @@ export default defineComponent({
       handleCancel,
       isAdmin,
       handleClientClick,
-      approvalList
+      approvalList,
+      handleComplete
     }
   }
 })

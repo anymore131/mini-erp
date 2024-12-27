@@ -122,7 +122,7 @@ export const orderApi = {
     })
   },
 
-  // ���取订单审批记录
+  // 获取订单审批记录
   getOrderApprovals(orderId: number) {
     return request.get(`/order/order-approval/list/${orderId}`)
   },
@@ -175,6 +175,13 @@ export const orderApi = {
       url: '/order/order/trend',
       method: 'get',
       params: { userId }
+    })
+  },
+  // 完成订单
+  completeOrder(id: number) {
+    return request({
+      url: `/order/order/complete/${id}`,
+      method: 'post'
     })
   }
 } 
