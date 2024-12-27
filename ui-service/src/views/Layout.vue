@@ -5,190 +5,191 @@
       <div class="logo">
         <span>管理系统</span>
       </div>
-      <el-menu
-        :default-active="currentRoute"
-        class="el-menu-vertical"
-        background-color="#304156"
-        text-color="#bfcbd9"
-        active-text-color="#409EFF"
-        router
-      >
-        <el-menu-item index="/dashboard">
-          <el-icon></el-icon>
-          <span>控制台</span>
-        </el-menu-item>
+      <div class="menu-container">
+        <el-menu
+          :default-active="currentRoute"
+          class="el-menu-vertical"
+          background-color="#304156"
+          text-color="#bfcbd9"
+          active-text-color="#409EFF"
+          router
+        >
+          <el-menu-item index="/dashboard">
+            <el-icon><Odometer /></el-icon>
+            <span>工作台</span>
+          </el-menu-item>
 
-        <el-menu-item index="/message">
-          <el-icon><Message /></el-icon>
-          <span>消息</span>
-        </el-menu-item>
+          <el-menu-item index="/message">
+            <el-icon><Message /></el-icon>
+            <span>消息</span>
+          </el-menu-item>
 
-        <el-sub-menu v-if="isAdmin" index="user">
-          <template #title>
-            <el-icon></el-icon>
-            <span>用户</span>
-          </template>
-          <el-menu-item index="/user-manage">
-            <el-icon></el-icon>
-            <span>用户管理</span>
-          </el-menu-item>
-      
-        </el-sub-menu>
+          <el-sub-menu v-if="isAdmin" index="user">
+            <template #title>
+              <el-icon></el-icon>
+              <span>用户</span>
+            </template>
+            <el-menu-item index="/user-manage">
+              <el-icon></el-icon>
+              <span>用户管理</span>
+            </el-menu-item>
+          </el-sub-menu>
 
+          <el-sub-menu v-if="isAdmin" index="client">
+            <template #title>
+              <el-icon></el-icon>
+              <span>客户管理</span>
+            </template>
 
-        <el-sub-menu v-if="isAdmin" index="client">
-          <template #title>
-            <el-icon></el-icon>
-            <span>客户管理</span>
-          </template>
+            <el-menu-item index="/client-manage">
+              <el-icon></el-icon>
+              <span>所有客户</span>
+            </el-menu-item>
+            <el-menu-item :index="`/client-manage/${userInfo?.id}`">
+              <el-icon></el-icon>
+              <span>我的客户</span>
+            </el-menu-item>
+            <el-menu-item index="/client-value">
+              <el-icon></el-icon>
+              <span>客户价值分析</span>
+            </el-menu-item>
+          </el-sub-menu>
 
-          <el-menu-item index="/client-manage">
-            <el-icon></el-icon>
-            <span>所有客户</span>
-          </el-menu-item>
-          <el-menu-item :index="`/client-manage/${userInfo?.id}`">
-            <el-icon></el-icon>
-            <span>我的客户</span>
-          </el-menu-item>
-          <el-menu-item index="/client-value">
-            <el-icon></el-icon>
-            <span>客户价值分析</span>
-          </el-menu-item>
-        </el-sub-menu>
+          <el-sub-menu v-else index="client">
+            <template #title>
+              <el-icon></el-icon>
+              <span>客户管理</span>
+            </template>
+            <el-menu-item index="/client-manage">
+              <el-icon></el-icon>
+              <span>我的客户</span>
+            </el-menu-item>
+            <el-menu-item index="/client-value">
+              <el-icon></el-icon>
+              <span>客户价值分析</span>
+            </el-menu-item>
+          </el-sub-menu>
 
-        <el-sub-menu v-else index="client">
-          <template #title>
-            <el-icon></el-icon>
-            <span>客户管理</span>
-          </template>
-          <el-menu-item index="/client-manage">
-          <el-icon></el-icon>
-          <span>我的客户</span>
-          </el-menu-item>
-          <el-menu-item index="/client-value">
-            <el-icon></el-icon>
-            <span>客户价值分析</span>
-          </el-menu-item>
-        </el-sub-menu>
+          <el-sub-menu v-if="isAdmin" index="order">
+            <template #title>
+              <el-icon></el-icon>
+              <span>订单管理</span>
+            </template>
+            <el-menu-item index="/order-manage">
+              <el-icon></el-icon>
+              <span>所有订单</span>
+            </el-menu-item>
+            <el-menu-item index="/order-manage/pending">
+              <el-icon></el-icon>
+              <span>待检验订单</span>
+            </el-menu-item>
+            <el-menu-item :index="`/order-manage/${userInfo?.id}`">
+              <el-icon></el-icon>
+              <span>我的订单</span>
+            </el-menu-item>
+          </el-sub-menu>
 
-        <el-sub-menu v-if="isAdmin" index="order">
-          <template #title>
-            <el-icon></el-icon>
-            <span>订单管理</span>
-          </template>
-          <el-menu-item index="/order-manage">
-            <el-icon></el-icon>
-            <span>所有订单</span>
-          </el-menu-item>
-          <el-menu-item index="/order-manage/pending">
-            <el-icon></el-icon>
-            <span>待检验订单</span>
-          </el-menu-item>
-          <el-menu-item :index="`/order-manage/${userInfo?.id}`">
-            <el-icon></el-icon>
-            <span>我的订单</span>
-          </el-menu-item>
-        </el-sub-menu>
+          <el-sub-menu v-else index="order">
+            <template #title>
+              <el-icon></el-icon>
+              <span>订单管理</span>
+            </template>
+            <el-menu-item index="/order-manage">
+              <el-icon></el-icon>
+              <span>我的订单</span>
+            </el-menu-item>
+          </el-sub-menu>
 
-        <el-sub-menu v-else index="order">
-          <template #title>
-            <el-icon></el-icon>
-            <span>订单管理</span>
-          </template>
-          <el-menu-item index="/order-manage">
-          <el-icon></el-icon>
-            <span>我的订单</span>
-          </el-menu-item>
-        </el-sub-menu>
+          <!-- <el-sub-menu v-if="isAdmin" index="contract">
+            <template #title>
+              <el-icon></el-icon>
+              <span>合同管理</span>
+            </template>
+            <el-menu-item index="/contract-manage">
+              <el-icon></el-icon>
+              <span>所有合同</span>
+            </el-menu-item>
+            <el-menu-item index="/contract-manage/pending">
+              <el-icon></el-icon>
+              <span>待检验合同</span>
+            </el-menu-item>
+            <el-menu-item :index="`/contract-manage/${userInfo?.id}`">
+              <el-icon></el-icon>
+              <span>我的合同</span>
+            </el-menu-item>
+            <el-menu-item index="/contract-log">
+              <el-icon><Timer /></el-icon>
+              <span>合同日志</span>
+            </el-menu-item>
+          </el-sub-menu>
 
-        <el-sub-menu v-if="isAdmin" index="contract">
-          <template #title>
-            <el-icon></el-icon>
-            <span>合同管理</span>
-          </template>
-          <el-menu-item index="/contract-manage">
-            <el-icon></el-icon>
-            <span>所有合同</span>
-          </el-menu-item>
-          <el-menu-item index="/contract-manage/pending">
-            <el-icon></el-icon>
-            <span>待检验合同</span>
-          </el-menu-item>
-          <el-menu-item :index="`/contract-manage/${userInfo?.id}`">
-            <el-icon></el-icon>
-            <span>我的合同</span>
-          </el-menu-item>
-          <el-menu-item index="/contract-log">
-            <el-icon><Timer /></el-icon>
-            <span>合同日志</span>
-          </el-menu-item>
-        </el-sub-menu>
+          <el-sub-menu v-else index="contract">
+            <template #title>
+              <el-icon></el-icon>
+              <span>合同管理</span>
+            </template>
+            <el-menu-item :index="`/contract-manage/${userInfo?.id}`">
+              <el-icon></el-icon>
+              <span>我的合同</span>
+            </el-menu-item>
+            <el-menu-item index="/contract-log">
+              <el-icon><Timer /></el-icon>
+              <span>合同日志</span>
+            </el-menu-item>
+          </el-sub-menu> -->
 
-        <el-sub-menu v-else index="contract">
-          <template #title>
-            <el-icon></el-icon>
-            <span>合同管理</span>
-          </template>
-          <el-menu-item :index="`/contract-manage/${userInfo?.id}`">
-          <el-icon></el-icon>
-            <span>我的合同</span>
-          </el-menu-item>
-          <el-menu-item index="/contract-log">
-            <el-icon><Timer /></el-icon>
-            <span>合同日志</span>
-          </el-menu-item>
-        </el-sub-menu>
-        <el-sub-menu v-if="isAdmin" index="file">
-          <template #title>
-            <el-icon></el-icon>
-            <span>文件列表</span>
-          </template>
-          <el-menu-item index="/file-manage">
-            <el-icon></el-icon>
-            <span>所有文件</span>
-          </el-menu-item>
-        </el-sub-menu>
+          <el-sub-menu v-if="isAdmin" index="file">
+            <template #title>
+              <el-icon></el-icon>
+              <span>文件列表</span>
+            </template>
+            <el-menu-item index="/file-manage">
+              <el-icon></el-icon>
+              <span>所有文件</span>
+            </el-menu-item>
+          </el-sub-menu>
 
-        <el-sub-menu v-if="isAdmin" index="log">
-          <template #title>
-            <el-icon></el-icon>
-            <span>日志管理</span>
-          </template>
-          <el-menu-item index="/log/order">
-            <el-icon></el-icon>
-            <span>订单日志</span>
-          </el-menu-item>
-        </el-sub-menu>
+          <el-sub-menu v-if="isAdmin" index="log">
+            <template #title>
+              <el-icon></el-icon>
+              <span>日志管理</span>
+            </template>
+            <el-menu-item index="/log/order">
+              <el-icon></el-icon>
+              <span>订单日志</span>
+            </el-menu-item>
+          </el-sub-menu>
 
-        <el-menu-item index="/profile">
-          <el-icon></el-icon>
-          <span>个人中心</span>
-        </el-menu-item>
-
-        <!-- 开发文档 -->
-        <el-sub-menu v-if="isAdmin" index="docs">
-          <template #title>
+          <el-menu-item index="/profile">
             <el-icon></el-icon>
-            <span>开发文档</span>
-          </template>
-          <el-menu-item @click="openDoc('satoken')">
-            <span>Sa-Token</span>
+            <span>个人中心</span>
           </el-menu-item>
-          <el-menu-item @click="openDoc('mybatis')">
-            <span>MyBatis-Plus</span>
-          </el-menu-item>
-          <el-menu-item @click="openDoc('element')">
-            <span>Element Plus</span>
-          </el-menu-item>
-          <el-menu-item @click="openDoc('vue')">
-            <span>Vue3</span>
-          </el-menu-item>
-          <el-menu-item @click="openDoc('minio')">
-            <span>MinIO</span>
-          </el-menu-item>
-        </el-sub-menu>
 
-      </el-menu>
+          <!-- 开发文档 -->
+          <el-sub-menu v-if="isAdmin" index="docs">
+            <template #title>
+              <el-icon></el-icon>
+              <span>开发文档</span>
+            </template>
+            <el-menu-item @click="openDoc('satoken')">
+              <span>Sa-Token</span>
+            </el-menu-item>
+            <el-menu-item @click="openDoc('mybatis')">
+              <span>MyBatis-Plus</span>
+            </el-menu-item>
+            <el-menu-item @click="openDoc('element')">
+              <span>Element Plus</span>
+            </el-menu-item>
+            <el-menu-item @click="openDoc('vue')">
+              <span>Vue3</span>
+            </el-menu-item>
+            <el-menu-item @click="openDoc('minio')">
+              <span>MinIO</span>
+            </el-menu-item>
+          </el-sub-menu>
+
+        </el-menu>
+      </div>
     </el-aside>
 
     <el-container>
@@ -364,6 +365,8 @@ export default defineComponent({
   top: 0;
   bottom: 0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .logo {
@@ -374,6 +377,30 @@ export default defineComponent({
   color: #fff;
   font-size: 16px;
   font-weight: bold;
+}
+.logo img {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+}
+
+.menu-container {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* 自定义滚动条样式 */
+.menu-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.menu-container::-webkit-scrollbar-thumb {
+  background: #41485d;
+  border-radius: 3px;
+}
+
+.menu-container::-webkit-scrollbar-track {
+  background: #304156;
 }
 
 .navbar {

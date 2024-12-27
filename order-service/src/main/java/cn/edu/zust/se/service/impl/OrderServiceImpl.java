@@ -401,7 +401,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
                 .eq("client_id", clientId)
                 .orderByDesc("update_time")
                 .eq("status", "COMPLETED");
-        Order order = getOne(queryWrapper);
+        Order order = list(queryWrapper).get(1);
         if (order != null){
             return order.getCreateTime();
         }
