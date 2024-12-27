@@ -183,7 +183,9 @@ const routes: RouteRecordRaw[] = [
         name: 'CreateContract',
         component: () => import('../views/contract/CreateContract.vue'),
         meta: {
-          requiresAuth: true
+          requiresAuth: true,
+          title: '创建合同',
+          requiresAdmin: true
         }
       },
       {
