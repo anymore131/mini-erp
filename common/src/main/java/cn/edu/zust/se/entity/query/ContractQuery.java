@@ -17,7 +17,8 @@ public class ContractQuery extends PageQuery{
     private String signTime;
     private String startTime;
     private String endTime;
-    private BigDecimal totalAmout;
+    private Integer minAmount;
+    private Integer maxAmount;
     private String lastUpdate;
     private Integer version;
     private String status;

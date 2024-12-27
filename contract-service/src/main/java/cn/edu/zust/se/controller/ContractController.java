@@ -1,6 +1,7 @@
 package cn.edu.zust.se.controller;
 
 import cn.dev33.satoken.util.SaResult;
+import cn.edu.zust.se.entity.dto.PageDto;
 import cn.edu.zust.se.entity.po.Contract;
 import cn.edu.zust.se.entity.query.ContractQuery;
 import cn.edu.zust.se.entity.vo.ContractVo;
@@ -8,12 +9,18 @@ import cn.edu.zust.se.exception.InvalidInputException;
 import cn.edu.zust.se.service.IContractLogService;
 import cn.edu.zust.se.service.IContractService;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/contract")
 @AllArgsConstructor
 public class ContractController {
+    private static final Logger log = LoggerFactory.getLogger(ContractController.class);
     private final IContractService contractService;
     private final IContractLogService contractLogService;
     /**
@@ -108,11 +115,33 @@ public class ContractController {
      */
     @PostMapping("/page")
     public SaResult pageContract(@RequestBody ContractQuery contractQuery) {
-        if (contractQuery.getPageNum() == null || contractQuery.getPageSize() == null) {
-            throw new InvalidInputException("页码和页大小不能为空！");
+        log.info("接收到合同查询请求: {}", contractQuery);
+        try {
+            PageDto<ContractVo> result = contractService.getContract(contractQuery);
+            log.info("查询结果: {}", result);
+            return SaResult.data(result).setMsg("查询成功！");
+        } catch (Exception e) {
+            log.error("合同查询失败", e);
+            return SaResult.error("查询失败：" + e.getMessage());
         }
-        contractLogService.addLog(null,null,"分页获取合同信息","获取合同信息成功");
-        return SaResult.data(contractService.getContract(contractQuery)).setMsg("查询成功！");
     }
 
+//    @GetMapping("/statistics")
+//    public SaResult getContractStatistics() {
+//        Map<String, Object> statistics = new HashMap<>();
+//        // 合同总数
+//        statistics.put("totalCount", contractService.count());
+//        // 各状态合同数量
+//        statistics.put("statusDistribution", contractService.getContractStatusDistribution());
+//        // 本月新增合同数
+//        statistics.put("monthlyNew", contractService.getMonthlyNewContracts());
+//        // 合同金额统计
+//        statistics.put("amountStatistics", contractService.getContractAmountStatistics());
+//        return SaResult.data(statistics);
+//    }
+
+//    @GetMapping("/trend")
+//    public SaResult getContractTrend() {
+//        return SaResult.data(contractService.getContractTrend());
+//    }
 }

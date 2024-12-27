@@ -1,13 +1,17 @@
 package cn.edu.zust.se.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.dev33.satoken.util.SaResult;
 import cn.edu.zust.se.entity.dto.PageDto;
 import cn.edu.zust.se.entity.po.Contract;
+import cn.edu.zust.se.entity.po.Message;
+import cn.edu.zust.se.entity.po.Order;
 import cn.edu.zust.se.entity.query.ContractQuery;
 import cn.edu.zust.se.entity.vo.ContractVo;
 import cn.edu.zust.se.enums.ContractStatusEnum;
 import cn.edu.zust.se.exception.InvalidInputException;
 import cn.edu.zust.se.feign.ClientFeignServiceI;
+import cn.edu.zust.se.feign.MessageFeignServiceI;
 import cn.edu.zust.se.feign.UserFeignServiceI;
 import cn.edu.zust.se.mapper.ContractMapper;
 import cn.edu.zust.se.service.IContractLogService;
@@ -18,6 +22,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +40,7 @@ public class ContractServiceImpl extends ServiceImpl<ContractMapper, Contract> i
     private final IContractLogService contractLogService;
     private final ClientFeignServiceI clientFeignService;
     private final UserFeignServiceI userFeignService;
+    private final MessageFeignServiceI messageFeignService;
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS");
     private static final Random random = new Random();
 
@@ -102,47 +109,49 @@ public class ContractServiceImpl extends ServiceImpl<ContractMapper, Contract> i
     public PageDto<ContractVo> getContract(ContractQuery contractQuery) {
         checkInput(contractQuery,"参数为空!");
         Integer currentUserId = StpUtil.getLoginIdAsInt();
-        if (!StpUtil.hasRole("admin") && !contractQuery.getUserId().equals(currentUserId)){
-            throw new InvalidInputException("无权查询订单！");
+        if (contractQuery.getUserId() == null && !StpUtil.hasRole("admin")) {
+            throw new InvalidInputException("用户id不能为空！");
+        }
+        if (!StpUtil.hasRole("admin") && !contractQuery.getUserId().equals(currentUserId)) {
+            throw new InvalidInputException("无权查询合同！");
         }
         Page<Contract> page = contractQuery.toMpPage(contractQuery.getSortBy(), contractQuery.isAsc());
-        if (contractQuery.getStartTime()!= null){
+        if (contractQuery.getStartTime() != null) {
             contractQuery.setStartTime(contractQuery.getStartTime().substring(0,19).replace('T', ' '));
-
         }
-        if (contractQuery.getLastUpdate()!= null){
+        if (contractQuery.getLastUpdate() != null) {
             contractQuery.setLastUpdate(contractQuery.getLastUpdate().substring(0,19).replace('T', ' '));
+
         }
         lambdaQuery()
                 .eq(contractQuery.getNumber() != null, Contract::getNumber, contractQuery.getNumber())
+                .eq(contractQuery.getClientId() != null, Contract::getClientId, contractQuery.getClientId())
                 .eq(contractQuery.getUserId() != null, Contract::getUserId, contractQuery.getUserId())
-                .eq(contractQuery.getStatus() != null, Contract::getStatus, ContractStatusEnum.fromMessage(contractQuery.getStatus()))
-                .like(contractQuery.getName() != null, Contract::getName, contractQuery.getName())
-                .ge(contractQuery.getSignTime() != null, Contract::getSignTime, contractQuery.getSignTime())
+                .eq(contractQuery.getStatus() != null, Contract::getStatus, contractQuery.getStatus())
+                .ge(contractQuery.getMinAmount() != null, Contract::getTotalAmout, contractQuery.getMinAmount())
+                .le(contractQuery.getMaxAmount() != null, Contract::getTotalAmout, contractQuery.getMaxAmount())
                 .ge(contractQuery.getStartTime() != null, Contract::getStartTime, contractQuery.getStartTime())
-                .ge(contractQuery.getOrderId() != null, Contract::getOrderId, contractQuery.getOrderId())
-                .ge(contractQuery.getContent() != null, Contract::getContent, contractQuery.getContent())
                 .le(contractQuery.getLastUpdate() != null, Contract::getLastUpdate, contractQuery.getLastUpdate())
-                .ge(contractQuery.getClientId() != null, Contract::getClientId, contractQuery.getClientId())
                 .page(page);
-        PageDto<ContractVo> voPageDto = new PageDto<>();
-        voPageDto.setTotal(page.getTotal());
-        voPageDto.setPages(page.getPages());
+        PageDto<ContractVo> contractVos = new PageDto<>();
+        contractVos.setTotal(page.getTotal());
+        contractVos.setPages(page.getPages());
         List<Contract> records = page.getRecords();
         if (CollUtil.isEmpty(records)) {
-            voPageDto.setList(Collections.emptyList());
-            return voPageDto;
+            contractVos.setList(Collections.emptyList());
+            return contractVos;
         }
         List<ContractVo> vos = new ArrayList<>();
         for (Contract record : records) {
-            String status = record.getStatus();
-            ContractVo contractVo = putContractVo(record);
-            contractVo.setStatus(ContractStatusEnum.fromCode(Integer.parseInt(status)));
+            ContractVo contractVo = BeanUtil.copyProperties(record, ContractVo.class);
+            contractVo.setUserName(userFeignService.getUserNameById(record.getUserId()));
+            contractVo.setClientName(clientFeignService.getClientNameById(record.getClientId()));
             vos.add(contractVo);
         }
-        voPageDto.setList(vos);
-        return voPageDto;
+        contractVos.setList(vos);
+        return contractVos;
     }
+
 
 
     @Override
@@ -170,30 +179,107 @@ public class ContractServiceImpl extends ServiceImpl<ContractMapper, Contract> i
 
     @Override
     public Integer ApproveContract(Integer id) {
-        checkInput(id,"id不能为空");
-        Contract contract= getAndCheckContractLive(id);
-        checkRoleAdmin(contract,"无权修改订单状态！");
+        System.out.println("\n========== 合同审批通过处理开始 ==========");
+        System.out.println("接收到合同审批通过请求，合同ID: " + id);
+
+        checkInput(id,"id不能为空!");
+        Contract contract = getAndCheckContractLive(id);
+        System.out.println("获取到合同信息: " + contract);
+
         if (!Objects.equals(contract.getStatus(), "PENDING")){
-            throw new InvalidInputException("订单状态错误！");
+            System.out.println("错误：合同状态错误，当前状态: " + contract.getStatus());
+            throw new InvalidInputException("合同状态错误！");
         }
         contract.setStatus("APPROVED");
+        System.out.println("合同状态已更新为: APPROVED");
 
-        contractLogService.addLog(id, StpUtil.getLoginIdAsInt(), "APPROVED", "通过审批");
-        return updateById(contract)? id : null;
+        // 创建消息
+        Message message = new Message();
+        message.setContent("你的合同" + contract.getNumber() + "检验通过");
+        message.setSendTime(LocalDateTime.now());
+        message.setUserId(contract.getUserId());
+        message.setType(0);
+
+        System.out.println("准备创建消息:");
+        System.out.println("- content: " + message.getContent());
+        System.out.println("- userId: " + message.getUserId());
+        System.out.println("- sendTime: " + message.getSendTime());
+        System.out.println("- type: " + message.getType());
+
+        try {
+            System.out.println("开始调用消息服务...");
+            SaResult result = messageFeignService.add(message);
+            System.out.println("消息服务返回结果:");
+            System.out.println("- code: " + result.getCode());
+            System.out.println("- msg: " + result.getMsg());
+            System.out.println("- data: " + result.getData());
+        } catch (Exception e) {
+            System.out.println("错误：创建消息失败");
+            System.out.println("异常类型: " + e.getClass().getName());
+            System.out.println("异常消息: " + e.getMessage());
+            if (e.getCause() != null) {
+                System.out.println("根本原因: " + e.getCause().getMessage());
+            }
+            e.printStackTrace();
+        }
+
+        boolean updated = updateById(contract);
+        System.out.println("合同更新结果: " + (updated ? "成功" : "失败"));
+        System.out.println("========== 合同审批通过处理结束 ==========\n");
+        return updated ? id : null;
     }
 
     @Override
     public Integer RejectContract(Integer id) {
-        checkInput(id,"id不能为空");
-        Contract contract= getAndCheckContractLive(id);
-        checkRoleAdmin(contract,"无权修改订单状态！");
+        System.out.println("\n========== 合同驳回处理开始 ==========");
+        System.out.println("接收到合同驳回请求，合同ID: " + id);
+
+        checkInput(id,"id不能为空!");
+        Contract contract = getAndCheckContractLive(id);
+        System.out.println("获取到合同信息: " + contract);
+
+
         if (!Objects.equals(contract.getStatus(), "PENDING")){
-            throw new InvalidInputException("订单状态错误！");
+            System.out.println("错误：合同状态错误，当前状态: " + contract.getStatus());
+            throw new InvalidInputException("合同状态错误！");
         }
         contract.setStatus("REJECTED");
+        System.out.println("合同状态已更新为: REJECTED");
 
-        contractLogService.addLog(id, StpUtil.getLoginIdAsInt(), "REJECTED", "审批拒绝");
-        return updateById(contract)? id : null;
+        // 创建消息
+        Message message = new Message();
+        message.setContent("你的合同" + contract.getNumber() + "检验不通过");
+        message.setSendTime(LocalDateTime.now());
+        message.setUserId(contract.getUserId());
+        message.setType(0);
+
+        System.out.println("准备创建消息:");
+        System.out.println("- content: " + message.getContent());
+        System.out.println("- userId: " + message.getUserId());
+        System.out.println("- sendTime: " + message.getSendTime());
+        System.out.println("- type: " + message.getType());
+
+        try {
+            System.out.println("开始调用消息服务...");
+            SaResult result = messageFeignService.add(message);
+            System.out.println("消息服务返回结果:");
+            System.out.println("- code: " + result.getCode());
+            System.out.println("- msg: " + result.getMsg());
+            System.out.println("- data: " + result.getData());
+        } catch (Exception e) {
+            System.out.println("错误：创建消息失败");
+            System.out.println("异常类型: " + e.getClass().getName());
+            System.out.println("异常消息: " + e.getMessage());
+            if (e.getCause() != null) {
+                System.out.println("根本原因: " + e.getCause().getMessage());
+            }
+            e.printStackTrace();
+        }
+
+        boolean updated = updateById(contract);
+        System.out.println("合同更新结果: " + (updated ? "成功" : "失败"));
+        System.out.println("========== 合同驳回处理结束 ==========\n");
+        return updated ? id : null;
     }
 
     @Override
@@ -272,7 +358,20 @@ public class ContractServiceImpl extends ServiceImpl<ContractMapper, Contract> i
         checkInput(contract, "合同不存在");
         return contract;
     }
-
-
-
+//
+//    // 检查合同到期提醒
+//    @Scheduled(cron = "0 0 9 * * ?") // 每天早上9点执行
+//    public void checkContractExpiration() {
+//        // 获取即将到期的合同(7天内)
+//        List<Contract> expiringContracts = this.getExpiringContracts(7);
+//
+//        for(Contract contract : expiringContracts) {
+//            // 发送提醒消息
+//            Message message = new Message();
+//            message.setUserId(contract.getUserId());
+//            message.setContent("合同" + contract.getNumber() + "即将到期，请注意处理");
+//            message.setType(0); // 未读
+//            messageFeignService.add(message);
+//        }
+//    }
 }
