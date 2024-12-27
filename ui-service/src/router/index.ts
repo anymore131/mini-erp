@@ -11,7 +11,7 @@ import ContractManage from "@/views/contract/ContractManage.vue";
 import ContractDetail from "@/views/contract/ContractDetail.vue";
 import CreateContract from "@/views/contract/CreateContract.vue";
 import ContractApproval from "@/views/contract/ContractApproval.vue";
-import ContractLog from "@/views/contract/ContractLog.vue";
+import ContractLog from "../views/contract/ContractLog.vue";
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -214,12 +214,12 @@ const routes: RouteRecordRaw[] = [
         ]
       },
       {
-        path: '/log/contract',
+        path: '/contract-log',
         name: 'ContractLog',
         component: ContractLog,
         meta: {
           requiresAuth: true,
-          requiresAdmin: true
+          title: '合同日志'
         }
       },
       {

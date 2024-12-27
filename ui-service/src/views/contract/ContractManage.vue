@@ -265,50 +265,51 @@ export default defineComponent({
 
     // 获取合同列表
     const fetchContractList = async () => {
-      loading.value = true
       try {
-        const params = {
-          ...pagination,
-          ...(searchForm.id ? { id: searchForm.id } : {}),
-          ...(searchForm.status ? { status: searchForm.status } : {}),
-          ...(route.path === '/contract-manage/pending' ? { status: 'PENDING' } : {}),
-          ...(route.params.userId ? { userId: Number(route.params.userId) } : {}),
-          ...(!store.userInfo.value?.role?.includes('admin') ? { userId: store.userInfo.value?.id } : {}),
-          ...(searchForm.minAmount ? { minAmount: Math.round(searchForm.minAmount * 100) } : {}),
-          ...(searchForm.maxAmount ? { maxAmount: Math.round(searchForm.maxAmount * 100) } : {}),
-          ...(value2.value?.[0] ? { createTime: value2.value[0] } : {}),
-          ...(value2.value?.[1] ? { updateTime: value2.value[1] } : {}),
-          ...(searchForm.sortBy ? { 
-            sortBy: searchForm.sortBy,
-            asc: searchForm.asc 
-          } : {})
+        this.loading = true;
+        console.log('请求参数:', {
+          pageNum: this.pagination.pageNum,
+          pageSize: this.pagination.pageSize,
+          ...this.searchForm
+        });
+        
+        const res = await contractApi.getContracts({
+          pageNum: this.pagination.pageNum,
+          pageSize: this.pagination.pageSize,
+          ...this.searchForm
+        });
+        
+        console.log('响应结果:', res);
+        
+        if (res.code === 200) {
+          this.contractList = res.data.list;
+          this.pagination.total = res.data.total;
+        } else {
+          ElMessage.error(res.msg || '查询失败');
         }
-        const res = await contractApi.getContracts(params)
-        contractList.value = res.data.list
-        pagination.total = res.data.total
       } catch (error) {
-        console.error('获取合同列表失败:', error)
-        ElMessage.error('获取合同列表失败')
+        console.error('获取合同列表失败:', error);
+        ElMessage.error('获取合同列表失败');
       } finally {
-        loading.value = false
+        this.loading = false;
       }
     }
 
     // 处理搜索
     const handleSearch = () => {
-      pagination.pageNum = 1
+      this.pagination.pageNum = 1
       fetchContractList()
     }
 
     // 处理页码变化
     const handleCurrentChange = (page: number) => {
-      pagination.pageNum = page
+      this.pagination.pageNum = page
       fetchContractList()
     }
 
     // 处理每页条数变化
     const handleSizeChange = (size: number) => {
-      pagination.pageSize = size
+      this.pagination.pageSize = size
       fetchContractList()
     }
 
@@ -322,8 +323,8 @@ export default defineComponent({
     }
 
     const handleSortChange = ({ prop, order }: { prop: string, order: string | null }) => {
-      searchForm.sortBy = order ? prop.replace(/([A-Z])/g, '_$1').toLowerCase() : undefined
-      searchForm.asc = order === 'ascending'
+      this.searchForm.sortBy = order ? prop.replace(/([A-Z])/g, '_$1').toLowerCase() : undefined
+      this.searchForm.asc = order === 'ascending'
       fetchContractList()
     }
 
@@ -333,7 +334,7 @@ export default defineComponent({
         const res = await clientApi.getAllClients(
           store.isAdmin.value ? store.userInfo.value?.id : store.userInfo.value?.id
         )
-        clientList.value = res.data
+        this.clientList = res.data
       } catch (error) {
         ElMessage.error('获取客户列表失败')
       }
@@ -342,12 +343,12 @@ export default defineComponent({
     // 处理创建合同按钮点击
     const handleCreateContract = () => {
       fetchClientList()
-      clientDialogVisible.value = true
+      this.clientDialogVisible = true
     }
 
     // 处理客户选择
     const handleClientSelect = (row: any) => {
-      clientDialogVisible.value = false
+      this.clientDialogVisible = false
       router.push(`/contract/create/${row.id}`)
     }
 

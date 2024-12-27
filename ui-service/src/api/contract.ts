@@ -55,11 +55,21 @@ export interface ContractProgress {
   updateTime?: string
 }
 
+export interface ContractLogInfo {
+  id: number
+  contractId: number
+  userId: number
+  userName: string
+  action: string
+  content: string
+  createTime: string
+}
+
 export const contractApi = {
   // 获取合同列表
   getContracts(data: ContractQuery): Promise<PageResponse<ContractInfo>> {
     return request({
-      url: '/contract/page',
+      url: '/contract/list',
       method: 'post',
       data
     })
@@ -191,6 +201,23 @@ export const contractApi = {
     return request({
       url: `/contract-progress/${id}`,
       method: 'delete'
+    })
+  },
+
+  // 获取合同日志
+  getContractLogs(data: {
+    pageNum: number
+    pageSize: number
+    id?: string
+    userName?: string
+    action?: string
+    sortBy?: string
+    asc?: boolean
+  }): Promise<PageResponse<ContractLogInfo>> {
+    return request({
+      url: '/contract/log/page',
+      method: 'post',
+      data
     })
   }
 } 

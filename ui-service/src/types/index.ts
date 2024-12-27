@@ -190,4 +190,87 @@ export const CUSTOMER_LEVEL_MAP: Record<string, string> = {
   'C': '一般价值客户',
   'D': '低价值客户'
 }
+
+// 合同状态映射
+export const CONTRACT_STATUS_MAP: Record<string, string> = {
+  'DRAFT': '草稿',
+  'PENDING_APPROVAL': '待审批',
+  'APPROVED': '已审批',
+  'EXECUTING': '执行中', 
+  'COMPLETED': '已完成',
+  'TERMINATED': '已终止',
+  'REJECTED': '已驳回',
+  'CANCELLED': '已取消'
+}
+
+// 合同变更类型映射
+export const CONTRACT_CHANGE_TYPE_MAP: Record<string, string> = {
+  'CONTENT': '内容变更',
+  'AMOUNT': '金额变更',
+  'TIME': '时间变更',
+  'OTHER': '其他变更'
+}
+
+// 合同相关接口类型定义
+export interface ContractForm {
+  name: string
+  clientId: number
+  orderId: number
+  totalAmount: number
+  startTime: string
+  endTime: string
+  content: string
+  attachments?: string[]
+}
+
+export interface ContractQuery {
+  pageNum: number
+  pageSize: number
+  name?: string
+  clientId?: number
+  status?: string
+  startTime?: string
+  endTime?: string
+}
+
+export interface ContractInfo {
+  id: number
+  number: string
+  name: string
+  clientId: number
+  clientName: string
+  orderId: number
+  userId: number
+  userName: string
+  totalAmount: number
+  status: string
+  startTime: string
+  endTime: string
+  content: string
+  createTime: string
+  lastUpdate: string
+}
+
+export interface ContractItemForm {
+  contractId: number
+  itemName: string
+  quantity: number
+  unitPrice: number
+  totalAmount: number
+}
+
+export interface ContractChangeForm {
+  contractId: number
+  changeType: string
+  changeContent: string
+  changeReason: string
+}
+
+export interface ContractProgressForm {
+  contractId: number
+  progressDesc: string
+  completionRate: number
+  nextPlan: string
+  riskIssues?: string
+}
  
