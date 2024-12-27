@@ -44,18 +44,6 @@ public class ContractController {
         return SaResult.data(contract).setMsg("查询成功！");
     }
 
-    /**
-     * 根据用户id获取用户创建合同信息
-     */
-    @RequestMapping("/page")
-    public SaResult pageContract(@RequestBody ContractQuery contractQuery) {
-        if (contractQuery.getPageNum() == null || contractQuery.getPageSize() == null) {
-            throw new InvalidInputException("页码和页大小不能为空！");
-        }
-        contractLogService.addLog(null,null,"分页获取合同信息","获取合同信息成功");
-        return SaResult.data(contractService.getContract(contractQuery)).setMsg("查询成功！");
-    }
-
     @RequestMapping("/pending/{id}")
     public SaResult pendingContract(@PathVariable("id") Integer id) {
         if (contractService.PendingContract(id) != null){
@@ -113,6 +101,18 @@ public class ContractController {
         contractService.deleteContract(id);
         contractLogService.addLog(id,null,"删除合同","删除合同成功");
         return SaResult.ok("删除成功！");
+    }
+
+    /**
+     * 根据用户id获取用户创建合同信息
+     */
+    @PostMapping("/page")
+    public SaResult pageContract(@RequestBody ContractQuery contractQuery) {
+        if (contractQuery.getPageNum() == null || contractQuery.getPageSize() == null) {
+            throw new InvalidInputException("页码和页大小不能为空！");
+        }
+        contractLogService.addLog(null,null,"分页获取合同信息","获取合同信息成功");
+        return SaResult.data(contractService.getContract(contractQuery)).setMsg("查询成功！");
     }
 
 }
