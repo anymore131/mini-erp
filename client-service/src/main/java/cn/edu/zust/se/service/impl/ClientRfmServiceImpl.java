@@ -6,26 +6,19 @@ import cn.edu.zust.se.entity.po.Client;
 import cn.edu.zust.se.entity.po.ClientRfm;
 import cn.edu.zust.se.entity.query.ClientRfmQuery;
 import cn.edu.zust.se.entity.vo.ClientRfmVo;
-import cn.edu.zust.se.entity.vo.ClientVo;
 import cn.edu.zust.se.exception.InvalidInputException;
-import cn.edu.zust.se.feign.OrderFeignServiceI;
 import cn.edu.zust.se.feign.UserFeignServiceI;
-import cn.edu.zust.se.mapper.ClientMapper;
 import cn.edu.zust.se.mapper.ClientRfmMapper;
 import cn.edu.zust.se.service.IClientRfmService;
 import cn.edu.zust.se.service.IClientService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
@@ -138,7 +131,7 @@ public class ClientRfmServiceImpl extends ServiceImpl<ClientRfmMapper, ClientRfm
         if (!StpUtil.hasRole("admin") && !userId.equals(StpUtil.getLoginIdAsInt())) {
             throw new InvalidInputException("无权查看！");
         }
-        List<Integer> clientIds = new ArrayList<>();
+        List<Integer> clientIds;
         clientIds = clientService.getAllClientIdsByUserId(userId);
         if (CollUtil.isEmpty(clientIds)) {
             return Collections.emptyList();

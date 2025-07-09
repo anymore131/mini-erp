@@ -19,7 +19,6 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @TableName("client_rfm")
 public class ClientRfm implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     @TableId(value = "client_id", type = IdType.NONE)

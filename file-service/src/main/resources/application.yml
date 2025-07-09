@@ -60,7 +60,7 @@ sa-token:
   is-log: false
 
 minio:
-  endpoint: http://47.99.150.135:9000 #Minio服务所在地址
-  bucketName: mini-erp #存储桶名称
-  accessKey: minioadmin #访问的key
-  secretKey: minioadmin #访问的秘钥
+  endpoint: ${minio.endpoint} #Minio服务所在地址
+  bucketName: ${minio.bucketName} #存储桶名称
+  accessKey: ${minio.accessKey} #访问的key
+  secretKey: ${minio.secretKey} #访问的秘钥

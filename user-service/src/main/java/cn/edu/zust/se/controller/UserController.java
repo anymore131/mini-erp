@@ -13,7 +13,6 @@ import cn.edu.zust.se.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,7 +22,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("")
 public class UserController {
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(UserController.class);
     @Autowired
     private IUserService userService;
 

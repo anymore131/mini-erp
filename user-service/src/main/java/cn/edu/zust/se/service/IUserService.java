@@ -14,19 +14,19 @@ import java.util.List;
  * @since 2024-11-16
  */
 public interface IUserService extends IService<User> {
-    public UserVo login(User user);
-    public UserVo addUser(User user);
-    public UserVo updateUser(User user);
-    public boolean deleteUser(Integer id);
-    public PageDto<UserVo> pageUsers(UserQuery userQuery);
-    public UserVo getUserById(Integer id);
-    public UserVo getDeleteUserById(Integer id);
-    public UserVo getUserByUserName(String userName);
-    public boolean resetPassword(Integer userId, String newPassword);
-    public boolean updatePassword(Integer userId, String oldPassword, String newPassword);
-    public String getUserNameById(Integer id);
-    public String getRole(Integer id);
+    UserVo login(User user);
+    UserVo addUser(User user);
+    UserVo updateUser(User user);
+    boolean deleteUser(Integer id);
+    PageDto<UserVo> pageUsers(UserQuery userQuery);
+    UserVo getUserById(Integer id);
+    UserVo getDeleteUserById(Integer id);
+    UserVo getUserByUserName(String userName);
+    boolean resetPassword(Integer userId, String newPassword);
+    boolean updatePassword(Integer userId, String oldPassword, String newPassword);
+    String getUserNameById(Integer id);
+    String getRole(Integer id);
     boolean checkUser(Integer id, String password);
-    public PageDto<UserVo> pageUsersName(PageQuery pageQuery);
-    public List<UserVo> getUsersByUserName(String userName);
+    PageDto<UserVo> pageUsersName(PageQuery pageQuery);
+    List<UserVo> getUsersByUserName(String userName);
 }
