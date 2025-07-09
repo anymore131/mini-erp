@@ -97,9 +97,9 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="sum" label="交易额">
+        <el-table-column prop="sum" label="交易量">
           <template #default="{ row }">
-            {{ (row.sum / 100).toFixed(2) }}
+            {{ row.sum }}
           </template>
         </el-table-column>
         <el-table-column prop="lastTime" label="最后更新时间" />

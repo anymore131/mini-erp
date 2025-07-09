@@ -6,7 +6,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: localhost:8848
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
     gateway:
       routes:
         - id: user-route
@@ -49,9 +49,9 @@ spring:
           enabled: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/erp?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8
-    username: root
-    password: zhw6405098
+    url: jdbc:mysql://${spring.datasource.url}?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8
+    username: ${spring.datasource.username}
+    password: ${spring.data.redis.password}
     hikari:
       connection-timeout: 30000
       idle-timeout: 600000
@@ -62,9 +62,9 @@ spring:
       connection-test-query: SELECT 1
   data:
     redis:
-      host: localhost
-      port: 6379
-      password: 0408
+      host: ${spring.data.redis.host}
+      port: ${spring.data.redis.port}
+      password: ${spring.data.redis.password}
 
 # Sa-Token配置
 sa-token:

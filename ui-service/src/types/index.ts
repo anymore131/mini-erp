@@ -184,13 +184,6 @@ export interface ClientRfm {
   customerLevel: string
 }
 
-export const CUSTOMER_LEVEL_MAP: Record<string, string> = {
-  'A': '高价值客户',
-  'B': '重要发展客户',
-  'C': '一般价值客户',
-  'D': '低价值客户'
-}
-
 // 合同状态映射
 export const CONTRACT_STATUS_MAP: Record<string, string> = {
   'DRAFT': '草稿',
@@ -274,3 +267,23 @@ export interface ContractProgressForm {
   riskIssues?: string
 }
  
+export interface ClientRfm {
+  clientId: number
+  clientName: string
+  userId: number
+  userName: string
+  lastOrderTime: string
+  frequency: number
+  monetary: number
+  cluster: number
+  tier: string
+  isAnomaly: number
+  churnRisk: number
+}
+
+export type PageResult<T> = {
+  records: T
+  total: number
+  size: number
+  current: number
+}

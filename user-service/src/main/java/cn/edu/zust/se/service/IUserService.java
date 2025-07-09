@@ -28,4 +28,5 @@ public interface IUserService extends IService<User> {
     public String getRole(Integer id);
     boolean checkUser(Integer id, String password);
     public PageDto<UserVo> pageUsersName(PageQuery pageQuery);
+    public List<UserVo> getUsersByUserName(String userName);
 }

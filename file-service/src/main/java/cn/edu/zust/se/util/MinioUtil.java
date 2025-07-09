@@ -29,7 +29,6 @@ import java.util.concurrent.TimeUnit;
 public class MinioUtil {
     @Autowired
     private MinioConfig prop;
-
     @Resource
     private MinioClient minioClient;
 

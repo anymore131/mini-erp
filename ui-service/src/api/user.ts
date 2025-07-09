@@ -104,5 +104,12 @@ export const userApi = {
       method: 'post',
       data
     })
-  }
+  },
+  getUserIds(userName: String): Promise<PageResponse<UserInfo>> {
+    return request({
+      url: '/user/getUsersByUserName',
+      method: 'get',
+      params: { userName }
+    })
+  },
 }

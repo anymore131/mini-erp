@@ -8,5 +8,8 @@ import lombok.EqualsAndHashCode;
 public class ClientRfmQuery extends PageQuery{
     private Integer userId;
     private Integer clientId;
-    private String customerLevel;
+    private String tier;
+    private Integer isAnomaly;
+    private Integer cluster;
+    private Integer minChurnRisk;
 }

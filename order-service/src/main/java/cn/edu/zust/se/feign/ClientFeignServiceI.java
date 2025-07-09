@@ -24,4 +24,7 @@ public interface ClientFeignServiceI {
     @PostMapping("/updateClientSum/{id}/{amount}")
     String updateClientSum(@PathVariable("id") Integer id
             , @PathVariable("amount") Integer amount);
+
+    @GetMapping("/client-rfm/update")
+    void updateManual();
 }

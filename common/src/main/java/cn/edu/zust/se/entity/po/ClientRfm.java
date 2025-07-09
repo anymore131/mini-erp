@@ -23,38 +23,26 @@ public class ClientRfm implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @TableId(value = "client_id", type = IdType.NONE)
-    private Integer clientId;
+    private long clientId;
 
-    /**
-     * 最近一次消费时间
-     */
     @TableField("last_order_time")
     private LocalDateTime lastOrderTime;
 
-    /**
-     * 消费频率(订单数)
-     */
-    @TableField("order_frequency")
-    private long orderFrequency;
+    @TableField("Frequency")
+    private long frequency;
 
-    /**
-     * 消费总额(分)
-     */
-    @TableField("total_amount")
-    private Integer totalAmount;
+    @TableField("Monetary")
+    private double monetary;
 
-    /**
-     * RFM得分
-     */
-    @TableField("rfm_score")
-    private Integer rfmScore;
+    @TableField("cluster")
+    private int cluster;
 
-    /**
-     * 客户等级 (ABCD)
-     */
-    @TableField("customer_level")
-    private String customerLevel;
+    @TableField("tier")
+    private String tier;
 
-    @TableField("user_id")
-    private Integer userId;
+    @TableField("is_anomaly")
+    private long isAnomaly;
+
+    @TableField("churn_risk")
+    private double churnRisk;
 }

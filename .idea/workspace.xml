@@ -4,9 +4,57 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e4168fe6-e74f-48da-b1aa-1c11cd6c2e68" name="更改" comment="添加client功能">
+    <list default="true" id="e4168fe6-e74f-48da-b1aa-1c11cd6c2e68" name="更改" comment="文档">
+      <change afterPath="$PROJECT_DIR$/ai-service/anomaly_detector.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ai-service/churn_predictor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ai-service/clustering.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ai-service/data_connector.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ai-service/main.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ai-service/rfm_processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/config/RestTemplateConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/task/ClientRfmTask.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client-service/src/test/java/cn/edu/zust/se/service/impl/ClientRfmServiceImplTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sql/records.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sql/table.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/2dd31f30-3389-43d6-8550-439fae2a771f.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/2dd31f30-3389-43d6-8550-439fae2a771f.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sql/erp.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sql/erp.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/client-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/controller/ClientRfmController.java" beforeDir="false" afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/controller/ClientRfmController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/mapper/ClientRfmMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/mapper/ClientRfmMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/IClientRfmService.java" beforeDir="false" afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/IClientRfmService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/IClientService.java" beforeDir="false" afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/IClientService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/impl/ClientRfmServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/impl/ClientRfmServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/impl/ClientServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/client-service/src/main/java/cn/edu/zust/se/service/impl/ClientServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/client-service/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/java/cn/edu/zust/se/entity/po/ClientRfm.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/cn/edu/zust/se/entity/po/ClientRfm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/java/cn/edu/zust/se/entity/query/ClientRfmQuery.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/cn/edu/zust/se/entity/query/ClientRfmQuery.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/java/cn/edu/zust/se/entity/vo/ClientRfmVo.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/cn/edu/zust/se/entity/vo/ClientRfmVo.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/contract-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/contract-service/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/file-service/src/main/java/cn/edu/zust/se/util/MinioUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/file-service/src/main/java/cn/edu/zust/se/util/MinioUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/file-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/file-service/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/message-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/message-service/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/config/StpInterfaceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/config/StpInterfaceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/feign/ClientFallbackFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/feign/ClientFallbackFactory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/feign/ClientFeignServiceI.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/feign/ClientFeignServiceI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/service/impl/OrderServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/cn/edu/zust/se/service/impl/OrderServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sql/erp.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui-service/components.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/components.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui-service/src/api/client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/api/client.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui-service/src/api/user.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/api/user.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui-service/src/types/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/types/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui-service/src/views/Dashboard.vue" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/views/Dashboard.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui-service/src/views/Layout.vue" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/views/Layout.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui-service/src/views/client/ClientDetail.vue" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/views/client/ClientDetail.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui-service/src/views/client/ClientValue.vue" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/views/client/ClientValue.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui-service/src/views/user/UserDetail.vue" beforeDir="false" afterPath="$PROJECT_DIR$/ui-service/src/views/user/UserDetail.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user-service/src/main/java/cn/edu/zust/se/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/user-service/src/main/java/cn/edu/zust/se/controller/UserController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user-service/src/main/java/cn/edu/zust/se/service/IUserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/user-service/src/main/java/cn/edu/zust/se/service/IUserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user-service/src/main/java/cn/edu/zust/se/service/impl/UserServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/user-service/src/main/java/cn/edu/zust/se/service/impl/UserServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/user-service/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/系统集成与优化期末项目模块设计报告模板.doc" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,6 +103,7 @@
   &quot;keyToString&quot;: {
     &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
     &quot;HTTP 请求.rest-api | #1.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.ClientRfmServiceImplTest.testGetValueCustomers.executor&quot;: &quot;Run&quot;,
     &quot;JUnit.ClientServiceImplTest.testUserSignOut.executor&quot;: &quot;Run&quot;,
     &quot;JUnit.ElasticTest.testBulk.executor&quot;: &quot;Run&quot;,
     &quot;JUnit.ElasticTest.testConnection.executor&quot;: &quot;Run&quot;,
@@ -81,6 +130,7 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;Spring Boot.ClientApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.ContractApplication.executor&quot;: &quot;Run&quot;,
     &quot;Spring Boot.FileApplication.executor&quot;: &quot;Run&quot;,
     &quot;Spring Boot.GatewayApplication.executor&quot;: &quot;Run&quot;,
     &quot;Spring Boot.MessageApplication.executor&quot;: &quot;Run&quot;,
@@ -127,9 +177,9 @@
       <recent name="D:\program\JavaProgram\mini-erp\file-service\src\main\java\cn\edu\zust\se" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\program\JavaProgram\mini-erp" />
       <recent name="D:\program\JavaProgram\mini-erp\sql" />
       <recent name="D:\program\JavaProgram\mini-erp\user-service\src\test\java\cn\edu\zust\se\service" />
-      <recent name="D:\program\JavaProgram\mini-erp" />
     </key>
     <key name="CreateTestDialog.Recents.Supers">
       <recent name="junit.framework.TestCase" />
@@ -158,7 +208,23 @@
       </set>
     </option>
   </component>
-  <component name="RunManager" selected="Spring Boot.ClientApplication">
+  <component name="RunManager" selected="JUnit.ClientRfmServiceImplTest.testGetValueCustomers">
+    <configuration name="ClientRfmServiceImplTest.testGetValueCustomers" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="client-service" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="cn.edu.zust.se.service.impl.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="cn.edu.zust.se.service.impl" />
+      <option name="MAIN_CLASS_NAME" value="cn.edu.zust.se.service.impl.ClientRfmServiceImplTest" />
+      <option name="METHOD_NAME" value="testGetValueCustomers" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="ClientApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
       <module name="client-service" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="cn.edu.zust.se.ClientApplication" />
@@ -175,6 +241,19 @@
     <configuration name="ClientApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
       <module name="client-service" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="cn.edu.zust.se.ClientApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="cn.edu.zust.se.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ContractApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <module name="contract-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="cn.edu.zust.se.ContractApplication" />
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="cn.edu.zust.se.*" />
@@ -297,19 +376,23 @@
       </method>
     </configuration>
     <list>
+      <item itemvalue="JUnit.ClientRfmServiceImplTest.testGetValueCustomers" />
       <item itemvalue="Spring Boot.FileApplication" />
-      <item itemvalue="Spring Boot.UserApplication" />
-      <item itemvalue="Spring Boot.OrderApplication" />
       <item itemvalue="Spring Boot.ClientApplication" />
+      <item itemvalue="Spring Boot.ContractApplication" />
       <item itemvalue="Spring Boot.GatewayApplication" />
       <item itemvalue="Spring Boot.MessageApplication" />
+      <item itemvalue="Spring Boot.OrderApplication" />
+      <item itemvalue="Spring Boot.UserApplication" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Spring Boot.ClientApplication" />
+        <item itemvalue="Spring Boot.GatewayApplication" />
         <item itemvalue="Spring Boot.OrderApplication" />
         <item itemvalue="Spring Boot.UserApplication" />
-        <item itemvalue="Spring Boot.GatewayApplication" />
+        <item itemvalue="JUnit.ClientRfmServiceImplTest.testGetValueCustomers" />
+        <item itemvalue="Spring Boot.ContractApplication" />
         <item itemvalue="Spring Boot.MessageApplication" />
       </list>
     </recent_temporary>
@@ -366,7 +449,45 @@
       <workItem from="1735093103992" duration="2702000" />
       <workItem from="1735132438863" duration="931000" />
       <workItem from="1735193061787" duration="12900000" />
-      <workItem from="1735209518461" duration="12104000" />
+      <workItem from="1735209518461" duration="12212000" />
+      <workItem from="1735273595972" duration="2496000" />
+      <workItem from="1735277592616" duration="3301000" />
+      <workItem from="1735721773650" duration="1312000" />
+      <workItem from="1735724828582" duration="1925000" />
+      <workItem from="1735826304839" duration="10000" />
+      <workItem from="1735826419659" duration="27000" />
+      <workItem from="1735826519349" duration="153000" />
+      <workItem from="1735827508765" duration="134000" />
+      <workItem from="1735828039919" duration="91000" />
+      <workItem from="1736010414568" duration="47000" />
+      <workItem from="1736576970489" duration="255000" />
+      <workItem from="1739077872304" duration="476000" />
+      <workItem from="1739169260532" duration="24000" />
+      <workItem from="1739803740233" duration="2304000" />
+      <workItem from="1739868163881" duration="10000" />
+      <workItem from="1742714552741" duration="601000" />
+      <workItem from="1742719502929" duration="746000" />
+      <workItem from="1742731917430" duration="42000" />
+      <workItem from="1743069082835" duration="272000" />
+      <workItem from="1743146054133" duration="29000" />
+      <workItem from="1743319650948" duration="451000" />
+      <workItem from="1744446252750" duration="33000" />
+      <workItem from="1744446540442" duration="44000" />
+      <workItem from="1748184780069" duration="2245000" />
+      <workItem from="1748312498283" duration="467000" />
+      <workItem from="1748868618503" duration="243000" />
+      <workItem from="1749003063458" duration="81000" />
+      <workItem from="1749018999258" duration="954000" />
+      <workItem from="1749045082618" duration="10000" />
+      <workItem from="1749107295188" duration="13730000" />
+      <workItem from="1749200986941" duration="4806000" />
+      <workItem from="1749366177599" duration="15574000" />
+      <workItem from="1749386332883" duration="65000" />
+      <workItem from="1749453197477" duration="1655000" />
+      <workItem from="1749619242551" duration="770000" />
+      <workItem from="1750470626782" duration="116000" />
+      <workItem from="1751870523370" duration="1974000" />
+      <workItem from="1752026094725" duration="24000" />
     </task>
     <task id="LOCAL-00001" summary="创建项目">
       <option name="closed" value="true" />
@@ -560,7 +681,39 @@
       <option name="project" value="LOCAL" />
       <updated>1735221545760</updated>
     </task>
-    <option name="localTasksCounter" value="25" />
+    <task id="LOCAL-00025" summary="sql">
+      <option name="closed" value="true" />
+      <created>1735221757147</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1735221757147</updated>
+    </task>
+    <task id="LOCAL-00026" summary="完成订单">
+      <option name="closed" value="true" />
+      <created>1735275886902</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1735275886902</updated>
+    </task>
+    <task id="LOCAL-00027" summary="bug">
+      <option name="closed" value="true" />
+      <created>1735276625884</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1735276625884</updated>
+    </task>
+    <task id="LOCAL-00028" summary="文档">
+      <option name="closed" value="true" />
+      <created>1735727712527</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1735727712527</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -575,6 +728,17 @@
               <option name="CUSTOM_BOOLEAN_PROPERTIES">
                 <map>
                   <entry key="Show.Git.Branches" value="true" />
+                </map>
+              </option>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="master" />
+                      </list>
+                    </value>
+                  </entry>
                 </map>
               </option>
             </State>
@@ -594,6 +758,20 @@
     <MESSAGE value="修改bug" />
     <MESSAGE value="修改首页" />
     <MESSAGE value="添加client功能" />
-    <option name="LAST_COMMIT_MESSAGE" value="添加client功能" />
+    <MESSAGE value="sql" />
+    <MESSAGE value="完成订单" />
+    <MESSAGE value="bug" />
+    <MESSAGE value="文档" />
+    <option name="LAST_COMMIT_MESSAGE" value="文档" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <breakpoint enabled="true" type="java-exception">
+          <properties class="org.apache.ibatis.exceptions.TooManyResultsException" package="org.apache.ibatis.exceptions" />
+          <option name="timeStamp" value="1" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

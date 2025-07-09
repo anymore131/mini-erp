@@ -145,4 +145,9 @@ public class UserController {
     public Integer getUserIdByUserName(@PathVariable String userName){
         return userService.getUserByUserName(userName).getId();
     }
+
+    @GetMapping("/getUsersByUserName")
+    public SaResult getUsersByUserName(@RequestParam String userName){
+        return SaResult.data(userService.getUsersByUserName(userName));
+    }
 }

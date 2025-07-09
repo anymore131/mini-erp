@@ -1,5 +1,5 @@
 import request from '../utils/request'
-import type { PageResponse, ClientForm } from '../types'
+import type { PageResponse, ClientForm, PageResult, ClientRfm } from '../types'
 
 export interface ClientQuery {
   pageNum: number
@@ -40,7 +40,7 @@ export const clientApi = {
     })
   },
   // 获取客户详情
-  getClientDetail(id: number) {
+  getClientDetail(id: number | undefined) {
     return request({
       url: `/client/get/${id}`,
       method: 'get'
@@ -93,12 +93,16 @@ export const clientApi = {
       params: { userId }
     })
   },
-  // 更新RFM数据
-  updateRfm(userId?: number) {
+  getCustomerRfm(userId?: number) {
     return request({
-      url: '/client/client-rfm/update',
-      method: 'post',
-      params: { userId }
+      url: '/client/client-rfm/' + userId,
+      method: 'get'
+    })
+  },
+  getCustomerRfmAll() {
+    return request({
+      url: '/client/client-rfm/all',
+      method: 'get'
     })
   },
   // 获取高价值客户
@@ -106,12 +110,21 @@ export const clientApi = {
     pageNum: number
     pageSize: number
     userId?: number
-    customerLevel?: string
+    tier?: string
   }) {
-    return request({
+    return request<PageResult<ClientRfm[]>>({
       url: '/client/client-rfm/pageValue',
       method: 'post',
       data
     })
+  },
+  riskColor(riskValue: number) {
+    if (riskValue >= 80) {
+      return '#F56C6C' // 高风险红色
+    } else if (riskValue >= 50) {
+      return '#E6A23C' // 中风险橙色
+    } else {
+      return '#67C23A' // 低风险绿色
+    }
   }
 }

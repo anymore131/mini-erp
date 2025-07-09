@@ -66,7 +66,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         }
         Integer currentUserId = StpUtil.getLoginIdAsInt();
         if (orderQuery.getUserId() == null && !StpUtil.hasRole("admin")){
-            System.out.println(StpUtil.getRoleList());
             throw new InvalidInputException("用户id不能为空！");
         }
         if (!StpUtil.hasRole("admin") && !orderQuery.getUserId().equals(currentUserId)){
@@ -76,7 +75,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         if (orderQuery.getCreateTime()!= null){
             log.info(orderQuery.getCreateTime().substring(0,19).replace('T', ' '));
             orderQuery.setCreateTime(orderQuery.getCreateTime().substring(0,19).replace('T', ' '));
-
         }
         if (orderQuery.getUpdateTime()!= null){
             log.info(orderQuery.getUpdateTime().substring(0,19).replace('T', ' '));
@@ -85,7 +83,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         lambdaQuery()
                 .eq(orderQuery.getOrderNo() != null, Order::getOrderNo, orderQuery.getOrderNo())
                 .eq(orderQuery.getClientId() != null, Order::getClientId, orderQuery.getClientId())
-                .eq(orderQuery.getUserId() != null, Order::getUserId, orderQuery.getUserId())
+//                .eq(orderQuery.getUserId() != null, Order::getUserId, orderQuery.getUserId())
                 .eq(orderQuery.getStatus() != null, Order::getStatus, orderQuery.getStatus())
                 .ge(orderQuery.getMinAmount() != null, Order::getTotalAmount, orderQuery.getMinAmount())
                 .le(orderQuery.getMaxAmount() != null, Order::getTotalAmount, orderQuery.getMaxAmount())
@@ -322,6 +320,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         if (CollUtil.isEmpty(orders)){
             clientFeignService.toWaitting(clientId);
         }
+        Thread thread = new Thread(() -> {
+            clientFeignService.updateManual();
+        });
+        thread.start();
         return b? id : null;
     }
 
@@ -401,7 +403,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
                 .eq("client_id", clientId)
                 .orderByDesc("update_time")
                 .eq("status", "COMPLETED");
-        Order order = list(queryWrapper).get(1);
+        Order order = list(queryWrapper).get(0);
         if (order != null){
             return order.getCreateTime();
         }

@@ -31,4 +31,9 @@ class ClientFallback implements ClientFeignServiceI {
     public String updateClientSum(Integer id, Integer amount) {
         return "未知错误";
     }
+
+    @Override
+    public void updateManual() {
+
+    }
 }

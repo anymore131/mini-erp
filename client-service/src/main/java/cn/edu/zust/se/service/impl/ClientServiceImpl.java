@@ -335,6 +335,16 @@ public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> impleme
                 .list();
     }
 
+    @Override
+    public List<Integer> getAllClientIdsByUserId(Integer userId) {
+        return lambdaQuery()
+                .eq(true, Client::getUserId, userId)
+                .list()
+                .stream()
+                .map(Client::getId)
+                .toList();
+    }
+
 //    @Override
 //    public ClientOrderStatusDto getClientOrderStatus(Integer clientId) {
 //        ClientOrderStatusDto dto = new ClientOrderStatusDto();

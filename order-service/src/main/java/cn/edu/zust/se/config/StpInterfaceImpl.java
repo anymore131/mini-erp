@@ -24,7 +24,6 @@ public class StpInterfaceImpl implements StpInterface {
         int id = Integer.parseInt((String)loginId);
         String role = userFeignService.getRole(id);
         List<String> list = new ArrayList<String>();
-        System.out.println(role);
         if (role.equals("admin")){
             list.add("admin");
         }else{

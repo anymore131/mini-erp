@@ -255,4 +255,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         users.setList(userVos1);
         return users;
     }
+
+    @Override
+    public List<UserVo> getUsersByUserName(String userName) {
+        List<User> users = lambdaQuery()
+                .like(User::getUserName, userName)
+                .list();
+        if (users != null && !users.isEmpty()){
+            return users.stream()
+                    .map(user -> BeanUtil.copyProperties(user, UserVo.class))
+                    .toList();
+        }
+        return List.of();
+    }
 }

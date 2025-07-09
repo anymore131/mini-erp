@@ -14,9 +14,8 @@ import java.util.Map;
  * @since 2024-12-26
  */
 public interface IClientRfmService extends IService<ClientRfm> {
-    void updateAllRfmScores();
-    Map<String, Long> getCustomerLevelDistribution(Integer userId);
+    void updateManual();
     PageDto<ClientRfmVo> getValueCustomers(ClientRfmQuery clientRfmQuery);
-    void insertRfm(Integer clientId);
-    void updateRfmByUserId(Integer userId);
+    List<ClientRfmVo> getByUserId(Integer userId);
+    List<ClientRfmVo> getAll();
 }

@@ -15,8 +15,8 @@
           router
         >
           <el-menu-item index="/dashboard">
-            <el-icon><Odometer /></el-icon>
-            <span>工作台</span>
+            <el-icon></el-icon>
+            <span>首页</span>
           </el-menu-item>
 
           <el-menu-item index="/message">
