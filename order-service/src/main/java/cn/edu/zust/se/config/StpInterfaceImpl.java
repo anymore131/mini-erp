@@ -1,7 +1,6 @@
 package cn.edu.zust.se.config;
 
 import cn.dev33.satoken.stp.StpInterface;
-import cn.edu.zust.se.feign.ClientFeignServiceI;
 import cn.edu.zust.se.feign.UserFeignServiceI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,7 +22,7 @@ public class StpInterfaceImpl implements StpInterface {
     public List<String> getRoleList(Object loginId, String loginType) {
         int id = Integer.parseInt((String)loginId);
         String role = userFeignService.getRole(id);
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         if (role.equals("admin")){
             list.add("admin");
         }else{

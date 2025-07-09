@@ -1,6 +1,5 @@
 package cn.edu.zust.se.service;
 
-import cn.edu.zust.se.entity.dto.ClientOrderStatusDto;
 import cn.edu.zust.se.entity.dto.PageDto;
 import cn.edu.zust.se.entity.po.Client;
 import cn.edu.zust.se.entity.query.ClientQuery;
@@ -15,21 +14,21 @@ import java.util.Map;
  * @since 2024-12-18
  */
 public interface IClientService extends IService<Client> {
-    public PageDto<ClientVo> getClientVoPage(ClientQuery clientQuery);
-    public ClientVo getClientVoById(Integer id);
-    public List<ClientVo> getClientVoList(Integer userId);
-    public Long getCount(Integer userId);
-    public void userSignOut(Integer userId);
-    public ClientVo addClient(Client client);
-    public ClientVo updateClient(Client client);
-    public void deleteClient(Integer id);
-    public void changeUser(Integer clientId, Integer userIdm, String password);
-    public String getClientNameById(Integer id);
-    public String toWaitting(Integer id);
-    public String toCooperation(Integer id);
-    public String updateClientSum(Integer id,Integer amount);
-    public Map<String,Long> getOrderStatusDistribution(Integer userId);
-    public List<Client> getAllClientList(Integer userId);
-    public List<Integer> getAllClientIdsByUserId(Integer userId);
+    PageDto<ClientVo> getClientVoPage(ClientQuery clientQuery);
+    ClientVo getClientVoById(Integer id);
+    List<ClientVo> getClientVoList(Integer userId);
+    Long getCount(Integer userId);
+    void userSignOut(Integer userId);
+    ClientVo addClient(Client client);
+    ClientVo updateClient(Client client);
+    void deleteClient(Integer id);
+    void changeUser(Integer clientId, Integer userIdm, String password);
+    String getClientNameById(Integer id);
+    String toWaitting(Integer id);
+    String toCooperation(Integer id);
+    String updateClientSum(Integer id,Integer amount);
+    Map<String,Long> getOrderStatusDistribution(Integer userId);
+    List<Client> getAllClientList(Integer userId);
+    List<Integer> getAllClientIdsByUserId(Integer userId);
 //    ClientOrderStatusDto getClientOrderStatus(Integer clientId) ;
 }

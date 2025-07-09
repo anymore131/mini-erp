@@ -1,10 +1,8 @@
 package cn.edu.zust.se.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
-import cn.edu.zust.se.entity.dto.ClientOrderStatusDto;
 import cn.edu.zust.se.entity.dto.PageDto;
 import cn.edu.zust.se.entity.po.Client;
-import cn.edu.zust.se.entity.po.Order;
 import cn.edu.zust.se.entity.query.ClientQuery;
 import cn.edu.zust.se.entity.vo.ClientVo;
 import cn.edu.zust.se.enums.ClientStatusEnum;
@@ -61,7 +59,7 @@ public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> impleme
         for (Client record : records){
             int status = record.getStatus();
             ClientVo clientVo = BeanUtil.copyProperties(record, ClientVo.class);
-            clientVo.setStatus(ClientStatusEnum.fromCode(status).toString());
+            clientVo.setStatus(ClientStatusEnum.fromCode(status));
             clientVo.setUserName(userFeignService.getUserNameById(record.getUserId()));
             vos.add(clientVo);
         }
